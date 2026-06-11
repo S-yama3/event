@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>飴ちゃんコミュニケーション ｜ Ｎｅｗビジネスフェア</title>
+<title>これからの働き方（ライブオフィス） ｜ Ｎｅｗビジネスフェア</title>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght=700;800&display=swap" rel="stylesheet">
 
 <style>
@@ -11,7 +11,7 @@
   --bg-color: #fdf6ff;
   --primary: #ffadd2;    /* ピンク */
   --secondary: #95deea;  /* 青（水色） */
-  --accent: #fff3bf;     /* 黄色 */
+  --accent: #fff3bf;      /* 黄色 */
   --green: #c2f0af;      /* 緑 */
   --purple: #d3bfff;     /* 紫 */
   --text-color: #4a4a4a;
@@ -64,12 +64,12 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .hero { text-align: center; padding: 40px 20px; }
 .hero h1 { font-size: clamp(24px, 6vw, 42px); line-height: 1.4; margin: 0 0 10px 0; }
 .hero h1 span {
-  display: inline-block; background: var(--primary);
+  display: inline-block; background: #ffd43b; /* 画像に合わせた少し濃い黄色・オレンジ寄り */
   padding: 5px 15px; border: 4px solid var(--border-color);
   box-shadow: 6px 6px 0px var(--border-color);
   transform: rotate(-1deg); margin: 5px;
 }
-.hero p { font-size: clamp(14px, 4vw, 18px); margin: 15px 0 0 0; font-weight: bold; }
+.hero p { font-size: clamp(14px, 4vw, 18px); margin: 15px 0 0 0; font-weight: bold; line-height: 1.6; }
 
 /* コンテンツカードベース */
 .cards-vertical { display: flex; flex-direction: column; align-items: center; gap: 60px; padding: 40px 20px 100px; }
@@ -101,10 +101,6 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
 .card-image { flex: 1; min-height: 300px; background: #eee; }
 .card-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-/* リストスタイル（カード内用） */
-.point-list { padding-left: 20px; margin: 0; }
-.point-list li { margin-bottom: 8px; font-weight: bold; }
 
 /* ページ下部ボタン */
 .btn-area { text-align: center; margin-bottom: 100px; }
@@ -139,7 +135,6 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 </head>
 <body>
 
-<!-- 背景装飾 -->
 <div class="deco deco-pink"></div>
 <div class="deco deco-blue"></div>
 <div class="deco deco-yellow"></div>
@@ -152,49 +147,39 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 </nav>
 
 <section class="hero">
-  <h1><span>飴ちゃん食べ！</span>コミュニケーション</h1>
-  <p>たった1つの飴ちゃんが、職場の空気とコミュニケーションを激変させる！？</p>
+  <h1>これからの働き方<br>リアルに体感！<span>進化系ライブオフィス公開</span></h1>
+  <p>カタログだけでは分からない、社員が実際に働く「生きた空間」をご案内。<br>コミュニケーションを活性化させる仕掛けが満載です。</p>
 </section>
 
 <section class="cards-vertical">
 
-  <!-- セクション1 -->
   <div class="card slide-in-left">
     <div class="card-text">
-      <h3>オフィスの救世主！飴ちゃんパワー</h3>
-      <p>「飴ちゃん食べる？」のその一言から、新しいアイデアや気軽な相談が始まります。デスクワークにちょっと疲れた時、糖分補給と同時に生まれる「会話のきっかけ」をデザインしました。</p>
-      <ul class="point-list">
-        <li>言葉の壁や緊張をほぐす「コミュニケーションの潤滑油」</li>
-        <li>ちょっとした会話から「相談しやすい関係」を構築</li>
-        <li>オフィスのあちこちに散りばめられた小さなハッピー</li>
-      </ul>
+      <h3>☆効率とモチベーションを両立レイアウト</h3>
+      <p>日々の業務の処理効率を高める動線設計と、自然とやる気が湧くような空間デザインを融合。働く人の心理的な心地よさと、実務のスピード感をしっかりと両立させる新しいワークスペース構築のアプローチをご紹介します。</p>
     </div>
     <div class="card-image">
-      <img src="https://images.unsplash.com/photo-1597733336794-12d05021d510?auto=format&fit=crop&q=80&w=600" alt="飴ちゃんイメージ">
+      <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=600" alt="モダンで明るいオフィスのイメージ">
     </div>
   </div>
 
-  <!-- セクション2 -->
   <div class="card reverse slide-in-right">
     <div class="card-text">
-      <h3 class="blue-line">心理的安全性をつくる会話の極意</h3>
-      <p>大阪のおばちゃん文化に学ぶ「飴ちゃんコミュニティ」のエッセンスをビジネス向けに応用！おやつを共有する行為は、生物学的にも「敵対していない証明」になり、チームの相互理解や帰属意識を高める効果があります。</p>
-      <p>ちょっと硬い会議の前に、お気に入りの飴をテーブルに置くだけで、会議の発言率が向上するというデータも！</p>
+      <h3 class="blue-line">☆Web会議のストレスをなくす最新ブース</h3>
+      <p>オンラインミーティングの増加に伴い、周囲への音漏れや雑音に悩む声が増えています。遮音性と通気性を兼ね備え、視覚的にも周囲から適度に遮断された、リモートワーク時代に必須となるワークブース環境の最前線を提案します。</p>
     </div>
     <div class="card-image">
-      <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=600" alt="チームコミュニケーション">
+      <img src="https://images.unsplash.com/photo-1542744094-3a31f103e35f?auto=format&fit=crop&q=80&w=600" alt="ミーティングスペースのイメージ">
     </div>
   </div>
 
-  <!-- セクション3 -->
   <div class="card slide-in-left">
     <div class="card-text">
-      <h3 class="purple-line">ブースで配る！特選飴ちゃんリスト</h3>
-      <p>当フェアのブースでは、会話が弾むおいしい特製飴ちゃんをご用意しています。定番の「懐かしの黄金ミルク」から、一風変わった「クマ除けミント（！？）」まで各種取り揃えてお待ちしております。</p>
-      <p>立ち寄るだけで元気になれる！コミュニケーション活性化の成功事例もこっそりお教えしますので、ぜひお越しください。</p>
+      <h3 class="purple-line">☆フリーアドレスを成功させるコツ</h3>
+      <p>「導入したけれど、結局席が固定化してしまう」という課題をクリアにするための運用ヒントを解説。座席の選択を自然に促す家具の配置や、社員同士の偶発的なコミュニケーションを生み出す仕組みづくりのノウハウをご紹介します。</p>
     </div>
     <div class="card-image">
-      <img src="https://images.unsplash.com/photo-1581798459219-318e76aecc7b?auto=format&fit=crop&q=80&w=600" alt="色々なお菓子イメージ">
+      <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=600" alt="チームコミュニケーションのイメージ">
     </div>
   </div>
 
