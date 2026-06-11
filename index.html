@@ -156,7 +156,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .form-card { display: block; margin-bottom: 100px; width: 100%; }
 
 /* ========================================================
-   🚀 変更：画面中央の高さに固定する「申込ボタン」
+   🚀 画面中央の高さに固定する「申込ボタン」
    ======================================================== */
 .shortcut-entry-btn {
   position: fixed;
@@ -205,7 +205,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 }
 
 /* ========================================================
-   🔒 ログインモーダル（レスポンシブ完全対応）
+   🔒 ログインモーダル
    ======================================================== */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.5);
@@ -246,7 +246,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .error-msg { color: #ff5c5c; font-size: 0.85rem; font-weight: bold; margin-bottom: 15px; display: none; }
 
 /* ========================================================
-   📱 レスポンシブメディアクエリ (タブレット・スマホ調整)
+   📱 レスポンシブメディアクエリ
    ======================================================== */
 @media (max-width: 1024px) {
   nav { padding: 20px 30px; }
@@ -323,10 +323,10 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
   <section class="hero">
     <h1><span>7月17日(金) 開催</span><br><span>Ｎｅｗ</span>ビジネス<span>フェア</span></h1>
-    <p style="font-size: 18px; color: #ff5c7c; background: #fff; display: inline-block; padding: 5px 15px; border: 2px dashed var(--border-color); border-radius: 10px; margin-top: 10px;">
+    <p style="font-size: 16px; color: #ff5c7c; background: #fff; display: inline-block; padding: 6px 16px; border: 2px dashed var(--border-color); border-radius: 12px; margin-top: 10px; font-weight: bold;">
       🎁 Check! 当日アンケート回答ですてきなギフトが抽選であたる！！
     </p>
-    <p>【時間】10:00～17:00<br>【場所】仙台山三本社（仙台市若林区卸町2丁目5-9）</p>
+    <p style="margin-top: 15px;">【時間】10:00～17:00<br>【場所】仙台山三本社（仙台市若林区卸町2丁目5-9）</p>
   </section>
 
   <div class="slider-container">
@@ -345,23 +345,20 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
   <section class="cards-vertical">
     
-    <a href="content_seminar1.html" class="card reverse slide-in-right card-link">
+    <div class="card slide-in-left">
       <div class="card-text">
-        <span style="background: #5c7cfa; color: white; padding: 3px 10px; border-radius: 5px; font-weight: bold; font-size: 12px;">セミナー1 (11:00～)</span>
-        <h3 style="margin-top: 5px;">AI活用による1on1の質的向上とエンゲージメント向上へのアプローチ <span class="badge">詳しく見る 👉</span></h3>
-        <p>【講師】TONOME株式会社 代表取締役CEO プロコーチ 小笠原 広大 氏</p>
+        <h3 style="border-bottom: 4px solid var(--purple);">✨ 注目のイベント特別セミナー</h3>
+        <p style="margin-top: 15px; font-weight: bold; color: #1a73e8;">【セミナー1】 11:00～</p>
+        <p style="font-size: 15px; font-weight: 800; margin: 4px 0;">AI活用による1on1の質的向上とエンゲージメント向上へのアプローチ</p>
+        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">講師：TONOME株式会社 代表取締役CEO プロコーチ 小笠原 広大 氏</p>
+        
+        <div style="border-top: 2px dashed #ccc; margin: 15px 0;"></div>
+        
+        <p style="font-weight: bold; color: #e91e63;">【セミナー2】 14:00～</p>
+        <p style="font-size: 15px; font-weight: 800; margin: 4px 0;">ライオン事務器がお届けするエンゲージメントを高める ”ワーキングプレイス”</p>
+        <p style="font-size: 13px; color: #666;">講師：株式会社ライオン事務器</p>
       </div>
-      <div class="card-image"><img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&q=80&w=600"></div>
-    </a>
-
-    <a href="content_seminar2.html" class="card slide-in-left card-link">
-      <div class="card-text">
-        <span style="background: #ff6b6b; color: white; padding: 3px 10px; border-radius: 5px; font-weight: bold; font-size: 12px;">セミナー2 (14:00～)</span>
-        <h3 style="margin-top: 5px;">ライオン事務器がお届けするエンゲージメントを高める ”ワーキングプレイス” <span class="badge">詳しく見る 👉</span></h3>
-        <p>【講師】株式会社ライオン事務器</p>
-      </div>
-      <div class="card-image"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=600"></div>
-    </a>
+    </div>
 
     <a href="content1.html" class="card reverse slide-in-right card-link">
       <div class="card-text">
@@ -393,7 +390,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
     <div class="card slide-in-left">
       <div class="card-text">
         <h3>お楽しみフードも充実！キッチンカーがやってくる！</h3>
-        <p>お仕事のヒントを見つけた後は、美味しいグルメでほっと一息。人気のキッチンカーが限定メニューをご用意して皆様をお待ちしています。</p>
+        <p>お仕事 of ヒントを見つけた後は、美味しいグルメでほっと一息。人気のキッチンカーが限定メニューをご用意して皆様をお待ちしています。</p>
         <p style="font-size: 13px; font-weight: bold; margin-top: 10px; color: #e91e63;">※ご参加にはサイトからのエントリー（事前登録）が必要です</p>
       </div>
       <div class="card-image"><img src="https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?auto=format&fit=crop&q=80&w=600"></div>
@@ -494,7 +491,6 @@ function toggleForm(e) {
   setFormOpenState(isCurrentlyClosed);
 }
 
-/* 🌟 ボタンが画面右中央のままスクロール追従＆自動展開するロジック */
 function scrollToAndOpenForm(e) {
   e.stopPropagation();
   const entryFormSection = document.getElementById('entryFormSection');
