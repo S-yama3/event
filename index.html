@@ -202,28 +202,52 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   box-shadow: 2px 2px 0px var(--border-color);
 }
 
-/* 💬 左右の吹き出し風コンテナレイアウト */
+/* ========================================================
+   💬 【修正】重要とCHECK欄を縦2行並びにする設定
+   ======================================================== */
 .hero-badges-container {
   display: flex;
-  justify-content: center;
-  gap: 25px;
-  max-width: 850px;
+  flex-direction: column; /* 👈 PC・スマホ問わず縦並びに固定 */
+  gap: 20px;
+  max-width: 700px;       /* 縦並びで見栄えが良いように横幅を少しスマートに制限 */
   margin: 35px auto 0;
+  padding: 0 15px;
+  box-sizing: border-box;
 }
 .bubble-alert {
-  flex: 1;
   background: #fff;
   border: 3px solid var(--border-color);
-  border-radius: 24px;
-  padding: 18px;
+  border-radius: 20px;
+  padding: 20px;
   box-shadow: 6px 6px 0px var(--border-color);
   position: relative;
   font-weight: 800;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
+  text-align: left;       /* 文章を左寄せにして読みやすく */
 }
-.bubble-alert.left { background-color: #fffdf0; border-bottom-left-radius: 4px; }
-.bubble-alert.right { background-color: #f6f0ff; border-bottom-right-radius: 4px; }
+
+/* 🚨 【新規】重要欄の点滅（ブリンク）アニメーション */
+.bubble-alert.left {
+  background-color: #fffdf0;
+  animation: neobrutalism-blink 1.8s infinite ease-in-out; /* 1.8秒周期でマイルドにループ点滅 */
+}
+.bubble-alert.right { 
+  background-color: #f6f0ff; 
+}
+
+@keyframes neobrutalism-blink {
+  0%, 100% {
+    background-color: #fffdf0;
+    border-color: var(--border-color);
+    box-shadow: 6px 6px 0px var(--border-color);
+  }
+  50% {
+    background-color: #ffeef4; /* 点滅時にほんのり赤みがかった警告色に変化 */
+    border-color: #ff3366;     /* 枠線も「重要」の文字色と連動 */
+    box-shadow: 6px 6px 0px #ff3366;
+  }
+}
 
 
 /* 🌟 メインスライダー（お知らせバナー） */
@@ -395,7 +419,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   
   .slider-container { height: 280px; }
   
-  /* ❗ ブラウザビューは変えず、スマホ表示のみカードを縦並びに */
+  /* スマホ表示のみカードを縦並びに */
   .card, .card.reverse { flex-direction: column; align-items: stretch; }
   .card-image { min-height: 180px; max-height: 220px; order: -1; }
   .card-text { padding: 25px 20px; }
@@ -424,13 +448,6 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   }
   .shortcut-entry-btn .icon {
     font-size: 20px;
-  }
-
-  /* 吹き出しをスマホ時に縦並びにする設定 */
-  .hero-badges-container {
-    flex-direction: column;
-    gap: 15px;
-    padding: 0 10px;
   }
 }
 </style>
@@ -488,7 +505,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
       7月17日<span class="weekday">(金)</span> <span class="time">10:00～17:00 開催</span>
     </div>
     
-    <a href="https://maps.google.com/?cid=10393305927793974716&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ?q=38.25401848532476,140.92433925123342" target="_blank" rel="noopener noreferrer" class="info-location-link" onclick="event.stopPropagation();">
+    <a href="https://maps.google.com/?q=38.25401848532476,140.92433925123342" target="_blank" rel="noopener noreferrer" class="info-location-link" onclick="event.stopPropagation();">
       <div class="info-location">
         📍 場所：仙台山三本社（仙台市若林区卸町2丁目5-9）
       </div>
@@ -496,12 +513,12 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
     <div class="hero-badges-container">
       <div class="bubble-alert left">
-        <span style="color: #ff3366; font-size: 16px;">⚠️ 【重要】</span><br>
-        本イベントへのご来場には、事前のエントリー（登録）が必要です。下のフォームから登録をお願いします。
+        <span style="color: #ff3366; font-size: 24px;">⚠️ 【重要】</span><br>
+        本イベントへのご来場には、事前エントリー（登録）が必要です。<br>下のフォームから登録をお願いします。
       </div>
       <div class="bubble-alert right">
-        <span style="color: #ff9900; font-size: 16px;">🎁 Check!</span><br>
-        当日アンケート回答ですてきなギフトが抽選であたらチャンスも！！
+        <span style="color: #ff9900; font-size: 24px;">🎁 Check!</span><br>
+        当日アンケート回答ですてきなギフトが抽選であたるチャンスも！！
       </div>
     </div>
   </section>
@@ -642,7 +659,12 @@ function dotClick(idx, e) {
   e.stopPropagation();
   currentSlide = idx;
   updateSliderUI();
-  startMainSliderTimer();
+  startMainTimer();
+}
+
+function startMainTimer() {
+  clearInterval(autoTimer);
+  autoTimer = setInterval(() => { currentSlide++; updateSliderUI(); }, 5000);
 }
 
 function setFormOpenState(isOpen) {
@@ -674,22 +696,17 @@ function toggleForm(e) {
 function scrollToAndOpenForm(e) {
   e.stopPropagation();
 
-  // 既に開いているか確認
   const formContent = document.getElementById('form-content');
   const isClosed =
     formContent.style.height === '0px' ||
     formContent.style.height === '';
 
-  // 閉じていたら先に開く
   if (isClosed) {
     setFormOpenState(true);
   }
 
-  // 展開完了後にスクロール
   setTimeout(() => {
-
     const iframe = document.querySelector('#form-content iframe');
-
     if (iframe) {
       iframe.scrollIntoView({
         behavior: 'smooth',
@@ -701,9 +718,9 @@ function scrollToAndOpenForm(e) {
         block: 'start'
       });
     }
-
   }, 600);
 }
+
 function initScrollAnimation() {
   const targetCards = document.querySelectorAll('.card, .form-card');
   const observerOptions = { root: null, rootMargin: '0px', threshold: 0.05 };
