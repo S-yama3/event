@@ -82,7 +82,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
 
 /* ========================================================
-   ✨ 【新規】画像再現：新ヘッダー・ロゴデザイン
+   ✨ 画像再現：新ヘッダー・ロゴデザイン
    ======================================================== */
 .new-hero {
   text-align: center;
@@ -171,6 +171,14 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   border-radius: 8px;
   vertical-align: middle;
 }
+
+/* 📍 場所リンクのラッパー */
+.info-location-link {
+  text-decoration: none;
+  color: inherit;
+  display: inline-block;
+  margin-top: 10px;
+}
 .info-location {
   font-size: clamp(13px, 3.5vw, 16px);
   font-weight: 800;
@@ -180,7 +188,18 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   border-radius: 50px;
   display: inline-block;
   box-shadow: 4px 4px 0px var(--border-color);
-  margin-top: 10px;
+  cursor: pointer;
+  transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.1s ease, background-color 0.2s ease;
+}
+/* マップリンクのネオブルホバー・アクティブエフェクト */
+.info-location-link:hover .info-location {
+  transform: translate(-3px, -3px);
+  box-shadow: 7px 7px 0px var(--border-color);
+  background-color: var(--accent); /* ホバー時に黄色に変化 */
+}
+.info-location-link:active .info-location {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--border-color);
 }
 
 /* 💬 左右の吹き出し風コンテナレイアウト */
@@ -469,9 +488,11 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
       7月17日<span class="weekday">(金)</span> <span class="time">10:00～17:00 開催</span>
     </div>
     
-    <div class="info-location">
-      📍 場所：仙台山三本社（仙台市若林区卸町2丁目5-9）
-    </div>
+    <a href="https://maps.google.com/?cid=10393305927793974716&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ?q=38.25401848532476,140.92433925123342" target="_blank" rel="noopener noreferrer" class="info-location-link" onclick="event.stopPropagation();">
+      <div class="info-location">
+        📍 場所：仙台山三本社（仙台市若林区卸町2丁目5-9）
+      </div>
+    </a>
 
     <div class="hero-badges-container">
       <div class="bubble-alert left">
@@ -480,7 +501,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
       </div>
       <div class="bubble-alert right">
         <span style="color: #ff9900; font-size: 16px;">🎁 Check!</span><br>
-        当日アンケート回答ですてきなギフトが抽選であたるチャンスも！！
+        当日アンケート回答ですてきなギフトが抽選であたらチャンスも！！
       </div>
     </div>
   </section>
