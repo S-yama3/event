@@ -160,9 +160,9 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
    ======================================================== */
 .shortcut-entry-btn {
   position: fixed;
-  top: 50%; /* 画面中央の高さ */
+  top: 50%;
   right: 30px;
-  transform: translateY(-50%) scale(0.8); /* 高さを完全にセンター合わせ */
+  transform: translateY(-50%) scale(0.8);
   width: 90px;
   height: 90px;
   border-radius: 50%;
@@ -184,10 +184,9 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   pointer-events: none;
   transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, background-color 0.2s ease;
 }
-/* スクロールされたら付与するクラス */
 .shortcut-entry-btn.visible {
   opacity: 1;
-  transform: translateY(-50%) scale(1); /* センター配置を維持したまま表示 */
+  transform: translateY(-50%) scale(1);
   pointer-events: auto;
 }
 .shortcut-entry-btn:hover {
@@ -323,10 +322,17 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
   <section class="hero">
     <h1><span>7月17日(金) 開催</span><br><span>Ｎｅｗ</span>ビジネス<span>フェア</span></h1>
-    <p style="font-size: 16px; color: #ff5c7c; background: #fff; display: inline-block; padding: 6px 16px; border: 2px dashed var(--border-color); border-radius: 12px; margin-top: 10px; font-weight: bold;">
-      🎁 Check! 当日アンケート回答ですてきなギフトが抽選であたる！！
-    </p>
-    <p style="margin-top: 15px;">【時間】10:00～17:00<br>【場所】仙台山三本社（仙台市若林区卸町2丁目5-9）</p>
+    
+    <div style="margin-top: 15px; display: inline-block; max-width: 600px; text-align: center;">
+      <p style="font-size: 15px; color: #ff3366; background: #fff; padding: 8px 16px; border: 3px solid var(--border-color); box-shadow: 4px 4px 0px var(--border-color); border-radius: 12px; font-weight: 800; margin: 0 0 10px 0;">
+        ⚠️ 【重要】本イベントへのご来場には、事前のエントリー（登録）が必要です。
+      </p>
+      <p style="font-size: 14px; color: #4a4a4a; background: #fff3bf; display: inline-block; padding: 5px 12px; border: 2px dashed var(--border-color); border-radius: 8px; margin: 0; font-weight: bold;">
+        🎁 Check! 当日アンケート回答ですてきなギフトが抽選であたる！！
+      </p>
+    </div>
+    
+    <p style="margin-top: 20px;">【時間】10:00～17:00<br>【場所】仙台山三本社（仙台市若林区卸町2丁目5-9）</p>
   </section>
 
   <div class="slider-container">
@@ -390,9 +396,8 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
     <div class="card slide-in-left">
       <div class="card-text">
         <h3>お楽しみフードも充実！キッチンカーがやってくる！</h3>
-        <p>お仕事 of ヒントを見つけた後は、美味しいグルメでほっと一息。人気のキッチンカーが限定メニューをご用意して皆様をお待ちしています。</p>
-        <p style="font-size: 13px; font-weight: bold; margin-top: 10px; color: #e91e63;">※ご参加にはサイトからのエントリー（事前登録）が必要です</p>
-      </div>
+        <p>お仕事のヒントを見つけた後は、美味しいグルメでほっと一息。人気のキッチンカーが限定メニューをご用意して皆様をお待ちしています。</p>
+        </div>
       <div class="card-image"><img src="https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?auto=format&fit=crop&q=80&w=600"></div>
     </div>
 
