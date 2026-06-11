@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ITインフラとクラウド環境 ｜ Ｎｅｗビジネスフェア</title>
+<title>オフィスの防災対策 ｜ Ｎｅｗビジネスフェア</title>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght=700;800&display=swap" rel="stylesheet">
 
 <style>
@@ -11,7 +11,7 @@
   --bg-color: #fdf6ff;
   --primary: #ffadd2;    /* ピンク */
   --secondary: #95deea;  /* 青（水色） */
-  --accent: #fff3bf;     /* 黄色 */
+  --accent: #fff3bf;      /* 黄色 */
   --green: #c2f0af;      /* 緑 */
   --purple: #d3bfff;     /* 紫 */
   --text-color: #4a4a4a;
@@ -64,12 +64,12 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .hero { text-align: center; padding: 40px 20px; }
 .hero h1 { font-size: clamp(24px, 6vw, 42px); line-height: 1.4; margin: 0 0 10px 0; }
 .hero h1 span {
-  display: inline-block; background: var(--primary);
+  display: inline-block; background: #a9e34b; /* 画像の黄緑色に近い鮮やかなライトグリーン */
   padding: 5px 15px; border: 4px solid var(--border-color);
   box-shadow: 6px 6px 0px var(--border-color);
   transform: rotate(-1deg); margin: 5px;
 }
-.hero p { font-size: clamp(14px, 4vw, 18px); margin: 15px 0 0 0; font-weight: bold; }
+.hero p { font-size: clamp(14px, 4vw, 18px); margin: 15px 0 0 0; font-weight: bold; line-height: 1.6; }
 
 /* コンテンツカードベース */
 .cards-vertical { display: flex; flex-direction: column; align-items: center; gap: 60px; padding: 40px 20px 100px; }
@@ -101,10 +101,6 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
 .card-image { flex: 1; min-height: 300px; background: #eee; }
 .card-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-/* リストスタイル（カード内用） */
-.point-list { padding-left: 20px; margin: 0; }
-.point-list li { margin-bottom: 8px; font-weight: bold; }
 
 /* ページ下部ボタン */
 .btn-area { text-align: center; margin-bottom: 100px; }
@@ -139,7 +135,6 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 </head>
 <body>
 
-<!-- 背景装飾 -->
 <div class="deco deco-pink"></div>
 <div class="deco deco-blue"></div>
 <div class="deco deco-yellow"></div>
@@ -152,49 +147,39 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 </nav>
 
 <section class="hero">
-  <h1><span>ITインフラとクラウド環境</span>について</h1>
-  <p>目に見えないけれど、最も重要なビジネスの土台をポップかつセキュアに構築！</p>
+  <h1>「もしも」の時に<br>社員と会社を守る！<span>今すぐ始めるオフィスの防災対策</span></h1>
+  <p>いつ起こるか分からない災害への備え。<br>準備からオフィスの安全対策まで、企業の安全配慮義務に応えるソリューションをご紹介。</p>
 </section>
 
 <section class="cards-vertical">
 
-  <!-- セクション1 -->
   <div class="card slide-in-left">
     <div class="card-text">
-      <h3>オフィスのネットワークを見直そう</h3>
-      <p>「最近オフィスのWi-Fiが遅い…」「途切れて仕事にならない！」それはインフラの設計不足が原因かもしれません。私たちは配線整理から高速ルーターの設置、レイアウトに合わせた電波設計までワンストップでサポートします。</p>
-      <ul class="point-list">
-        <li>ケーブルのぐちゃぐちゃを解決する配線レス化</li>
-        <li>大人数でもサクサク繋がる高性能アクセスポイント</li>
-        <li>ゲスト用と業務用の回線を分ける安全設計</li>
-      </ul>
+      <h3>☆避難経路確保の為の什器転倒防止対策</h3>
+      <p>大地震発生時、オフィスの大型キャビネットやデスクの転倒は重大なケガにつながるだけでなく、脱出ルートを塞ぐ原因になります。レイアウトの工夫や固定金具のアプローチなど、日常の業務効率を損なわずに安全性を高める対策をご提案します。</p>
     </div>
     <div class="card-image">
-      <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc51?auto=format&fit=crop&q=80&w=600" alt="サーバーイメージ">
+      <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=600" alt="整理された安全なオフィスの棚イメージ">
     </div>
   </div>
 
-  <!-- セクション2 -->
   <div class="card reverse slide-in-right">
     <div class="card-text">
-      <h3 class="blue-line">クラウド移行でどこでもオフィスに</h3>
-      <p>社内の大切なデータをクラウドへ引っ越すことで、出張先や自宅からでも安全かつリアルタイムにファイル共有が可能になります。サーバー運用のコストを劇的に抑えつつ、災害時（BCP）のデータ消失リスクも回避できます。</p>
-      <p>「何から手をつけて良いか分からない」という初心者企業様にも、最適な移行ステップをわかりやすくご提案！</p>
+      <h3 class="blue-line">☆最新の非常食などの備蓄品選び</h3>
+      <p>災害発生後、従業員が数日間オフィスに留まらざるを得ない状況を想定した備えが必要です。スペースを取らずに長期保存ができる最新の非常食や、衛生面・プライバシーに配慮した簡易トイレなど、企業の規模や環境に合わせた最適な備蓄選定をサポートします。</p>
     </div>
     <div class="card-image">
-      <img src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=80&w=600" alt="ネットワーククラウドイメージ">
+      <img src="https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=600" alt="救急・備蓄パックのイメージ">
     </div>
   </div>
 
-  <!-- セクション3 -->
   <div class="card slide-in-left">
     <div class="card-text">
-      <h3 class="purple-line">ウイルスやサイバー攻撃から会社をガード</h3>
-      <p>近年激増しているランサムウェア（身代金要求型ウイルス）やなりすましメール。これらは企業の経営権すら脅かす脅威です。私たちは強力かつ運用が簡単な統合セキュリティソリューションをブースにて実演中！</p>
-      <p>「もしも」の時の備えはITも同じ。最新のアンチウイルスとバックアップ環境で、会社の信頼をしっかり防衛しましょう。</p>
+      <h3 class="purple-line">☆防災マニュアルと連絡網の構築</h3>
+      <p>ハード面の備えだけでなく、「いざという時に全員がどう動くか」というソフト面の計画が重要です。混乱時でも機能する安否確認システムや、実用的な初動マニュアルの策定など、組織全体が迷わず行動できる体制づくりをご紹介します。</p>
     </div>
     <div class="card-image">
-      <img src="https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&q=80&w=600" alt="セキュアイメージ">
+      <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=600" alt="ミーティング・計画策定のイメージ">
     </div>
   </div>
 
