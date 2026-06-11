@@ -296,8 +296,8 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   font-size: 13px;
   color: var(--text-color);
   text-decoration: none;
-  opacity: 0;
-  pointer-events: none;
+  opacity: 1;
+  pointer-events: auto;
   transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, background-color 0.2s ease;
 }
 .shortcut-entry-btn.visible {
@@ -601,8 +601,12 @@ function updateSliderUI() {
 
 function exitIntro() {
   clearInterval(countdownInterval);
+
   introLayer.classList.add('slide-up');
   isIntro = false;
+
+  shortcutBtn.classList.add('visible');
+
   startMainSliderTimer();
 }
 
@@ -648,23 +652,37 @@ function toggleForm(e) {
 
 function scrollToAndOpenForm(e) {
   e.stopPropagation();
-  const entryFormSection = document.getElementById('entryFormSection');
-  entryFormSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  
-  setTimeout(() => {
+
+  // 既に開いているか確認
+  const formContent = document.getElementById('form-content');
+  const isClosed =
+    formContent.style.height === '0px' ||
+    formContent.style.height === '';
+
+  // 閉じていたら先に開く
+  if (isClosed) {
     setFormOpenState(true);
-  }, 400); 
-}
-
-window.addEventListener('scroll', () => {
-  if (isIntro) return; 
-  if (window.scrollY > 200) {
-    shortcutBtn.classList.add('visible');
-  } else {
-    shortcutBtn.classList.remove('visible');
   }
-});
 
+  // 展開完了後にスクロール
+  setTimeout(() => {
+
+    const iframe = document.querySelector('#form-content iframe');
+
+    if (iframe) {
+      iframe.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    } else {
+      document.getElementById('entryFormSection').scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+
+  }, 600);
+}
 function initScrollAnimation() {
   const targetCards = document.querySelectorAll('.card, .form-card');
   const observerOptions = { root: null, rootMargin: '0px', threshold: 0.05 };
