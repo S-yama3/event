@@ -17,6 +17,7 @@
   --purple: #d3bfff;     /* 紫 */
   --text-color: #4a4a4a;
   --border-color: #333;
+  --ticker-height: 40px; /* 固定アナウンスの高さ */
 }
 
 /* 🌟 基本的なリセットとレイアウト設定 */
@@ -27,6 +28,48 @@ body {
   color: var(--text-color);
   overflow-x: hidden; /* 横はみ出しによるガタつきを完全に防止 */
   -webkit-text-size-adjust: 100%; /* iOSでの文字サイズ自動変化を防止 */
+  padding-top: var(--ticker-height); /* 固定ヘッダーの分だけコンテンツを下げる */
+}
+
+/* 🌟 上部固定のスクロールアナウンス（無限エンドレスループ改良版） */
+.fixed-ticker {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--ticker-height);
+  background-color: #ff3366; /* 目立つネオブル風の赤 */
+  color: #ffffff;            /* 白文字 */
+  z-index: 2999;             /* モーダルやイントロより前面、ただし起動時を邪魔しない配置 */
+  border-bottom: 3px solid var(--border-color);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  overflow: hidden;          /* 枠外の文字を隠す */
+}
+
+/* 文字列全体を横並びにして左に動かすためのコンテナ */
+.ticker-wrap {
+  display: flex;
+  white-space: nowrap;
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform;
+  animation: endless-ticker 35s linear infinite; 
+}
+
+/* テキストごとの細かな設定 */
+.ticker-text {
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  padding-right: 80px; /* テキストとテキストの間の「あき」 */
+  transform: translateZ(0);
+}
+
+@keyframes endless-ticker {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-25%, 0, 0); }
 }
 
 /* 🌟 背景のポップなグリッドドット装飾 */
@@ -63,18 +106,62 @@ body::before {
 #intro-layer {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background-color: var(--secondary); display: flex; align-items: center; justify-content: center;
-  z-index: 1000; transition: transform 1s cubic-bezier(0.85, 0, 0.15, 1); cursor: pointer;
+  z-index: 4000; 
+  transition: transform 1s cubic-bezier(0.85, 0, 0.15, 1); cursor: pointer;
 }
 .slide-up { transform: translateY(-100%); pointer-events: none; }
 .intro-content { display: flex; flex-direction: column; align-items: center; gap: 15px; width: 90%; max-width: 500px; text-align: center; }
 
-/* ポップで太枠なタイマーボックス */
+/* 📅 開催日までの残り日数表示用のポップなネオブルボックス */
+.days-countdown-box {
+  background: #ffffff;
+  border: 4px solid var(--border-color);
+  padding: 12px 30px;
+  border-radius: 20px;
+  box-shadow: 6px 6px 0px var(--border-color);
+  font-size: clamp(16px, 4.5vw, 22px);
+  font-weight: 800;
+  color: var(--text-color);
+  animation: pop-bounce 0.5s ease-out;
+}
+.days-countdown-box span.days-highlight {
+  color: #ff3366;
+  font-size: 1.4em;
+  margin: 0 4px;
+  text-shadow: 1px 1px 0px #fff;
+}
+
+@keyframes pop-bounce {
+  0% { transform: scale(0.8); opacity: 0; }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ポップで太枠なタイマーボックス（秒数カウント） */
 .timer-box {
   background: var(--accent); border: 4px solid var(--border-color);
-  width: 120px; height: 120px; display: flex; align-items: center; justify-content: center;
-  border-radius: 30px; box-shadow: 8px 8px 0px var(--border-color);
+  width: 90px; height: 90px; display: flex; align-items: center; justify-content: center;
+  border-radius: 25px; box-shadow: 6px 6px 0px var(--border-color);
+  margin-top: 5px;
 }
-#timer-count { font-size: 4rem; color: var(--border-color); font-weight: 800; }
+#timer-count { font-size: 3rem; color: var(--border-color); font-weight: 800; }
+
+/* 🌟 追加：スキップ案内テキストのスタイル */
+.skip-notice {
+  font-size: 12px;
+  font-weight: 800;
+  color: #ffffff;
+  background-color: rgba(0, 0, 0, 0.15);
+  padding: 6px 16px;
+  border-radius: 50px;
+  margin-top: 10px;
+  letter-spacing: 0.05em;
+  animation: pulse-subtle 2s infinite alternate;
+}
+@keyframes pulse-subtle {
+  0% { opacity: 0.7; transform: scale(0.98); }
+  100% { opacity: 1; transform: scale(1); }
+}
 
 /* 🌟 ヘッダーナビゲーション */
 nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; gap: 15px; }
@@ -82,7 +169,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
 
 /* ========================================================
-   ✨ 画像再現：新ヘッダー・ロゴデザイン
+   ✨ 新ヘッダー・ロゴデザイン
    ======================================================== */
 .new-hero {
   text-align: center;
@@ -91,7 +178,6 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   position: relative;
 }
 
-/* タイトル全体のコンテナ */
 .main-title {
   display: flex;
   flex-direction: column;
@@ -100,7 +186,6 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   margin-bottom: 25px;
 }
 
-/* 行ごとのまとまり */
 .title-row {
   display: flex;
   justify-content: center;
@@ -109,7 +194,6 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   align-items: center;
 }
 
-/* 🎵 1文字ずつのボックス（画像のデザインを再現） */
 .char-box {
   display: inline-flex;
   align-items: center;
@@ -126,17 +210,11 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   background-color: #fff;
 }
 
-/* 互い違いに少し傾けてポップさを演出 */
-.char-box:nth-child(even) {
-  transform: rotate(2deg);
-}
-
-/* 各ボックスの背景色 */
+.char-box:nth-child(even) { transform: rotate(2deg); }
 .bg-yellow { background-color: var(--accent); }
 .bg-blue   { background-color: var(--secondary); }
 .bg-pink   { background-color: var(--primary); }
 
-/* キラキラ装飾（CSSのみで再現） */
 .sparkle {
   font-size: clamp(24px, 5vw, 36px);
   color: #ffcc00;
@@ -149,7 +227,6 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   100% { transform: scale(1.1) rotate(5deg); }
 }
 
-/* 📅 日時・場所のネオブルデザイン */
 .info-date-box {
   font-size: clamp(24px, 6vw, 42px);
   font-weight: 800;
@@ -157,9 +234,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   margin: 25px 0 10px;
   text-shadow: 2px 2px 0px #fff;
 }
-.info-date-box span.weekday {
-  font-size: 0.8em;
-}
+.info-date-box span.weekday { font-size: 0.8em; }
 .info-date-box span.time {
   font-size: clamp(16px, 4vw, 26px);
   display: inline-block;
@@ -172,13 +247,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   vertical-align: middle;
 }
 
-/* 📍 場所リンクのラッパー */
-.info-location-link {
-  text-decoration: none;
-  color: inherit;
-  display: inline-block;
-  margin-top: 10px;
-}
+.info-location-link { text-decoration: none; color: inherit; display: inline-block; margin-top: 10px; }
 .info-location {
   font-size: clamp(13px, 3.5vw, 16px);
   font-weight: 800;
@@ -191,25 +260,21 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   cursor: pointer;
   transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.1s ease, background-color 0.2s ease;
 }
-/* マップリンクのネオブルホバー・アクティブエフェクト */
 .info-location-link:hover .info-location {
   transform: translate(-3px, -3px);
   box-shadow: 7px 7px 0px var(--border-color);
-  background-color: var(--accent); /* ホバー時に黄色に変化 */
+  background-color: var(--accent); 
 }
-.info-location-link:active .info-location {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px var(--border-color);
-}
+.info-location-link:active .info-location { transform: translate(2px, 2px); box-shadow: 2px 2px 0px var(--border-color); }
 
 /* ========================================================
-   💬 【修正】重要とCHECK欄を縦2行並びにする設定
+   💬 重要とCHECK欄の設定（縦並び固定）
    ======================================================== */
 .hero-badges-container {
   display: flex;
-  flex-direction: column; /* 👈 PC・スマホ問わず縦並びに固定 */
+  flex-direction: column; 
   gap: 20px;
-  max-width: 700px;       /* 縦並びで見栄えが良いように横幅を少しスマートに制限 */
+  max-width: 700px;       
   margin: 35px auto 0;
   padding: 0 15px;
   box-sizing: border-box;
@@ -224,31 +289,19 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   font-weight: 800;
   font-size: 14px;
   line-height: 1.6;
-  text-align: left;       /* 文章を左寄せにして読みやすく */
+  text-align: left;       
 }
 
-/* 🚨 【新規】重要欄の点滅（ブリンク）アニメーション */
 .bubble-alert.left {
   background-color: #fffdf0;
-  animation: neobrutalism-blink 1.8s infinite ease-in-out; /* 1.8秒周期でマイルドにループ点滅 */
+  animation: neobrutalism-blink 1.8s infinite ease-in-out; 
 }
-.bubble-alert.right { 
-  background-color: #f6f0ff; 
-}
+.bubble-alert.right { background-color: #f6f0ff; }
 
 @keyframes neobrutalism-blink {
-  0%, 100% {
-    background-color: #fffdf0;
-    border-color: var(--border-color);
-    box-shadow: 6px 6px 0px var(--border-color);
-  }
-  50% {
-    background-color: #ffeef4; /* 点滅時にほんのり赤みがかった警告色に変化 */
-    border-color: #ff3366;     /* 枠線も「重要」の文字色と連動 */
-    box-shadow: 6px 6px 0px #ff3366;
-  }
+  0%, 100% { background-color: #fffdf0; border-color: var(--border-color); box-shadow: 6px 6px 0px var(--border-color); }
+  50% { background-color: #ffeef4; border-color: #ff3366; box-shadow: 6px 6px 0px #ff3366; }
 }
-
 
 /* 🌟 メインスライダー（お知らせバナー） */
 .slider-container {
@@ -262,15 +315,13 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .slide:nth-child(2) { background-color: var(--primary); }
 .slide:nth-child(3) { background-color: var(--accent); }
 
-/* スライダーインジケーター（ドット） */
 .slider-dots { display: flex; justify-content: center; gap: 15px; padding: 25px 0; }
 .dot { width: 15px; height: 15px; border: 3px solid var(--border-color); border-radius: 50%; cursor: pointer; background: #fff; }
 .dot.active { background: var(--primary); transform: scale(1.4); box-shadow: 3px 3px 0px var(--border-color); }
 
-/* 🌟 コンテンツカードの共通レイアウトとアニメーション設定 */
+/* 🌟 コンテンツカードの共通レイアウト */
 .cards-vertical { display: flex; flex-direction: column; align-items: center; gap: 60px; padding: 40px 20px 100px; box-sizing: border-box; }
 
-/* スクロール前：非表示の初期状態 */
 .card, .form-card {
   width: 100%; max-width: 950px; display: flex; align-items: stretch;
   background: rgba(255, 255, 255, 0.85); border: 4px solid var(--border-color);
@@ -279,16 +330,10 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   transition: opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .card.reverse { flex-direction: row-reverse; }
-
-/* 左右スライドの初期配置 */
 .slide-in-left { transform: translateX(-60px); }
 .slide-in-right { transform: translateX(60px); }
 
-/* Intersection Observer用：表示が有効化されたときのスタイル */
-.card.show, .form-card.show {
-  opacity: 1;
-  transform: translateX(0) translateY(0);
-}
+.card.show, .form-card.show { opacity: 1; transform: translateX(0) translateY(0); }
 
 .card-text { flex: 1; padding: 40px; box-sizing: border-box; }
 .card h3 { font-size: clamp(1.3rem, 4vw, 2rem); margin-top: 0; border-bottom: 4px solid var(--accent); display: inline-block; padding-bottom: 5px; }
@@ -297,13 +342,9 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .card-image { flex: 1; min-height: 300px; background: #eee; overflow: hidden; }
 .card-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-/* 🌟 リンク付きカード専用のネオブルータリズム・ポップホバーエフェクト */
 .card-link { text-decoration: none; color: inherit; }
 .card.show.card-link {
-  transition: opacity 0.8s ease-out, 
-              transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
-              box-shadow 0.3s ease, 
-              background-color 0.3s ease;
+  transition: opacity 0.8s ease-out, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, background-color 0.3s ease;
 }
 .card.show.card-link:hover {
   transform: translate(-10px, -10px);
@@ -315,7 +356,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .form-card { display: block; margin-bottom: 100px; width: 100%; }
 
 /* ========================================================
-   🚀 画面中央の高さに固定する「申込ボタン」
+   🚀 画面右側に固定する「申込ボタン」
    ======================================================== */
 .shortcut-entry-btn {
   position: fixed;
@@ -343,24 +384,14 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   pointer-events: auto;
   transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, background-color 0.2s ease;
 }
-.shortcut-entry-btn.visible {
-  opacity: 1;
-  transform: translateY(-50%) scale(1);
-  pointer-events: auto;
-}
+.shortcut-entry-btn.visible { opacity: 1; transform: translateY(-50%) scale(1); pointer-events: auto; }
 .shortcut-entry-btn:hover {
   transform: translateY(-55%) translate(-4px, 0px) scale(1.05);
   box-shadow: 10px 10px 0px var(--border-color);
   background: #b2ec9c;
 }
-.shortcut-entry-btn:active {
-  transform: translateY(-48%) translate(2px, 0px) scale(0.98);
-  box-shadow: 2px 2px 0px var(--border-color);
-}
-.shortcut-entry-btn .icon {
-  font-size: 24px;
-  margin-bottom: 2px;
-}
+.shortcut-entry-btn:active { transform: translateY(-48%) translate(2px, 0px) scale(0.98); box-shadow: 2px 2px 0px var(--border-color); }
+.shortcut-entry-btn .icon { font-size: 24px; margin-bottom: 2px; }
 
 /* ========================================================
    🔒 ログインモーダル
@@ -368,7 +399,8 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.5);
   display: flex; align-items: center; justify-content: center;
-  z-index: 2000; opacity: 0; pointer-events: none;
+  z-index: 5000; 
+  opacity: 0; pointer-events: none;
   transition: opacity 0.3s ease; padding: 20px; box-sizing: border-box;
 }
 .modal-overlay.active { opacity: 1; pointer-events: auto; }
@@ -419,7 +451,6 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   
   .slider-container { height: 280px; }
   
-  /* スマホ表示のみカードを縦並びに */
   .card, .card.reverse { flex-direction: column; align-items: stretch; }
   .card-image { min-height: 180px; max-height: 220px; order: -1; }
   .card-text { padding: 25px 20px; }
@@ -434,25 +465,23 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   
   .card.show.card-link:hover { transform: translate(-4px, -4px); box-shadow: 16px 16px 0px var(--border-color); }
 
-  .shortcut-entry-btn {
-    width: 75px;
-    height: 75px;
-    right: 15px;
-    font-size: 11px;
-  }
-  .shortcut-entry-btn.visible {
-    transform: translateY(-50%) scale(1);
-  }
-  .shortcut-entry-btn:hover {
-    transform: translateY(-52%) scale(1.02);
-  }
-  .shortcut-entry-btn .icon {
-    font-size: 20px;
-  }
+  .shortcut-entry-btn { width: 75px; height: 75px; right: 15px; font-size: 11px; }
+  .shortcut-entry-btn.visible { transform: translateY(-50%) scale(1); }
+  .shortcut-entry-btn:hover { transform: translateY(-52%) scale(1.02); }
+  .shortcut-entry-btn .icon { font-size: 20px; }
 }
 </style>
 </head>
 <body onclick="handleInteraction()">
+
+<div class="fixed-ticker">
+  <div class="ticker-wrap">
+    <div class="ticker-text">⚠️ このイベントへの参加はエントリーが必要です。下のフォームから登録をお願いします。</div>
+    <div class="ticker-text">⚠️ このイベントへの参加はエントリーが必要です。下のフォームから登録をお願いします。</div>
+    <div class="ticker-text">⚠️ このイベントへの参加はエントリーが必要です。下のフォームから登録をお願いします。</div>
+    <div class="ticker-text">⚠️ このイベントへの参加はエントリーが必要です。下のフォームから登録をお願いします。</div>
+  </div>
+</div>
 
 <div class="deco deco-pink"></div>
 <div class="deco deco-blue"></div>
@@ -462,9 +491,18 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
 <div id="intro-layer">
   <div class="intro-content">
-    <h1 style="color:#fff; text-shadow:4px 4px 0px var(--border-color); font-size:clamp(24px, 6vw, 32px); margin:0;">イベント Loading...</h1>
+    <h1 style="color:#fff; text-shadow:4px 4px 0px var(--border-color); font-size:clamp(22px, 5.5vw, 30px); margin:0;">イベント Loading...</h1>
+    
+    <div class="days-countdown-box">
+      開催まで<span id="days-count" class="days-highlight">--</span>
+    </div>
+
     <div class="timer-box">
       <span id="timer-count">5</span>
+    </div>
+
+    <div class="skip-notice">
+      👆 この画面はクリックするとスキップ出来ます
     </div>
   </div>
 </div>
@@ -639,12 +677,9 @@ function updateSliderUI() {
 
 function exitIntro() {
   clearInterval(countdownInterval);
-
   introLayer.classList.add('slide-up');
   isIntro = false;
-
   shortcutBtn.classList.add('visible');
-
   startMainSliderTimer();
 }
 
@@ -695,11 +730,8 @@ function toggleForm(e) {
 
 function scrollToAndOpenForm(e) {
   e.stopPropagation();
-
   const formContent = document.getElementById('form-content');
-  const isClosed =
-    formContent.style.height === '0px' ||
-    formContent.style.height === '';
+  const isClosed = formContent.style.height === '0px' || formContent.style.height === '';
 
   if (isClosed) {
     setFormOpenState(true);
@@ -708,15 +740,9 @@ function scrollToAndOpenForm(e) {
   setTimeout(() => {
     const iframe = document.querySelector('#form-content iframe');
     if (iframe) {
-      iframe.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
+      iframe.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
-      document.getElementById('entryFormSection').scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
+      document.getElementById('entryFormSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, 600);
 }
@@ -771,8 +797,41 @@ document.getElementById('pass-input').addEventListener('keypress', function(e) {
   if (e.key === 'Enter') checkPassword();
 });
 
+/* 📅 7月17日17:00まで「開催中」を判定するロジック */
+function calculateDaysLeft() {
+  const targetStart = new Date("2026/07/17 00:00:00"); // 17日の始まり
+  const targetEnd = new Date("2026/07/17 17:00:00");   // 17日の17:00締め切り
+  const today = new Date();
+  
+  // 残り日数を計算するために、今日の時間をリセットした日付オブジェクトを作成
+  const currentDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const targetDateOnly = new Date(targetStart.getFullYear(), targetStart.getMonth(), targetStart.getDate());
+  
+  // 日数単位での差分を取得
+  const diffTime = targetDateOnly - currentDateOnly;
+  const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  const displayContainer = document.getElementById('days-count');
+  
+  if (today >= targetEnd) {
+    // 当日の17時以降、またはそれ以降の日程の場合
+    displayContainer.innerHTML = `<span style="font-size:0.85em; color:#bbb;">イベントは終了しました</span>`;
+  } else if (today >= targetStart && today < targetEnd) {
+    // 7月17日の 00:00 から 16:59:59 までの間
+    displayContainer.innerHTML = `<span class="days-highlight" style="color:#ffcc00; font-size:1.2em;">本日開催中！</span>`;
+  } else if (daysLeft > 0) {
+    // 7月16日以前の場合
+    displayContainer.innerHTML = `あと<span class="days-highlight">${daysLeft}</span>日！`;
+  } else {
+    // 万が一の例外処理用
+    displayContainer.innerHTML = `<span style="font-size:0.85em; color:#bbb;">イベントは終了しました</span>`;
+  }
+}
+
 window.onload = () => {
   initScrollAnimation();
+  calculateDaysLeft(); // 日時判定処理を起動
+  
   countdownInterval = setInterval(() => {
     timeLeft--;
     if(timerDisplay) timerDisplay.innerText = timeLeft;
