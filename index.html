@@ -305,24 +305,12 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
 /* 🌟 メインスライダー（お知らせバナー） */
 .slider-container {
-  position: relative; width: 100vw; height: 300px;
+  position: relative; width: 100vw; height: 400px;
   overflow: hidden; border-top: 4px solid var(--border-color); border-bottom: 4px solid var(--border-color);
   background: #fff; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw;
 }
 .slider-wrapper { display: flex; width: 400%; height: 100%; transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
-.slide {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-}
-  .slide-img {
-  height: 100%;
-  width: auto;
-  object-fit: contain;
-}
+.slide { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: clamp(18px, 4.5vw, 32px); font-weight: 800; text-align: center; padding: 0 20px; box-sizing: border-box; }
 .slide:nth-child(1), .slide:nth-child(4) { background-color: var(--green); }
 .slide:nth-child(2) { background-color: var(--primary); }
 .slide:nth-child(3) { background-color: var(--accent); }
@@ -588,21 +576,14 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
     </div>
   </section>
 
-<div class="slider-wrapper" id="slider">
-    <div class="slide">
-        <img src="01.png" alt="防災計画" class="slide-img">
+  <div class="slider-container">
+    <div class="slider-wrapper" id="slider">
+      <div class="slide">⛑️ オフィスの「もしも」を守る防災計画</div>
+      <div class="slide">🚚 お楽しみフード充実！キッチンカーがやってくる！</div>
+      <div class="slide">🏢 効率とやる気を両立する進化系ライブオフィス</div>
+      <div class="slide">⛑️ オフィスの「もしも」を守る防災計画</div>
     </div>
-    <div class="slide">
-        <img src="02.png" alt="キッチンカー" class="slide-img">
-    </div>
-    <div class="slide">
-        <img src="03.png" alt="ライブオフィス" class="slide-img">
-    </div>
-    <!-- ループ用 -->
-    <div class="slide">
-        <img src="01.png" alt="防災計画" class="slide-img">
-    </div>
-</div>
+  </div>
   <div class="slider-dots">
     <div class="dot active" onclick="dotClick(0, event)"></div>
     <div class="dot" onclick="dotClick(1, event)"></div>
