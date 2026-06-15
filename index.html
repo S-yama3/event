@@ -146,7 +146,7 @@ body::before {
 }
 #timer-count { font-size: 3rem; color: var(--border-color); font-weight: 800; }
 
-/* 🌟 追加：スキップ案内テキストのスタイル */
+/* 🌟 スキップ案内テキストのスタイル */
 .skip-notice {
   font-size: 12px;
   font-weight: 800;
@@ -355,6 +355,21 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
 .form-card { display: block; margin-bottom: 100px; width: 100%; }
 
+/* 🌟 追加：終了メッセージ表示用のネオブルスタイル */
+.closed-msg-box {
+  background: #fff0f4;
+  border: 4px dashed #ff3366;
+  border-radius: 20px;
+  padding: 40px 20px;
+  text-align: center;
+  font-weight: 800;
+  color: #ff3366;
+  font-size: clamp(16px, 4.5vw, 24px);
+  box-shadow: 6px 6px 0px var(--border-color);
+  box-sizing: border-box;
+  width: 100%;
+}
+
 /* ========================================================
    🚀 画面右側に固定する「申込ボタン」
    ======================================================== */
@@ -491,7 +506,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
 <div id="intro-layer">
   <div class="intro-content">
-    <h1 style="color:#fff; text-shadow:4px 4px 0px var(--border-color); font-size:clamp(22px, 5.5vw, 30px); margin:0;">Loading...</h1>
+    <h1 style="color:#fff; text-shadow:4px 4px 0px var(--border-color); font-size:clamp(22px, 5.5vw, 30px); margin:0;">イベント Loading...</h1>
     
     <div class="days-countdown-box">
       開催まで<span id="days-count" class="days-highlight">--</span>
@@ -556,7 +571,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
       </div>
       <div class="bubble-alert right">
         <span style="color: #ff9900; font-size: 24px;">🎁 Check!</span><br>
-        当日アンケート回答ですてきなギフトが抽選であたる！！
+        当日アンケート回答ですてきなギフトが抽選であたるチャンスも！！
       </div>
     </div>
   </section>
@@ -632,7 +647,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
         <h3 style="margin:0; display: inline-block; font-size: clamp(1.1rem, 3.5vw, 1.8rem);">💌 <span id="toggle-text">エントリーはこちら</span> <span id="toggle-arrow">▼</span></h3>
       </div>
       <div id="form-content" style="width:100%; height:0px; overflow:hidden; transition: height 0.5s cubic-bezier(0.25, 1, 0.5, 1);">
-        <div style="width:100%; height:700px;">
+        <div id="form-inner-container" style="width:100%; height:700px;">
           <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfcbB7PN8-55oXZuzzrZvOKuY7GycuNckMXhrBLLi5xFscBfQ/viewform?embedded=true" style="width:100%; height:100%; border:none;"></iframe>
         </div>
       </div>
@@ -653,7 +668,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 </div>
 
 <script>
-let isIntro = true, currentSlide = 0, timeLeft = 5, autoTimer, countdownInterval;
+let isIntro = true, currentSlide = 0, timeLeft = 5, autoTimer, countdownInterval, isClosedEvent = false;
 
 const slider = document.getElementById('slider');
 const dots = document.querySelectorAll('.dot');
@@ -679,7 +694,10 @@ function exitIntro() {
   clearInterval(countdownInterval);
   introLayer.classList.add('slide-up');
   isIntro = false;
-  shortcutBtn.classList.add('visible');
+  // 🚨 イベント終了後は画面右側の「申込する」ボタンを非表示にする
+  if (!isClosedEvent) {
+    shortcutBtn.classList.add('visible');
+  }
   startMainSliderTimer();
 }
 
@@ -703,6 +721,9 @@ function startMainTimer() {
 }
 
 function setFormOpenState(isOpen) {
+  // 🚨 すでにイベント終了している場合はアコーディオンが開かないようにする
+  if (isClosedEvent) return;
+
   const formContent = document.getElementById('form-content');
   const toggleText = document.getElementById('toggle-text');
   const toggleArrow = document.getElementById('toggle-arrow');
@@ -730,6 +751,8 @@ function toggleForm(e) {
 
 function scrollToAndOpenForm(e) {
   e.stopPropagation();
+  if (isClosedEvent) return; // 終了時はボタン自体出ませんがガード処理
+
   const formContent = document.getElementById('form-content');
   const isClosed = formContent.style.height === '0px' || formContent.style.height === '';
 
@@ -797,25 +820,42 @@ document.getElementById('pass-input').addEventListener('keypress', function(e) {
   if (e.key === 'Enter') checkPassword();
 });
 
-/* 📅 7月17日17:00まで「開催中」を判定するロジック */
+/* 📅 残り日数およびフォーム締め切りの判定ロジック */
 function calculateDaysLeft() {
-  const targetStart = new Date("2026/07/17 00:00:00"); // 17日の始まり
-  const targetEnd = new Date("2026/07/17 17:00:00");   // 17日の17:00締め切り
+  const targetStart = new Date("2026/07/17 00:00:00"); 
+  const targetEnd = new Date("2026/07/17 17:00:00");   
   const today = new Date();
   
-  // 残り日数を計算するために、今日の時間をリセットした日付オブジェクトを作成
   const currentDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const targetDateOnly = new Date(targetStart.getFullYear(), targetStart.getMonth(), targetStart.getDate());
   
-  // 日数単位での差分を取得
   const diffTime = targetDateOnly - currentDateOnly;
   const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
   const displayContainer = document.getElementById('days-count');
   
   if (today >= targetEnd) {
-    // 当日の17時以降、またはそれ以降の日程の場合
+    // 🚨 【イベント終了後】の処理
+    isClosedEvent = true;
     displayContainer.innerHTML = `<span style="font-size:0.85em; color:#bbb;">イベントは終了しました</span>`;
+    
+    // フォーム部分を終了メッセージボックスへ差し替える
+    const entrySection = document.getElementById('entryFormSection');
+    if (entrySection) {
+      entrySection.innerHTML = `
+        <div class="closed-msg-box">
+          🏁 イベントは終了しました。<br>ありがとうございました。
+        </div>
+      `;
+      // アコーディオンアニメーション用に無理やり非表示になってしまうのを防ぐため高さを自動化
+      entrySection.style.height = "auto";
+      entrySection.style.boxShadow = "none";
+      entrySection.style.border = "none";
+      entrySection.style.background = "transparent";
+    }
+    // 右下の追従ボタンを完全に隠す
+    shortcutBtn.style.display = "none";
+
   } else if (today >= targetStart && today < targetEnd) {
     // 7月17日の 00:00 から 16:59:59 までの間
     displayContainer.innerHTML = `<span class="days-highlight" style="color:#ffcc00; font-size:1.2em;">本日開催中！</span>`;
@@ -823,14 +863,13 @@ function calculateDaysLeft() {
     // 7月16日以前の場合
     displayContainer.innerHTML = `あと<span class="days-highlight">${daysLeft}</span>日！`;
   } else {
-    // 万が一の例外処理用
     displayContainer.innerHTML = `<span style="font-size:0.85em; color:#bbb;">イベントは終了しました</span>`;
   }
 }
 
 window.onload = () => {
+  calculateDaysLeft(); // 🚨 先に時間判定を行ってフォーム状態を確定させる
   initScrollAnimation();
-  calculateDaysLeft(); // 日時判定処理を起動
   
   countdownInterval = setInterval(() => {
     timeLeft--;
