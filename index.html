@@ -306,16 +306,27 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
 /* 🌟 メインスライダー（お知らせバナー）のスタイル修正 */
 .slider-container {
-  position: relative; width: 100vw; height: 400px;
-  overflow: hidden; border-top: 4px solid var(--border-color); border-bottom: 4px solid var(--border-color);
-  background: #fff; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw;
+  position: relative; 
+  width: 100%; /* vwから%へ変更して親要素に合わせる */
+  height: 400px;
+  overflow: hidden; 
+  border-top: 4px solid var(--border-color); 
+  border-bottom: 4px solid var(--border-color);
+  background: #fff;
 }
-.slider-wrapper { display: flex; width: 400%; height: 100%; transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+
+/* スライド全体を包むコンテナ */
+.slider-wrapper { 
+  display: flex; 
+  width: 300%; /* 3枚なら300% (4枚なら400%) */
+  height: 100%; 
+  transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
+}
+
+/* 各スライド */
 .slide { 
-  /* 親要素のコンテナの高さを強制的に継承させる設定 */
-  flex: 0 0 100%; /* これが重要です */
-  height: 400px;  /* containerと同じ高さを指定 */
-  
+  flex: 1; /* 均等に分割 */
+  height: 100%; 
   display: flex; 
   align-items: center; 
   justify-content: center; 
@@ -325,31 +336,30 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   padding: 0 20px; 
   box-sizing: border-box;
   
-  /* 画像の表示設定 */
-  background-size: cover;
+  /* 1枚の画像として表示 */
+  background-size: cover; 
   background-position: center;
   background-repeat: no-repeat;
   
-  /* レイヤー管理 */
   position: relative;
   z-index: 1;
   color: #fff;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
 }
 
-/* 画像の後ろだけに背景色を配置 */
+/* 透過背景の配置 */
 .slide::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1; 
   background-color: inherit; 
-  opacity: 0.6; /* お好みの透過度に調整してください */
+  opacity: 0.6;
 }
 
-/* スマホ対応：高さの調整 */
+/* スマホ対応 */
 @media (max-width: 768px) {
-  .slide { height: 280px; }
+  .slider-container { height: 280px; }
 }
 /* 各スライドの背景画像と色の設定 */
 .slide:nth-child(1), .slide:nth-child(4) { background-color: var(--green); background-image: url('04.png'); }
@@ -618,12 +628,11 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
     </div>
   </section>
 
-  <div class="slider-wrapper" id="slider">
-    <div class="slide" style="background-image: url('04.png'); background-color: var(--green);">⛑️現場と事務所の「酷暑リスク」軽減</div>
-    <div class="slide" style="background-image: url('05.png'); background-color: var(--primary);">🚚お楽しみフード充実！キッチンカーがやってくる！</div>
-    <div class="slide" style="background-image: url('06.png'); background-color: var(--accent);">🏢リアルに体感！進化系ライブオフィス公開</div>
-    <div class="slide" style="background-image: url('04.png'); background-color: var(--green);">⛑️ オフィスの「もしも」を守る防災計画</div>
-  </div>
+<div class="slider-wrapper" id="slider">
+  <div class="slide" style="background-image: url('04.png'); background-color: var(--green);">⛑️現場と事務所の「酷暑リスク」軽減</div>
+  <div class="slide" style="background-image: url('05.png'); background-color: var(--primary);">🚚 お楽しみフード充実！キッチンカーがやってくる！</div>
+  <div class="slide" style="background-image: url('06.png'); background-color: var(--accent);">🏢リアルに体感！進化系ライブオフィス公開</div>
+</div>
   </div>
   <div class="slider-dots">
     <div class="dot active" onclick="dotClick(0, event)"></div>
@@ -719,16 +728,10 @@ const shortcutBtn = document.getElementById('shortcutBtn');
 
 function updateSliderUI() {
   slider.style.transition = "transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55)";
-  slider.style.transform = `translateX(-${currentSlide * 25}%)`;
+  // 3枚なので 100 / 3 = 33.333% に変更
+  slider.style.transform = `translateX(-${(currentSlide % 3) * 33.333}%)`;
+  
   dots.forEach((d, i) => d.classList.toggle('active', i === (currentSlide % 3)));
-  if (currentSlide === 3) {
-    setTimeout(() => {
-      slider.style.transition = "none";
-      currentSlide = 0;
-      slider.style.transform = `translateX(0%)`;
-      dots[0].classList.add('active');
-    }, 600);
-  }
 }
 
 function exitIntro() {
