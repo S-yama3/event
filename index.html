@@ -17,7 +17,7 @@
   --purple: #d3bfff;     /* 紫 */
   --text-color: #4a4a4a;
   --border-color: #333;
-  --ticker-height: 40px; /* 固定アナウンスの高さ */
+  --ticker-height: 60px; /* 固定アナウンスの高さ */
 }
 
 /* 🌟 基本的なリセットとレイアウト設定 */
@@ -38,14 +38,14 @@ body {
   left: 0;
   width: 100%;
   height: var(--ticker-height);
-  background-color: #ff3366; /* 目立つネオブル風の赤 */
-  color: #ffffff;            /* 白文字 */
-  z-index: 2999;             /* モーダルやイントロより前面、ただし起動時を邪魔しない配置 */
-  border-bottom: 3px solid var(--border-color);
+  background-color: #ff3366;
+  color: #ffffff;
+  z-index: 2999;
+  border-bottom: 4px solid var(--border-color);
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  overflow: hidden;          /* 枠外の文字を隠す */
+  overflow: hidden;
 }
 
 /* 文字列全体を横並びにして左に動かすためのコンテナ */
@@ -61,9 +61,10 @@ body {
 /* テキストごとの細かな設定 */
 .ticker-text {
   font-weight: 800;
-  font-size: 14px;
+  font-size: 21px;
   letter-spacing: 0.05em;
-  padding-right: 80px; /* テキストとテキストの間の「あき」 */
+  padding-right: 120px;
+  line-height: 1;
   transform: translateZ(0);
 }
 
