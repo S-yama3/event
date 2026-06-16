@@ -20,66 +20,60 @@
 
 body { margin: 0; font-family: 'M PLUS Rounded 1c', sans-serif; background-color: var(--bg-color); color: var(--text-color); overflow-x: hidden; }
 
-/* 🌟 背景装飾 */
+/* 背景ドット */
 body::before { content: ""; position: fixed; inset: 0; background-image: radial-gradient(#d1d1d1 2px, transparent 2px); background-size: 35px 35px; z-index: -1; }
 
-/* 🌟 ヘッダー・ヒーロー */
-nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; }
-.logo { font-size: clamp(16px, 4vw, 24px); color: #ff7eb9; text-shadow: 2px 2px 0px #fff, 4px 4px 0px var(--border-color); font-weight: 800; text-decoration: none; }
-.hero { text-align: center; padding: 40px 20px; }
-.hero h1 { font-size: clamp(22px, 6vw, 40px); line-height: 1.5; margin: 0 0 15px 0; }
-.hero h1 span.main-title { display: inline-block; background: var(--purple); padding: 5px 20px; border: 4px solid var(--border-color); box-shadow: 6px 6px 0px var(--border-color); transform: rotate(-1deg); margin: 5px; }
-
-/* 🌟 カードスタイル */
-.cards-vertical { display: flex; flex-direction: column; align-items: center; gap: 80px; padding: 40px 20px 100px; }
+.cards-vertical { display: flex; flex-direction: column; align-items: center; gap: 60px; padding: 40px 20px 100px; }
 .seminar-card { width: 100%; max-width: 950px; background: #fff; border: 4px solid var(--border-color); border-radius: 35px; box-shadow: 12px 12px 0px var(--border-color); padding: 45px; box-sizing: border-box; }
 
-.semi-header { display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 4px solid var(--border-color); padding-bottom: 20px; margin-bottom: 30px; gap: 20px; }
-.semi-time { font-size: clamp(20px, 4.5vw, 32px); border: 3px solid var(--border-color); padding: 4px 20px; border-radius: 15px; box-shadow: 4px 4px 0px var(--border-color); font-weight: 800; white-space: nowrap; background: var(--secondary); }
-.card-2 .semi-time { background: var(--primary); }
-.semi-title { font-size: clamp(18px, 4vw, 28px); margin: 5px 0 0 0; font-weight: 800; }
+/* ヘッダー：リボン＋タイトル＋時間 */
+.semi-header { display: flex; align-items: center; border-bottom: 4px solid var(--border-color); padding-bottom: 20px; margin-bottom: 30px; }
 
-/* 🌟 新レイアウト：おすすめ・ポイント（縦並び）→ 講師（下部） */
-.info-container { display: flex; flex-direction: column; gap: 20px; margin-bottom: 30px; }
+/* 数字を大きくしたリボンアイコン */
+.ribbon-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 55px; height: 65px; color: white; font-size: 32px; font-weight: 800;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 50% 100%, 0% 75%);
+  box-shadow: 3px 3px 0px var(--border-color); flex-shrink: 0; margin-right: 20px;
+}
+
+.semi-title { font-size: 26px; font-weight: 800; margin: 0; flex-grow: 1; line-height: 1.4; }
+.semi-time { font-size: 24px; border: 3px solid var(--border-color); padding: 8px 20px; border-radius: 15px; box-shadow: 4px 4px 0px var(--border-color); font-weight: 800; background: var(--secondary); white-space: nowrap; flex-shrink: 0; margin-left: 20px; }
+
+/* リスト設定 */
+.info-container { display: flex; flex-direction: column; gap: 25px; margin-bottom: 30px; }
 .info-block { background: #fafafa; border: 3px solid var(--border-color); border-radius: 20px; padding: 25px; }
-.info-block h4 { margin: 0 0 15px 0; font-size: 18px; font-weight: 800; display: inline-block; padding: 5px 15px; border: 2px solid var(--border-color); border-radius: 10px; }
-.box-recommend h4 { background: var(--accent); }
-.box-point h4 { background: var(--green); }
-.info-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.info-list li { font-size: 14px; font-weight: bold; padding-left: 20px; position: relative; }
-.info-list li::before { content: "●"; position: absolute; left: 0; font-size: 10px; }
+.info-block h4 { margin: 0 0 15px 0; font-size: 20px; font-weight: 800; display: inline-block; padding: 5px 15px; border: 2px solid var(--border-color); border-radius: 10px; }
+.info-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr; gap: 15px; }
+.info-list li { font-size: 18px; font-weight: bold; padding-left: 25px; position: relative; line-height: 1.6; }
+.info-list li::before { content: "●"; position: absolute; left: 0; font-size: 14px; }
 
+/* 講師セクション */
 .instructor-section { background: #fffdf3; border: 3px dashed var(--border-color); border-radius: 22px; padding: 25px; display: flex; gap: 25px; align-items: flex-start; }
 .instructor-img { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--border-color); object-fit: cover; flex-shrink: 0; }
+.instructor-txt p { font-size: 16px; line-height: 1.8; margin-top: 10px; }
 
-/* 🌟 フォーム・ボタン */
-.form-card { width: 100%; max-width: 950px; background: rgba(255, 255, 255, 0.85); border: 4px solid var(--border-color); border-radius: 30px; box-shadow: 12px 12px 0px var(--border-color); overflow: hidden; }
-.shortcut-entry-btn { position: fixed; bottom: 30px; right: 30px; width: 80px; height: 80px; border-radius: 50%; background: var(--green); border: 4px solid var(--border-color); box-shadow: 6px 6px 0px var(--border-color); cursor: pointer; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; }
-
+/* スマホ対応 */
 @media (max-width: 768px) {
-  .info-list { grid-template-columns: 1fr; }
-  .instructor-section { flex-direction: column; align-items: center; text-align: center; }
+  .seminar-card { padding: 20px; }
+  .semi-header { flex-wrap: wrap; }
+  .ribbon-icon { order: 0; width: 45px; height: 55px; font-size: 26px; }
+  .semi-title { order: 1; font-size: 20px; width: 100%; margin-top: 15px; }
+  .semi-time { order: 2; font-size: 18px; padding: 5px 15px; margin-left: 0; margin-top: 10px; }
 }
 </style>
 </head>
 <body>
 
-<nav>
-  <a href="index.html" class="logo">👈 イベントトップへ戻る</a>
-</nav>
-
-<section class="hero">
-  <h1><span class="main-title">注目セミナーのご紹介</span></h1>
-</section>
-
 <div class="cards-vertical">
   <section class="seminar-card">
     <div class="semi-header">
-      <h3 class="semi-title">AI活用による1on1の質的向上とエンゲージメント向上へのアプローチ</h3>
+      <div class="ribbon-icon" style="background-color: var(--secondary);">1</div>
+      <h3 class="semi-title">AI活用による<br>1on1の質的向上と<br>エンゲージメント向上へのアプローチ</h3>
       <div class="semi-time">11:00 ～</div>
     </div>
     <div class="info-container">
-      <div class="info-block box-recommend">
+      <div class="info-block" style="border-color: #e6c800;">
         <h4>🎯 こんな方におすすめ！</h4>
         <ul class="info-list">
           <li>1on1の効果に悩む管理職の方</li>
@@ -88,7 +82,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
           <li>組織のエンゲージメントを高めたい人事担当者</li>
         </ul>
       </div>
-      <div class="info-block box-point">
+      <div class="info-block" style="border-color: #5fb878;">
         <h4>💡 学べるポイント</h4>
         <ul class="info-list">
           <li>AIによる1on1の質とエンゲージメントの向上策</li>
@@ -101,19 +95,20 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
     <div class="instructor-section">
       <img class="instructor-img" src="講師１.png" alt="講師">
       <div class="instructor-txt">
-        <h5 style="margin:0 0 10px 0;">講師：小笠原 広大 氏（TONOME株式会社 代表取締役CEO / プロコーチ）</h5>
-        <p style="font-size: 13px; line-height: 1.6;">株式会社リコーの社内起業プログラム「TRIBUS」の初代リーダーとして制度設計〜運営に至る全てに関わり、社内外400以上のテーマ判断とその推進に従事。社内起業家たちの熱量がマネジメント一つで劇的に変わる様を目の当たりにし、「個の力を最大化する組織作り」を志す。プロコーチとしての洞察と最新のAI知見を融合させ、2024年にTONOME株式会社を創業。</p>
+        <h5 style="margin:0; font-size: 18px;">講師：TONOME株式会社<br>代表取締役CEO プロコーチ<br>小笠原 広大 氏</h5>
+        <p>株式会社リコーの社内起業プログラム「TRIBUS」の初代リーダーとして制度設計～運営に至る全てに関わり、社内外400以上のテーマ判断とその推進に従事。社内起業家たちの熱量がマネジメント一つで劇的に変わる様を目の当たりにし、「個の力を最大化する組織作り」を志す。プロコーチとしての洞察と最新のAI知見を融合させ、2024年にTONOME株式会社を創業。</p>
       </div>
     </div>
   </section>
 
   <section class="seminar-card">
     <div class="semi-header">
-      <h3 class="semi-title">ライオン事務器がお届けするエンゲージメントを高める ”ワーキングプレイス”</h3>
+      <div class="ribbon-icon" style="background-color: var(--primary);">2</div>
+      <h3 class="semi-title">ライオン事務器がお届けする<br>エンゲージメントを高める<br>”ワーキングプレイス”</h3>
       <div class="semi-time">14:00 ～</div>
     </div>
     <div class="info-container">
-      <div class="info-block box-recommend">
+      <div class="info-block" style="border-color: #e6c800;">
         <h4>🎯 こんな方におすすめ！</h4>
         <ul class="info-list">
           <li>社員の出社率やモチベーションを高めたい経営者・管理職</li>
@@ -122,7 +117,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
           <li>社員のエンゲージメント向上を目指す人事・総務担当者</li>
         </ul>
       </div>
-      <div class="info-block box-point">
+      <div class="info-block" style="border-color: #5fb878;">
         <h4>💡 学べるポイント</h4>
         <ul class="info-list">
           <li>社員が「出社したくなる」オフィス環境づくりのヒント</li>
@@ -135,41 +130,12 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
     <div class="instructor-section">
       <img class="instructor-img" src="講師2.png" alt="講師">
       <div class="instructor-txt">
-        <h5 style="margin:0 0 10px 0;">講師：株式会社ライオン事務器 オフィス環境エンジニアリング部</h5>
-        <p style="font-size: 13px; line-height: 1.6;">はたらく「場所」「中心」と変化するワークプレイス。多様化する働き方を豊かに支え、社員が「出社したくなる」オフィスとは？ 円滑なコミュニケーションを実現し、エンゲージメントを高めるワークプレイスの事例をご紹介します。</p>
+        <h5 style="margin:0; font-size: 18px;">講師：株式会社ライオン事務器<br>商品本部 オフィス環境エンジニアリング部 部長<br>中柴 秀明 氏</h5>
+        <p>オフィスづくりの実務と戦略に精通し、空間の在り方から働き方改革まで、幅広く対応。多数の関連資格を活かし、理論と現場の知見を融合させた働き方の提案を行っている。</p>
       </div>
     </div>
-</section>
-
-<div class="btn-area">
-  <a href="index.html" class="back-btn">フェアトップへ戻ってエントリーする 💌</a>
+  </section>
 </div>
 
-<script>
-// スクロールアニメーション制御（INDEX.HTMLと共通）
-function initScrollAnimation() {
-  const targetCards = document.querySelectorAll('.card');
-  
-  const observerOptions = {
-    root: null,
-    rootMargin: '0px',
-    threshold: 0.1 // 少しでも画面に入ったらポヨンと動かす
-  };
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('show');
-      }
-    });
-  }, observerOptions);
-
-  targetCards.forEach(card => observer.observe(card));
-}
-
-window.onload = () => {
-  initScrollAnimation();
-};
-</script>
 </body>
 </html>
