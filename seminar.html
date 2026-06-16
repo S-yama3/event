@@ -139,25 +139,37 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
         <p style="font-size: 13px; line-height: 1.6;">はたらく「場所」「中心」と変化するワークプレイス。多様化する働き方を豊かに支え、社員が「出社したくなる」オフィスとは？ 円滑なコミュニケーションを実現し、エンゲージメントを高めるワークプレイスの事例をご紹介します。</p>
       </div>
     </div>
-  </section>
+</section>
 
-  <div class="form-card" id="entryFormSection">
-    <div id="form-toggle-btn" onclick="toggleForm(event)" style="background:var(--secondary); padding:20px; border-bottom:4px solid var(--border-color); text-align:center; cursor:pointer;">
-      <h3 style="margin:0;">💌 イベント事前エントリーはこちら ▼</h3>
-    </div>
-    <div id="form-content" style="width:100%; height:0px; overflow:hidden; transition: height 0.5s;">
-      <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfcbB7PN8-55oXZuzzrZvOKuY7GycuNckMXhrBLLi5xFscBfQ/viewform?embedded=true" style="width:100%; height:700px; border:none;"></iframe>
-    </div>
-  </div>
+<div class="btn-area">
+  <a href="index.html" class="back-btn">フェアトップへ戻ってエントリーする 💌</a>
 </div>
 
-<button class="shortcut-entry-btn" onclick="document.getElementById('entryFormSection').scrollIntoView({behavior:'smooth'})">申込</button>
-
 <script>
-function toggleForm(e) {
-  const content = document.getElementById('form-content');
-  content.style.height = (content.style.height === '700px') ? '0px' : '700px';
+// スクロールアニメーション制御（INDEX.HTMLと共通）
+function initScrollAnimation() {
+  const targetCards = document.querySelectorAll('.card');
+  
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.1 // 少しでも画面に入ったらポヨンと動かす
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('show');
+      }
+    });
+  }, observerOptions);
+
+  targetCards.forEach(card => observer.observe(card));
 }
+
+window.onload = () => {
+  initScrollAnimation();
+};
 </script>
 </body>
 </html>
