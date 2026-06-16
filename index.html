@@ -3,919 +3,161 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Ｎｅｗビジネスフェア</title>
+<title>注目セミナーのご紹介｜Ｎｅｗビジネスフェア</title>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght=700;800&display=swap" rel="stylesheet">
 
 <style>
-/* 🌟 デザインシステムとカラーパレットの定義 */
 :root {
   --bg-color: #fdf6ff;
-  --primary: #ffadd2;    /* ピンク */
-  --secondary: #95deea;  /* 青（水色） */
-  --accent: #fff3bf;      /* 黄色 */
-  --green: #c2f0af;      /* 緑 */
-  --purple: #d3bfff;     /* 紫 */
+  --primary: #ffadd2;
+  --secondary: #95deea;
+  --accent: #fff3bf;
+  --green: #c2f0af;
+  --purple: #d3bfff;
   --text-color: #4a4a4a;
   --border-color: #333;
-  --ticker-height: 60px; /* 固定アナウンスの高さ */
 }
 
-/* 🌟 基本的なリセットとレイアウト設定 */
-body {
-  margin: 0;
-  font-family: 'M PLUS Rounded 1c', sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  overflow-x: hidden; /* 横はみ出しによるガタつきを完全に防止 */
-  -webkit-text-size-adjust: 100%; /* iOSでの文字サイズ自動変化を防止 */
-  padding-top: var(--ticker-height); /* 固定ヘッダーの分だけコンテンツを下げる */
-}
+body { margin: 0; font-family: 'M PLUS Rounded 1c', sans-serif; background-color: var(--bg-color); color: var(--text-color); overflow-x: hidden; }
 
-/* 🌟 上部固定のスクロールアナウンス（無限エンドレスループ改良版） */
-.fixed-ticker {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: var(--ticker-height);
-  background-color: #ff3366;
-  color: #ffffff;
-  z-index: 2999;
-  border-bottom: 4px solid var(--border-color);
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-}
+/* 🌟 背景装飾 */
+body::before { content: ""; position: fixed; inset: 0; background-image: radial-gradient(#d1d1d1 2px, transparent 2px); background-size: 35px 35px; z-index: -1; }
 
-/* 文字列全体を横並びにして左に動かすためのコンテナ */
-.ticker-wrap {
-  display: flex;
-  white-space: nowrap;
-  backface-visibility: hidden;
-  perspective: 1000px;
-  will-change: transform;
-  animation: endless-ticker 35s linear infinite; 
-}
+/* 🌟 ヘッダー・ヒーロー */
+nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; }
+.logo { font-size: clamp(16px, 4vw, 24px); color: #ff7eb9; text-shadow: 2px 2px 0px #fff, 4px 4px 0px var(--border-color); font-weight: 800; text-decoration: none; }
+.hero { text-align: center; padding: 40px 20px; }
+.hero h1 { font-size: clamp(22px, 6vw, 40px); line-height: 1.5; margin: 0 0 15px 0; }
+.hero h1 span.main-title { display: inline-block; background: var(--purple); padding: 5px 20px; border: 4px solid var(--border-color); box-shadow: 6px 6px 0px var(--border-color); transform: rotate(-1deg); margin: 5px; }
 
-/* テキストごとの細かな設定 */
-.ticker-text {
-  font-weight: 800;
-  font-size: 21px;
-  letter-spacing: 0.05em;
-  padding-right: 120px;
-  line-height: 1;
-  transform: translateZ(0);
-}
+/* 🌟 カードスタイル */
+.cards-vertical { display: flex; flex-direction: column; align-items: center; gap: 80px; padding: 40px 20px 100px; }
+.seminar-card { width: 100%; max-width: 950px; background: #fff; border: 4px solid var(--border-color); border-radius: 35px; box-shadow: 12px 12px 0px var(--border-color); padding: 45px; box-sizing: border-box; }
 
-@keyframes endless-ticker {
-  0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-25%, 0, 0); }
-}
+.semi-header { display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 4px solid var(--border-color); padding-bottom: 20px; margin-bottom: 30px; gap: 20px; }
+.semi-time { font-size: clamp(20px, 4.5vw, 32px); border: 3px solid var(--border-color); padding: 4px 20px; border-radius: 15px; box-shadow: 4px 4px 0px var(--border-color); font-weight: 800; white-space: nowrap; background: var(--secondary); }
+.card-2 .semi-time { background: var(--primary); }
+.semi-title { font-size: clamp(18px, 4vw, 28px); margin: 5px 0 0 0; font-weight: 800; }
 
-/* 🌟 背景のポップなグリッドドット装飾 */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image: radial-gradient(#d1d1d1 2px, transparent 2px);
-  background-size: 35px 35px;
-  z-index: -1;
-}
+/* 🌟 新レイアウト：おすすめ・ポイント（縦並び）→ 講師（下部） */
+.info-container { display: flex; flex-direction: column; gap: 20px; margin-bottom: 30px; }
+.info-block { background: #fafafa; border: 3px solid var(--border-color); border-radius: 20px; padding: 25px; }
+.info-block h4 { margin: 0 0 15px 0; font-size: 18px; font-weight: 800; display: inline-block; padding: 5px 15px; border: 2px solid var(--border-color); border-radius: 10px; }
+.box-recommend h4 { background: var(--accent); }
+.box-point h4 { background: var(--green); }
+.info-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.info-list li { font-size: 14px; font-weight: bold; padding-left: 20px; position: relative; }
+.info-list li::before { content: "●"; position: absolute; left: 0; font-size: 10px; }
 
-/* 🌟 背景を漂う5色のアブストラクトオーブ装飾 */
-.deco { 
-  position: fixed; 
-  border-radius: 50%; 
-  z-index: -1; 
-  opacity: 0.5; 
-  filter: blur(80px); 
-}
-.deco-pink { width: 400px; height: 400px; background: var(--primary); top: -100px; left: -100px; animation: float-pink 25s infinite alternate ease-in-out; }
-.deco-blue { width: 500px; height: 500px; background: var(--secondary); bottom: -150px; right: -150px; animation: float-blue 28s infinite alternate ease-in-out; }
-.deco-yellow { width: 350px; height: 350px; background: var(--accent); top: 40vh; right: -100px; animation: float-yellow 22s infinite alternate ease-in-out; }
-.deco-green { width: 450px; height: 450px; background: var(--green); bottom: 30vh; left: -150px; animation: float-green 30s infinite alternate ease-in-out; }
-.deco-purple { width: 380px; height: 380px; background: var(--purple); top: -50px; right: 20vw; animation: float-purple 26s infinite alternate ease-in-out; }
+.instructor-section { background: #fffdf3; border: 3px dashed var(--border-color); border-radius: 22px; padding: 25px; display: flex; gap: 25px; align-items: flex-start; }
+.instructor-img { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--border-color); object-fit: cover; flex-shrink: 0; }
 
-@keyframes float-pink { 0% { transform: translate(0, 0); } 100% { transform: translate(50vw, 20vh); } }
-@keyframes float-blue { 0% { transform: translate(0, 0); } 100% { transform: translate(-30vw, -50vh); } }
-@keyframes float-yellow { 0% { transform: translate(0, 0); } 100% { transform: translate(-40vw, -20vh); } }
-@keyframes float-green { 0% { transform: translate(0, 0); } 100% { transform: translate(35vw, -30vh); } }
-@keyframes float-purple { 0% { transform: translate(0, 0); } 100% { transform: translate(-20vw, 40vh); } }
-
-/* 🌟 起動時のローディング・イントロ画面 */
-#intro-layer {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background-color: var(--secondary); display: flex; align-items: center; justify-content: center;
-  z-index: 4000; 
-  transition: transform 1s cubic-bezier(0.85, 0, 0.15, 1); cursor: pointer;
-}
-.slide-up { transform: translateY(-100%); pointer-events: none; }
-.intro-content { display: flex; flex-direction: column; align-items: center; gap: 15px; width: 90%; max-width: 500px; text-align: center; }
-
-/* 📅 開催日までの残り日数表示用のポップなネオブルボックス */
-.days-countdown-box {
-  background: #ffffff;
-  border: 4px solid var(--border-color);
-  padding: 12px 30px;
-  border-radius: 20px;
-  box-shadow: 6px 6px 0px var(--border-color);
-  font-size: clamp(16px, 4.5vw, 22px);
-  font-weight: 800;
-  color: var(--text-color);
-  animation: pop-bounce 0.5s ease-out;
-}
-.days-countdown-box span.days-highlight {
-  color: #ff3366;
-  font-size: 1.4em;
-  margin: 0 4px;
-  text-shadow: 1px 1px 0px #fff;
-}
-
-@keyframes pop-bounce {
-  0% { transform: scale(0.8); opacity: 0; }
-  70% { transform: scale(1.05); }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-/* ポップで太枠なタイマーボックス（秒数カウント） */
-.timer-box {
-  background: var(--accent); border: 4px solid var(--border-color);
-  width: 90px; height: 90px; display: flex; align-items: center; justify-content: center;
-  border-radius: 25px; box-shadow: 6px 6px 0px var(--border-color);
-  margin-top: 5px;
-}
-#timer-count { font-size: 3rem; color: var(--border-color); font-weight: 800; }
-
-/* 🌟 スキップ案内テキストのスタイル */
-.skip-notice {
-  font-size: 12px;
-  font-weight: 800;
-  color: #ffffff;
-  background-color: rgba(0, 0, 0, 0.15);
-  padding: 6px 16px;
-  border-radius: 50px;
-  margin-top: 10px;
-  letter-spacing: 0.05em;
-  animation: pulse-subtle 2s infinite alternate;
-}
-@keyframes pulse-subtle {
-  0% { opacity: 0.7; transform: scale(0.98); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-/* 🌟 ヘッダーナビゲーション */
-nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; gap: 15px; }
-.logo { font-size: clamp(18px, 4vw, 28px); color: #ff7eb9; text-shadow: 2px 2px 0px #fff, 4px 4px 0px var(--border-color); font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-
-/* ========================================================
-   ✨ 新ヘッダー・ロゴデザイン
-   ======================================================== */
-.new-hero {
-  text-align: center;
-  padding: 40px 20px;
-  box-sizing: border-box;
-  position: relative;
-}
-
-.main-title {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 25px;
-}
-
-.title-row {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.char-box {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(32px, 7vw, 60px);
-  font-weight: 800;
-  color: #2c3e50;
-  border: 4px solid var(--border-color);
-  border-radius: 14px;
-  width: clamp(55px, 11vw, 90px);
-  height: clamp(55px, 11vw, 90px);
-  box-shadow: 0px 6px 0px var(--border-color);
-  transform: rotate(-1deg);
-  background-color: #fff;
-}
-
-.char-box:nth-child(even) { transform: rotate(2deg); }
-.bg-yellow { background-color: var(--accent); }
-.bg-blue   { background-color: var(--secondary); }
-.bg-pink   { background-color: var(--primary); }
-
-.sparkle {
-  font-size: clamp(24px, 5vw, 36px);
-  color: #ffcc00;
-  display: inline-block;
-  animation: pulse 1.5s infinite alternate;
-  margin-left: 5px;
-}
-@keyframes pulse {
-  0% { transform: scale(0.9) rotate(-5deg); }
-  100% { transform: scale(1.1) rotate(5deg); }
-}
-
-.info-date-box {
-  font-size: clamp(24px, 6vw, 42px);
-  font-weight: 800;
-  color: #2c3e50;
-  margin: 25px 0 10px;
-  text-shadow: 2px 2px 0px #fff;
-}
-.info-date-box span.weekday { font-size: 0.8em; }
-.info-date-box span.time {
-  font-size: clamp(16px, 4vw, 26px);
-  display: inline-block;
-  margin-left: 10px;
-  background: #fff;
-  padding: 2px 10px;
-  border: 3px solid var(--border-color);
-  box-shadow: 3px 3px 0px var(--border-color);
-  border-radius: 8px;
-  vertical-align: middle;
-}
-
-.info-location-link { text-decoration: none; color: inherit; display: inline-block; margin-top: 10px; }
-.info-location {
-  font-size: clamp(13px, 3.5vw, 16px);
-  font-weight: 800;
-  background: #fff;
-  border: 3px solid var(--border-color);
-  padding: 8px 20px;
-  border-radius: 50px;
-  display: inline-block;
-  box-shadow: 4px 4px 0px var(--border-color);
-  cursor: pointer;
-  transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.1s ease, background-color 0.2s ease;
-}
-.info-location-link:hover .info-location {
-  transform: translate(-3px, -3px);
-  box-shadow: 7px 7px 0px var(--border-color);
-  background-color: var(--accent); 
-}
-.info-location-link:active .info-location { transform: translate(2px, 2px); box-shadow: 2px 2px 0px var(--border-color); }
-
-/* ========================================================
-   💬 重要とCHECK欄の設定（縦並び固定）
-   ======================================================== */
-.hero-badges-container {
-  display: flex;
-  flex-direction: column; 
-  gap: 20px;
-  max-width: 700px;       
-  margin: 35px auto 0;
-  padding: 0 15px;
-  box-sizing: border-box;
-}
-.bubble-alert {
-  background: #fff;
-  border: 3px solid var(--border-color);
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: 6px 6px 0px var(--border-color);
-  position: relative;
-  font-weight: 800;
-  font-size: 14px;
-  line-height: 1.6;
-  text-align: left;       
-}
-
-.bubble-alert.left {
-  background-color: #fffdf0;
-  animation: neobrutalism-blink 1.8s infinite ease-in-out; 
-}
-.bubble-alert.right { background-color: #f6f0ff; }
-
-@keyframes neobrutalism-blink {
-  0%, 100% { background-color: #fffdf0; border-color: var(--border-color); box-shadow: 6px 6px 0px var(--border-color); }
-  50% { background-color: #ffeef4; border-color: #ff3366; box-shadow: 6px 6px 0px #ff3366; }
-}
-
-/* 🌟 メインスライダー（お知らせバナー）のスタイル修正 */
-.slider-container {
-  position: relative; width: 100vw; height: 400px;
-  overflow: hidden; border-top: 4px solid var(--border-color); border-bottom: 4px solid var(--border-color);
-  background: #fff; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw;
-}
-.slider-wrapper { display: flex; width: 400%; height: 100%; transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
-.slide {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(18px, 4.5vw, 32px);
-  font-weight: 800;
-  text-align: center;
-  padding: 0 20px;
-  box-sizing: border-box;
-
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-
-  color: #fff;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-}
-/* 各スライドの背景画像と色の設定 */
-.slide:nth-child(1),
-.slide:nth-child(4) {
-  background:
-    var(--green)
-    url('04.png')
-    center center / cover no-repeat;
-}
-
-.slide:nth-child(2) {
-  background:
-    var(--primary)
-    url('05.png')
-    center center / cover no-repeat;
-}
-
-.slide:nth-child(3) {
-  background:
-    var(--accent)
-    url('06.png')
-    center center / cover no-repeat;
-}
-  
-
-.slider-dots { display: flex; justify-content: center; gap: 15px; padding: 25px 0; }
-.dot { width: 15px; height: 15px; border: 3px solid var(--border-color); border-radius: 50%; cursor: pointer; background: #fff; }
-.dot.active { background: var(--primary); transform: scale(1.4); box-shadow: 3px 3px 0px var(--border-color); }
-
-/* 🌟 コンテンツカードの共通レイアウト */
-.cards-vertical { display: flex; flex-direction: column; align-items: center; gap: 60px; padding: 40px 20px 100px; box-sizing: border-box; }
-
-.card, .form-card {
-  width: 100%; max-width: 950px; display: flex; align-items: stretch;
-  background: rgba(255, 255, 255, 0.85); border: 4px solid var(--border-color);
-  border-radius: 30px; box-shadow: 12px 12px 0px var(--border-color); overflow: hidden;
-  box-sizing: border-box; opacity: 0;
-  transition: opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.card.reverse { flex-direction: row-reverse; }
-.slide-in-left { transform: translateX(-60px); }
-.slide-in-right { transform: translateX(60px); }
-
-.card.show, .form-card.show { opacity: 1; transform: translateX(0) translateY(0); }
-
-.card-text { flex: 1; padding: 40px; box-sizing: border-box; }
-.card h3 { font-size: clamp(1.3rem, 4vw, 2rem); margin-top: 0; border-bottom: 4px solid var(--accent); display: inline-block; padding-bottom: 5px; }
-.card h3 span.badge { font-size: 0.85rem; background: var(--secondary); border: 2.5px solid var(--border-color); padding: 4px 12px; border-radius: 12px; margin-left: 10px; display: inline-block; box-shadow: 3px 3px 0px var(--border-color); font-weight: 800; transition: transform 0.2s; white-space: nowrap; vertical-align: middle; }
-.card p { font-size: clamp(0.9rem, 2.5vw, 1.05rem); line-height: 1.6; margin-bottom: 0; }
-.card-image { flex: 1; min-height: 300px; background: #eee; overflow: hidden; }
-.card-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-.card-link { text-decoration: none; color: inherit; }
-.card.show.card-link {
-  transition: opacity 0.8s ease-out, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, background-color 0.3s ease;
-}
-.card.show.card-link:hover {
-  transform: translate(-10px, -10px);
-  box-shadow: 22px 22px 0px var(--border-color);
-  background: rgba(255, 255, 255, 0.95);
-}
-.card.show.card-link:hover h3 span.badge { transform: rotate(-3deg) scale(1.05); }
-
-.form-card { display: block; margin-bottom: 100px; width: 100%; }
-
-/* 🌟 追加：終了メッセージ表示用のネオブルスタイル */
-.closed-msg-box {
-  background: #fff0f4;
-  border: 4px dashed #ff3366;
-  border-radius: 20px;
-  padding: 40px 20px;
-  text-align: center;
-  font-weight: 800;
-  color: #ff3366;
-  font-size: clamp(16px, 4.5vw, 24px);
-  box-shadow: 6px 6px 0px var(--border-color);
-  box-sizing: border-box;
-  width: 100%;
-}
-
-/* ========================================================
-   🚀 画面右側に固定する「申込ボタン」
-   ======================================================== */
-.shortcut-entry-btn {
-  position: fixed;
-  top: 50%;
-  right: 30px;
-  transform: translateY(-50%) scale(0.8);
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: var(--green);
-  border: 4px solid var(--border-color);
-  box-shadow: 6px 6px 0px var(--border-color);
-  cursor: pointer;
-  z-index: 999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: inherit;
-  font-weight: 800;
-  font-size: 13px;
-  color: var(--text-color);
-  text-decoration: none;
-  opacity: 1;
-  pointer-events: auto;
-  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, background-color 0.2s ease;
-}
-.shortcut-entry-btn.visible { opacity: 1; transform: translateY(-50%) scale(1); pointer-events: auto; }
-.shortcut-entry-btn:hover {
-  transform: translateY(-55%) translate(-4px, 0px) scale(1.05);
-  box-shadow: 10px 10px 0px var(--border-color);
-  background: #b2ec9c;
-}
-.shortcut-entry-btn:active { transform: translateY(-48%) translate(2px, 0px) scale(0.98); box-shadow: 2px 2px 0px var(--border-color); }
-.shortcut-entry-btn .icon { font-size: 24px; margin-bottom: 2px; }
-
-/* ========================================================
-   🔒 ログインモーダル
-   ======================================================== */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 5000; 
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.3s ease; padding: 20px; box-sizing: border-box;
-}
-.modal-overlay.active { opacity: 1; pointer-events: auto; }
-
-.modal-box {
-  background: #fff; border: 4px solid var(--border-color);
-  border-radius: 25px; padding: clamp(20px, 5vw, 35px); width: 100%; max-width: 380px;
-  box-shadow: 10px 10px 0px var(--border-color); text-align: center;
-  transform: scale(0.85); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-sizing: border-box;
-}
-.modal-overlay.active .modal-box { transform: scale(1); }
-
-.modal-box h2 { margin-top: 0; font-size: clamp(1.3rem, 4vw, 1.6rem); color: var(--text-color); margin-bottom: 20px; }
-.modal-input {
-  width: 100%; padding: 14px; font-size: 1.3rem; text-align: center;
-  border: 3px solid var(--border-color); border-radius: 14px;
-  box-sizing: border-box; margin-bottom: 15px; font-family: inherit;
-  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.08); -webkit-appearance: none;
-}
-.modal-input:focus { outline: none; background: #fffdf3; border-color: var(--text-color); }
-
-.modal-btns { display: flex; gap: 12px; justify-content: center; width: 100%; }
-.modal-btn {
-  flex: 1; font-family: inherit; font-weight: bold; border: 3px solid var(--border-color);
-  padding: 12px 16px; border-radius: 50px; cursor: pointer; font-size: clamp(13px, 3.5vw, 15px);
-  box-shadow: 3px 3px 0px var(--border-color); transition: transform 0.1s, box-shadow 0.1s;
-  white-space: nowrap; box-sizing: border-box;
-}
-.modal-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--border-color); }
-.btn-submit { background: var(--purple); color: var(--text-color); }
-.btn-cancel { background: #eee; color: var(--text-color); }
-.error-msg { color: #ff5c5c; font-size: 0.85rem; font-weight: bold; margin-bottom: 15px; display: none; }
-
-/* ========================================================
-   📱 レスポンシブメディアクエリ
-   ======================================================== */
-@media (max-width: 1024px) {
-  nav { padding: 20px 30px; }
-  .card-text { padding: 30px; }
-  .slide-in-left { transform: translateX(-40px); }
-  .slide-in-right { transform: translateX(40px); }
-}
+/* 🌟 フォーム・ボタン */
+.form-card { width: 100%; max-width: 950px; background: rgba(255, 255, 255, 0.85); border: 4px solid var(--border-color); border-radius: 30px; box-shadow: 12px 12px 0px var(--border-color); overflow: hidden; }
+.shortcut-entry-btn { position: fixed; bottom: 30px; right: 30px; width: 80px; height: 80px; border-radius: 50%; background: var(--green); border: 4px solid var(--border-color); box-shadow: 6px 6px 0px var(--border-color); cursor: pointer; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; }
 
 @media (max-width: 768px) {
-  nav { padding: 15px 20px; }
-  .logo { text-shadow: 1.5px 1.5px 0px #fff, 3px 3px 0px var(--border-color); }
-  
-  .slider-container { height: 280px; }
-  
-  .card, .card.reverse { flex-direction: column; align-items: stretch; }
-  .card-image { min-height: 180px; max-height: 220px; order: -1; }
-  .card-text { padding: 25px 20px; }
-  .card h3 { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; border-bottom: none; }
-  .card h3 span.badge { margin-left: 0; }
-  
-  .slide-in-left { transform: translateX(-15px) translateY(25px); }
-  .slide-in-right { transform: translateX(15px) translateY(25px); }
-  
-  .cards-vertical { gap: 40px; padding: 20px 15px 60px; }
-  .form-card { margin-bottom: 40px; }
-  
-  .card.show.card-link:hover { transform: translate(-4px, -4px); box-shadow: 16px 16px 0px var(--border-color); }
-
-  .shortcut-entry-btn { width: 75px; height: 75px; right: 15px; font-size: 11px; }
-  .shortcut-entry-btn.visible { transform: translateY(-50%) scale(1); }
-  .shortcut-entry-btn:hover { transform: translateY(-52%) scale(1.02); }
-  .shortcut-entry-btn .icon { font-size: 20px; }
+  .info-list { grid-template-columns: 1fr; }
+  .instructor-section { flex-direction: column; align-items: center; text-align: center; }
 }
 </style>
 </head>
-<body onclick="handleInteraction()">
+<body>
 
-<div class="fixed-ticker">
-  <div class="ticker-wrap">
-    <div class="ticker-text">⚠️事前エントリー必須⚠️エントリー完了後にメールで届くＱＲコードが入場券となります⚠️</div>
-    <div class="ticker-text">⚠️事前エントリー必須⚠️エントリー完了後にメールで届くＱＲコードが入場券となります⚠️</div>
-    <div class="ticker-text">⚠️事前エントリー必須⚠️エントリー完了後にメールで届くＱＲコードが入場券となります⚠️</div>
-    <div class="ticker-text">⚠️事前エントリー必須⚠️エントリー完了後にメールで届くＱＲコードが入場券となります⚠️</div>
-  </div>
-</div>
+<nav>
+  <a href="index.html" class="logo">👈 イベントトップへ戻る</a>
+</nav>
 
-<div class="deco deco-pink"></div>
-<div class="deco deco-blue"></div>
-<div class="deco deco-yellow"></div>
-<div class="deco deco-green"></div>
-<div class="deco deco-purple"></div>
+<section class="hero">
+  <h1><span class="main-title">注目セミナーのご紹介</span></h1>
+</section>
 
-<div id="intro-layer">
-  <div class="intro-content">
-    <h1 style="color:#fff; text-shadow:4px 4px 0px var(--border-color); font-size:clamp(22px, 5.5vw, 30px); margin:0;">イベント Loading...</h1>
-    
-    <div class="days-countdown-box">
-      開催まで<span id="days-count" class="days-highlight">--</span>
+<div class="cards-vertical">
+  <section class="seminar-card">
+    <div class="semi-header">
+      <h3 class="semi-title">AI活用による1on1の質的向上とエンゲージメント向上へのアプローチ</h3>
+      <div class="semi-time">11:00 ～</div>
     </div>
-
-    <div class="timer-box">
-      <span id="timer-count">5</span>
-    </div>
-
-    <div class="skip-notice">
-      👆 この画面はクリックするとスキップ出来ます
-    </div>
-  </div>
-</div>
-
-<button class="shortcut-entry-btn" id="shortcutBtn" onclick="scrollToAndOpenForm(event)">
-  <span class="icon">💌</span>
-  <span>申込する</span>
-</button>
-
-<div id="main-content">
-  <nav>
-    <div class="logo">Ｎｅｗビジネスフェア×仙台山三 ✨</div>
-    <a href="javascript:void(0)" onclick="openLoginModal(event)" style="font-weight:bold; text-decoration:none; color:var(--text-color); border:3px solid var(--border-color); padding:8px 18px; border-radius:50px; background:#fff; font-size: 13px; box-shadow: 3px 3px 0px var(--border-color); transition: transform 0.1s; white-space: nowrap;" onmousedown="this.style.transform='translate(2px, 2px)'" onmouseup="this.style.transform='none'">Login</a>
-  </nav>
-
-  <section class="new-hero">
-    <div class="main-title">
-      <div class="title-row">
-        <div class="char-box bg-yellow">N</div>
-        <div class="char-box bg-yellow">E</div>
-        <div class="char-box bg-yellow">W</div>
-        <span class="sparkle">✨</span>
+    <div class="info-container">
+      <div class="info-block box-recommend">
+        <h4>🎯 こんな方におすすめ！</h4>
+        <ul class="info-list">
+          <li>1on1の効果に悩む管理職の方</li>
+          <li>管理業務に追われるマネージャー</li>
+          <li>経験や勘（3K）の指導から脱却したいリーダー</li>
+          <li>組織のエンゲージメントを高めたい人事担当者</li>
+        </ul>
       </div>
-      <div class="title-row" style="margin-top: 5px;">
-        <div class="char-box bg-blue">ビ</div>
-        <div class="char-box bg-blue">ジ</div>
-        <div class="char-box bg-blue">ネ</div>
-        <div class="char-box bg-blue">ス</div>
-      </div>
-      <div class="title-row" style="margin-top: 5px;">
-        <div class="char-box bg-pink">フ</div>
-        <div class="char-box bg-pink">ェ</div>
-        <div class="char-box bg-pink">ア</div>
+      <div class="info-block box-point">
+        <h4>💡 学べるポイント</h4>
+        <ul class="info-list">
+          <li>AIによる1on1の質とエンゲージメントの向上策</li>
+          <li>管理職の負担を削減する自動化の手法</li>
+          <li>対話ログを可視化し「組織の資産」にする方法</li>
+          <li>AIと人の力を融合した「次世代マネジメント」</li>
+        </ul>
       </div>
     </div>
-    
-    <div class="info-date-box">
-      7月17日<span class="weekday">(金)</span> <span class="time">10:00～17:00 開催</span>
-    </div>
-    
-    <a href="https://maps.google.com/?q=38.25401848532476,140.92433925123342" target="_blank" rel="noopener noreferrer" class="info-location-link" onclick="event.stopPropagation();">
-      <div class="info-location">
-        📍 場所：仙台山三本社（仙台市若林区卸町2丁目5-9）
-      </div>
-    </a>
-
-    <div class="hero-badges-container">
-      <div class="bubble-alert left">
-        <span style="color: #ff3366; font-size: 24px;">⚠️ 【重要】</span><br>
-        本イベントへのご来場には、事前エントリー（登録）が必要です。<br>下のフォームから登録をお願いします。
-      </div>
-      <div class="bubble-alert right">
-        <span style="color: #ff9900; font-size: 24px;">🎁 Check!</span><br>
-        当日アンケート回答ですてきなギフトが抽選であたるチャンスも！！
+    <div class="instructor-section">
+      <img class="instructor-img" src="講師１.png" alt="講師">
+      <div class="instructor-txt">
+        <h5 style="margin:0 0 10px 0;">講師：小笠原 広大 氏（TONOME株式会社 代表取締役CEO / プロコーチ）</h5>
+        <p style="font-size: 13px; line-height: 1.6;">株式会社リコーの社内起業プログラム「TRIBUS」の初代リーダーとして制度設計〜運営に至る全てに関わり、社内外400以上のテーマ判断とその推進に従事。社内起業家たちの熱量がマネジメント一つで劇的に変わる様を目の当たりにし、「個の力を最大化する組織作り」を志す。プロコーチとしての洞察と最新のAI知見を融合させ、2024年にTONOME株式会社を創業。</p>
       </div>
     </div>
   </section>
 
-  <div class="slider-container">
-    <div class="slider-wrapper" id="slider">
-      <div class="slide">⛑️ オフィスの「もしも」を守る防災計画</div>
-      <div class="slide">🚚 お楽しみフード充実！キッチンカーがやってくる！</div>
-      <div class="slide">🏢 効率とやる気を両立する進化系ライブオフィス</div>
-      <div class="slide">⛑️ オフィスの「もしも」を守る防災計画</div>
+  <section class="seminar-card">
+    <div class="semi-header">
+      <h3 class="semi-title">ライオン事務器がお届けするエンゲージメントを高める ”ワーキングプレイス”</h3>
+      <div class="semi-time">14:00 ～</div>
     </div>
-  </div>
-  <div class="slider-dots">
-    <div class="dot active" onclick="dotClick(0, event)"></div>
-    <div class="dot" onclick="dotClick(1, event)"></div>
-    <div class="dot" onclick="dotClick(2, event)"></div>
-  </div>
-
-  <section class="cards-vertical">
-    
-    <a href="seminar.html" class="card slide-in-left card-link">
-      <div class="card-text">
-        <h3 style="border-bottom: 4px solid var(--purple);">✨ 注目のイベント特別セミナー <span class="badge">詳しく見る 👉</span></h3>
-        <p style="margin-top: 15px; font-weight: bold; color: #1a73e8;">【セミナー1】 11:00～</p>
-        <p style="font-size: 15px; font-weight: 800; margin: 4px 0;">AI活用による1on1の質的向上とエンゲージメント向上へのアプローチ</p>
-        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">講師：TONOME株式会社 代表取締役CEO プロコーチ 小笠原 広大 氏</p>
-        
-        <div style="border-top: 2px dashed #ccc; margin: 15px 0;"></div>
-        
-        <p style="font-weight: bold; color: #e91e63;">【セミナー2】 14:00～</p>
-        <p style="font-size: 15px; font-weight: 800; margin: 4px 0;">ライオン事務器がお届けするエンゲージメントを高める ”ワーキングプレイス”</p>
-        <p style="font-size: 13px; color: #666;">講師：株式会社ライオン事務器</p>
+    <div class="info-container">
+      <div class="info-block box-recommend">
+        <h4>🎯 こんな方におすすめ！</h4>
+        <ul class="info-list">
+          <li>社員の出社率やモチベーションを高めたい経営者・管理職</li>
+          <li>オフィスのリニューアルや環境改善を検討している担当者</li>
+          <li>社内のコミュニケーション不足や希薄化に課題を感じる方</li>
+          <li>社員のエンゲージメント向上を目指す人事・総務担当者</li>
+        </ul>
       </div>
-    </a>
-
-    <a href="content1.html" class="card reverse slide-in-right card-link">
-      <div class="card-text">
-        <h3>現場と事務所の「酷暑リスク」軽減 <span class="badge">詳しく見る 👉</span></h3>
-        <p>年々厳しさを増す夏の暑さ。従業員の健康を守り生産性を落とさないための最新トレンドをご紹介します。</p>
-        <p style="font-size: 13px; font-weight: bold; margin-top: 10px; color: #666;"></p>
+      <div class="info-block box-point">
+        <h4>💡 学べるポイント</h4>
+        <ul class="info-list">
+          <li>社員が「出社したくなる」オフィス環境づくりのヒント</li>
+          <li>「場所」中心から「ひと」中心へと変化する最新のワークプレイス</li>
+          <li>社内のコミュニケーションを円滑にするための空間設計</li>
+          <li>エンゲージメントを高めるオフィスの具体事例</li>
+        </ul>
       </div>
-      <div class="card-image"><img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=600"></div>
-    </a>
-
-    <a href="content2.html" class="card slide-in-left card-link">
-      <div class="card-text">
-        <h3>リアルに体感！進化系ライブオフィス公開 <span class="badge">詳しく見る 👉</span></h3>
-        <p>カタログだけでは分からない、社員が実際に働く「生きた空間」をご案内。コミュニケーションを活性化させる仕掛けが満載です。</p>
-        <p style="font-size: 13px; font-weight: bold; margin-top: 10px; color: #666;"></p>
-      </div>
-      <div class="card-image"><img src="https://images.unsplash.com/photo-1597733336794-12d05021d510?auto=format&fit=crop&q=80&w=600"></div>
-    </a>
-
-    <a href="content3.html" class="card reverse slide-in-right card-link">
-      <div class="card-text">
-        <h3>今すぐ始めるオフィスの防災対策 <span class="badge">詳しく見る 👉</span></h3>
-        <p>いつ起こるか分からない災害への備え。準備からオフィスの安全対策まで、企業の安全配慮義務に応えるソリューションをご紹介。</p>
-        <p style="font-size: 13px; font-weight: bold; margin-top: 10px; color: #666;"></p>
-      </div>
-      <div class="card-image"><img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc51?auto=format&fit=crop&q=80&w=600"></div>
-    </a>
-
-    <div class="card slide-in-left">
-      <div class="card-text">
-        <h3>お楽しみフードも充実！キッチンカーがやってくる！</h3>
-        <p>お仕事のヒントを見つけた後は美味しいグルメでほっと一息。人気のキッチンカーが限定メニューをご用意して皆様をお待ちしています。</p>
-        </div>
-      <div class="card-image"><img src="https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?auto=format&fit=crop&q=80&w=600"></div>
     </div>
-
-    <div class="form-card slide-in-left" id="entryFormSection">
-      <div id="form-toggle-btn" onclick="toggleForm(event)" style="background:var(--secondary); padding:20px; border-bottom:4px solid var(--border-color); text-align:center; cursor:pointer; user-select:none; transition: background 0.2s;">
-        <h3 style="margin:0; display: inline-block; font-size: clamp(1.1rem, 3.5vw, 1.8rem);">💌 <span id="toggle-text">エントリーはこちら</span> <span id="toggle-arrow">▼</span></h3>
-      </div>
-      <div id="form-content" style="width:100%; height:0px; overflow:hidden; transition: height 0.5s cubic-bezier(0.25, 1, 0.5, 1);">
-        <div id="form-inner-container" style="width:100%; height:700px;">
-          <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfcbB7PN8-55oXZuzzrZvOKuY7GycuNckMXhrBLLi5xFscBfQ/viewform?embedded=true" style="width:100%; height:100%; border:none;"></iframe>
-        </div>
+    <div class="instructor-section">
+      <img class="instructor-img" src="講師2.png" alt="講師">
+      <div class="instructor-txt">
+        <h5 style="margin:0 0 10px 0;">講師：株式会社ライオン事務器 オフィス環境エンジニアリング部</h5>
+        <p style="font-size: 13px; line-height: 1.6;">はたらく「場所」「中心」と変化するワークプレイス。多様化する働き方を豊かに支え、社員が「出社したくなる」オフィスとは？ 円滑なコミュニケーションを実現し、エンゲージメントを高めるワークプレイスの事例をご紹介します。</p>
       </div>
     </div>
   </section>
-</div>
 
-<div id="login-modal" class="modal-overlay" onclick="closeLoginModal()">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <h2>🔒 パスワード入力</h2>
-    <input type="password" id="pass-input" class="modal-input" placeholder="••••" maxlength="10">
-    <div id="error-message" class="error-msg">パスワードが違います</div>
-    <div class="modal-btns">
-      <button class="modal-btn btn-cancel" onclick="closeLoginModal()">閉じる</button>
-      <button class="modal-btn btn-submit" onclick="checkPassword()">ログイン</button>
+  <div class="form-card" id="entryFormSection">
+    <div id="form-toggle-btn" onclick="toggleForm(event)" style="background:var(--secondary); padding:20px; border-bottom:4px solid var(--border-color); text-align:center; cursor:pointer;">
+      <h3 style="margin:0;">💌 イベント事前エントリーはこちら ▼</h3>
+    </div>
+    <div id="form-content" style="width:100%; height:0px; overflow:hidden; transition: height 0.5s;">
+      <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfcbB7PN8-55oXZuzzrZvOKuY7GycuNckMXhrBLLi5xFscBfQ/viewform?embedded=true" style="width:100%; height:700px; border:none;"></iframe>
     </div>
   </div>
 </div>
+
+<button class="shortcut-entry-btn" onclick="document.getElementById('entryFormSection').scrollIntoView({behavior:'smooth'})">申込</button>
 
 <script>
-let isIntro = true, currentSlide = 0, timeLeft = 5, autoTimer, countdownInterval, isClosedEvent = false;
-
-const slider = document.getElementById('slider');
-const dots = document.querySelectorAll('.dot');
-const introLayer = document.getElementById('intro-layer');
-const timerDisplay = document.getElementById('timer-count');
-const shortcutBtn = document.getElementById('shortcutBtn');
-
-function updateSliderUI() {
-  slider.style.transition = "transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55)";
-  slider.style.transform = `translateX(-${currentSlide * 25}%)`;
-  dots.forEach((d, i) => d.classList.toggle('active', i === (currentSlide % 3)));
-  if (currentSlide === 3) {
-    setTimeout(() => {
-      slider.style.transition = "none";
-      currentSlide = 0;
-      slider.style.transform = `translateX(0%)`;
-      dots[0].classList.add('active');
-    }, 600);
-  }
-}
-
-function exitIntro() {
-  clearInterval(countdownInterval);
-  introLayer.classList.add('slide-up');
-  isIntro = false;
-  // 🚨 イベント終了後は画面右側の「申込する」ボタンを非表示にする
-  if (!isClosedEvent) {
-    shortcutBtn.classList.add('visible');
-  }
-  startMainSliderTimer();
-}
-
-function startMainSliderTimer() {
-  clearInterval(autoTimer);
-  autoTimer = setInterval(() => { currentSlide++; updateSliderUI(); }, 5000);
-}
-
-function handleInteraction() { if (isIntro) exitIntro(); }
-
-function dotClick(idx, e) {
-  e.stopPropagation();
-  currentSlide = idx;
-  updateSliderUI();
-  startMainTimer();
-}
-
-function startMainTimer() {
-  clearInterval(autoTimer);
-  autoTimer = setInterval(() => { currentSlide++; updateSliderUI(); }, 5000);
-}
-
-function setFormOpenState(isOpen) {
-  // 🚨 すでにイベント終了している場合はアコーディオンが開かないようにする
-  if (isClosedEvent) return;
-
-  const formContent = document.getElementById('form-content');
-  const toggleText = document.getElementById('toggle-text');
-  const toggleArrow = document.getElementById('toggle-arrow');
-  const toggleBtn = document.getElementById('form-toggle-btn');
-
-  if (isOpen) {
-    formContent.style.height = '700px'; 
-    toggleText.innerText = 'エントリーフォームを閉じる';
-    toggleArrow.innerText = '▲';
-    toggleBtn.style.background = 'var(--primary)'; 
-  } else {
-    formContent.style.height = '0px'; 
-    toggleText.innerText = 'エントリーはこちら';
-    toggleArrow.innerText = '▼';
-    toggleBtn.style.background = 'var(--secondary)'; 
-  }
-}
-
 function toggleForm(e) {
-  e.stopPropagation(); 
-  const formContent = document.getElementById('form-content');
-  const isCurrentlyClosed = (formContent.style.height === '0px' || formContent.style.height === '');
-  setFormOpenState(isCurrentlyClosed);
+  const content = document.getElementById('form-content');
+  content.style.height = (content.style.height === '700px') ? '0px' : '700px';
 }
-
-function scrollToAndOpenForm(e) {
-  e.stopPropagation();
-  if (isClosedEvent) return; // 終了時はボタン自体出ませんがガード処理
-
-  const formContent = document.getElementById('form-content');
-  const isClosed = formContent.style.height === '0px' || formContent.style.height === '';
-
-  if (isClosed) {
-    setFormOpenState(true);
-  }
-
-  setTimeout(() => {
-    const iframe = document.querySelector('#form-content iframe');
-    if (iframe) {
-      iframe.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-      document.getElementById('entryFormSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, 600);
-}
-
-function initScrollAnimation() {
-  const targetCards = document.querySelectorAll('.card, .form-card');
-  const observerOptions = { root: null, rootMargin: '0px', threshold: 0.05 };
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('show');
-      }
-    });
-  }, observerOptions);
-
-  targetCards.forEach(card => observer.observe(card));
-}
-
-const CORRECT_PASSWORD = "1234"; 
-
-function openLoginModal(e) {
-  e.stopPropagation();
-  const modal = document.getElementById('login-modal');
-  const input = document.getElementById('pass-input');
-  const errorMsg = document.getElementById('error-message');
-  
-  input.value = "";
-  errorMsg.style.display = "none";
-  modal.classList.add('active');
-  
-  setTimeout(() => input.focus(), 150);
-}
-
-function closeLoginModal() {
-  document.getElementById('login-modal').classList.remove('active');
-}
-
-function checkPassword() {
-  const userInput = document.getElementById('pass-input').value;
-  const errorMsg = document.getElementById('error-message');
-  
-  if (userInput === CORRECT_PASSWORD) {
-    window.location.href = "scan.html";
-  } else {
-    errorMsg.style.display = "block";
-    document.getElementById('pass-input').focus();
-  }
-}
-
-document.getElementById('pass-input').addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') checkPassword();
-});
-
-/* 📅 残り日数およびフォーム締め切りの判定ロジック */
-function calculateDaysLeft() {
-  const targetStart = new Date("2026/07/17 00:00:00"); 
-  const targetEnd = new Date("2026/07/17 17:00:00");   
-  const today = new Date();
-  
-  const currentDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const targetDateOnly = new Date(targetStart.getFullYear(), targetStart.getMonth(), targetStart.getDate());
-  
-  const diffTime = targetDateOnly - currentDateOnly;
-  const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  const displayContainer = document.getElementById('days-count');
-  
-  if (today >= targetEnd) {
-    // 🚨 【イベント終了後】の処理
-    isClosedEvent = true;
-    displayContainer.innerHTML = `<span style="font-size:0.85em; color:#bbb;">イベントは終了しました</span>`;
-    
-    // フォーム部分を終了メッセージボックスへ差し替える
-    const entrySection = document.getElementById('entryFormSection');
-    if (entrySection) {
-      entrySection.innerHTML = `
-        <div class="closed-msg-box">
-          🏁 イベントは終了しました。<br>ありがとうございました。
-        </div>
-      `;
-      // アコーディオンアニメーション用に無理やり非表示になってしまうのを防ぐため高さを自動化
-      entrySection.style.height = "auto";
-      entrySection.style.boxShadow = "none";
-      entrySection.style.border = "none";
-      entrySection.style.background = "transparent";
-    }
-    // 右下の追従ボタンを完全に隠す
-    shortcutBtn.style.display = "none";
-
-  } else if (today >= targetStart && today < targetEnd) {
-    // 7月17日の 00:00 から 16:59:59 までの間
-    displayContainer.innerHTML = `<span class="days-highlight" style="color:#ffcc00; font-size:1.2em;">本日開催中！</span>`;
-  } else if (daysLeft > 0) {
-    // 7月16日以前の場合
-    displayContainer.innerHTML = `あと<span class="days-highlight">${daysLeft}</span>日！`;
-  } else {
-    displayContainer.innerHTML = `<span style="font-size:0.85em; color:#bbb;">イベントは終了しました</span>`;
-  }
-}
-
-window.onload = () => {
-  calculateDaysLeft(); // 🚨 先に時間判定を行ってフォーム状態を確定させる
-  initScrollAnimation();
-  
-  countdownInterval = setInterval(() => {
-    timeLeft--;
-    if(timerDisplay) timerDisplay.innerText = timeLeft;
-    if (timeLeft <= 0) exitIntro();
-  }, 1000);
-};
 </script>
 </body>
 </html>
