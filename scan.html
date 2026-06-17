@@ -5,12 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>商談メモ登録</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-    <style>
+<style>
         body { font-family: sans-serif; text-align: center; background: #f0f2f5; margin: 0; padding: 10px; }
         .card { background: white; max-width: 400px; margin: auto; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        /* 隙間を詰める設定 */
-        #interactive { width: 100%; position: relative; overflow: hidden; border-radius: 8px; background: #000; }
-        #interactive video { width: 100%; vertical-align: top; }
+        
+        /* ここを調整しました */
+        #interactive { 
+            width: 100%; 
+            position: relative; 
+            overflow: hidden; 
+            border-radius: 8px; 
+            background: #000; 
+            line-height: 0; /* 映像下の微細な隙間を除去 */
+        }
+        #interactive video { 
+            width: 100%; 
+            display: block; /* 余白の発生を防ぐ */
+        }
+        
         textarea, input { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; }
         button { width: 100%; padding: 14px; margin-top: 8px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; }
         .btn-reg { background: #28a745; }
