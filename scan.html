@@ -77,11 +77,23 @@
     });
 
     // 登録ボタン処理
-    function saveMemo() {
+function saveMemo() {
         const memo = document.getElementById('memo').value;
         const exhibitor = document.getElementById('exhibitor').value;
-        if(!memo) { alert('メモを入力してください'); return; }
         
+        // --- ここでバリデーションを追加 ---
+        if (memo.trim() !== "" && exhibitor.trim() === "") {
+            alert('メモを入力した場合は、出店社名も必ず入力してください。');
+            return; // 登録処理を中断
+        }
+        // --------------------------------
+        
+        // メモも出店社名も空の場合は登録しない（必要であれば外してください）
+        if (memo.trim() === "" && exhibitor.trim() === "") {
+            alert('メモまたは出店社名を入力してください。');
+            return;
+        }
+
         fetch(`${GAS_URL}?action=saveMemo&qr=${currentId}&memo=${encodeURIComponent(memo)}&exhibitor=${encodeURIComponent(exhibitor)}`)
         .then(r => r.json())
         .then(d => {
