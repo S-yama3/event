@@ -55,11 +55,21 @@
     }, (err) => { if (!err) Quagga.start(); });
 
     // バーコード読み取り成功時
-    Quagga.onDetected((res) => {
+Quagga.onDetected((res) => {
         const code = res.codeResult.code;
-        if (/^\d{13}$/.test(code)) { // 13桁のIDのみ
+
+        // 【修正ポイント】
+        // 1. 正規表現で「13桁の数字のみ」であることを厳格に判定
+        // 2. 先頭が'0'で始まるような意図しない誤読を除外（必要な場合は /^\d{13}$/ のみでOK）
+        if (/^\d{13}$/.test(code)) {
+            
+            // 3. すでに処理中なら二重実行を防ぐ（念のため）
+            if (currentId === code) return; 
+
             Quagga.stop();
             currentId = code;
+            
+            // 照会処理へ
             fetch(`${GAS_URL}?qr=${code}`)
             .then(r => r.json())
             .then(data => {
@@ -69,10 +79,18 @@
                     document.getElementById('camera-section').style.display = 'none';
                     document.getElementById('result-section').style.display = 'block';
                 } else {
-                    alert('登録番号: ' + code + ' は見つかりません。');
+                    // 「変な番号」が読まれた場合はここで弾く
+                    alert('読み取った番号: ' + code + ' は登録外です。もう一度かざしてください。');
                     Quagga.start();
                 }
+            })
+            .catch(err => {
+                console.error(err);
+                Quagga.start();
             });
+        } else {
+            // 桁数が13桁でない場合は何もしない（誤読を無視）
+            console.log("無視されたコード: " + code);
         }
     });
 
