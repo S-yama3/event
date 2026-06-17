@@ -54,37 +54,52 @@
     }, (err) => { if (!err) Quagga.start(); });
 
     Quagga.onDetected((res) => {
-        const code = res.codeResult.code;
-        if (!/^\d{13}$/.test(code) || isProcessing) return;
-        isProcessing = true; Quagga.stop(); currentId = code;
-        
-        fetch(`${GAS_URL}?qr=${code}`).then(r => r.json()).then(data => {
+    const code = res.codeResult.code;
+
+    // 1. 桁数や形式のチェックを厳格化（EAN13以外なら即座に無視してスキャンを継続）
+    if (!/^\d{13}$/.test(code) || isProcessing) return;
+
+    isProcessing = true; 
+    Quagga.stop(); // 処理中は一旦止める
+    currentId = code;
+    
+    fetch(`${GAS_URL}?qr=${code}`).then(r => r.json()).then(data => {
         if(data.found) {
-            // 表示内容の構築（部署・役職・招待企業名を追加）
-            // data.dept, data.position は現在のGASから返ってきている値です
-            // ※招待企業名はスプレッドシートの画像を見るとI列（インデックス8）なので、GAS側で追加が必要な可能性があります
-            
+            // 成功時の処理
             let infoHtml = `
-                <div style="text-align: left; margin-bottom: 10px; font-size: 0.9em; background: #f9f9f9; padding: 10px; border-radius: 6px;">
+                <div id="info-box" style="text-align: left; margin-bottom: 10px; font-size: 0.9em; background: #f9f9f9; padding: 10px; border-radius: 6px;">
                     <div><strong>部署:</strong> ${data.dept || '---'}</div>
                     <div><strong>役職:</strong> ${data.position || '---'}</div>
                 </div>
             `;
-
-            document.getElementById('res-name').innerHTML = 
-                `<strong>${data.name} 様</strong><br>(${data.company})`;
-            
-            // res-name のすぐ下に情報を挿入する場合
+            document.getElementById('res-name').innerHTML = `<strong>${data.name} 様</strong><br>(${data.company})`;
             document.getElementById('res-name').insertAdjacentHTML('afterend', infoHtml);
-
             document.getElementById('camera-section').style.display = 'none';
             document.getElementById('result-section').style.display = 'block';
         } else {
-            isProcessing = false;
-            alert('この番号は登録されていません: ' + code);
-            Quagga.start(); 
+            // 2. 誤読や登録なしの場合の処理
+            // UIにメッセージを出す
+            const statusMsg = document.createElement('div');
+            statusMsg.id = "temp-msg";
+            statusMsg.style.color = "red";
+            statusMsg.style.margin = "10px";
+            statusMsg.innerHTML = "読み取り内容に齟齬があります。<br>再度読み込みます...";
+            document.querySelector('#interactive').appendChild(statusMsg);
+
+            // 2秒後にメッセージを消して再開
+            setTimeout(() => {
+                const msg = document.getElementById('temp-msg');
+                if(msg) msg.remove();
+                isProcessing = false;
+                Quagga.start();
+            }, 2000);
         }
+    }).catch(err => {
+        // 通信エラー時のリカバリー
+        isProcessing = false;
+        Quagga.start();
     });
+});
     });
 
     function saveMemo() {
