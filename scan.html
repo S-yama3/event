@@ -7,62 +7,58 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 <style>
     body { font-family:sans-serif; background:#f4f6f9; margin:0; padding:15px; text-align:center; }
-    .card { background:#fff; max-width:450px; margin:0 auto; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); overflow:hidden; }
-    .header { background:#4A154B; color:#fff; padding:15px; font-weight:bold; }
-    .content { padding:20px; }
-    #interactive { width:100%; max-width:360px; margin:0 auto 15px; }
+    .card { background:#fff; max-width:450px; margin:0 auto; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:20px; }
+    .header { font-size:18px; font-weight:bold; margin-bottom:15px; color:#4A154B; }
+    #interactive { width:100%; max-width:300px; margin:0 auto 15px; overflow:hidden; }
     #interactive video { width:100%; border-radius:8px; }
-    .info-group { margin-bottom:15px; text-align:left; border-bottom:1px solid #eee; padding-bottom:5px; }
-    .label { font-size:12px; color:#666; }
+    .info-group { margin-bottom:12px; text-align:left; border-bottom:1px solid #eee; padding-bottom:5px; }
+    .label { font-size:11px; color:#666; }
     .value { font-size:16px; font-weight:bold; }
     .btn { display:block; width:100%; padding:12px; background:#2196F3; color:white; border:none; border-radius:6px; font-weight:bold; margin-top:10px; cursor:pointer; }
-    textarea, input { width:100%; padding:10px; box-sizing:border-box; margin-top:5px; }
+    textarea, input { width:100%; padding:8px; box-sizing:border-box; margin-top:4px; border:1px solid #ccc; border-radius:4px; }
 </style>
 </head>
 <body>
 
 <div class="card">
-    <div class="header">メモ登録</div>
-    <div class="content">
-        <div id="camera-section">
-            <p>名札のバーコードを読み取ります</p>
-            <div id="interactive" class="viewport"></div>
-        </div>
+    <div class="header">商談メモ登録</div>
+    <div id="camera-section">
+        <p>13桁のバーコードをかざしてください</p>
+        <div id="interactive"></div>
+    </div>
 
-        <div id="result-section" style="display:none;">
-            <div class="info-group"><div class="label">氏名</div><div class="value" id="res-name"></div></div>
-            <div class="info-group"><div class="label">会社名</div><div class="value" id="res-company"></div></div>
-            <div class="info-group"><div class="label">部署</div><div class="value" id="res-dept"></div></div>
-            <div class="info-group"><div class="label">役職</div><div class="value" id="res-position"></div></div>
-            <div class="info-group">
-                <div class="label">商談メモ</div>
-                <textarea id="memo"></textarea>
-            </div>
-            <div class="info-group">
-                <div class="label">出店社名</div>
-                <input type="text" id="exhibitor">
-            </div>
-            <button class="btn" onclick="saveMemo()">メモ登録</button>
-            <button class="btn" style="background:#666;" onclick="resetScanner()">戻る</button>
+    <div id="result-section" style="display:none;">
+        <div class="info-group"><div class="label">氏名</div><div class="value" id="res-name"></div></div>
+        <div class="info-group"><div class="label">会社名</div><div class="value" id="res-company"></div></div>
+        <div class="info-group"><div class="label">部署</div><div class="value" id="res-dept"></div></div>
+        <div class="info-group"><div class="label">役職</div><div class="value" id="res-position"></div></div>
+        <div class="info-group">
+            <div class="label">商談メモ</div>
+            <textarea id="memo" rows="3"></textarea>
         </div>
+        <div class="info-group">
+            <div class="label">出店社名</div>
+            <input type="text" id="exhibitor">
+        </div>
+        <button class="btn" onclick="saveMemo()">メモ登録</button>
+        <button class="btn" style="background:#666;" onclick="location.reload()">戻る</button>
     </div>
 </div>
 
 <script>
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzo4k6DjlqBacinZOiAp3cqmY2e_iHlcdv4oAFmOrrb6uEwTOqt2AKdLN77QydVeYHQXg/exec";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzo4k6DjlqBacinZOiAp3cqmY2e_iHlcdv4oAFmOrrb6uEwTOqt2AKdLN77QydVeYHQXg/exec"; // ご自身のURLに書き換えてください
 let currentId = "";
 
-function startScanner() {
-    Quagga.init({
-        inputStream: { type: "LiveStream", target: document.querySelector('#interactive'), constraints: { facingMode: "environment" } },
-        decoder: { readers: ["ean_reader", "code_128_reader"] }
-    }, (err) => {
-        if (!err) Quagga.start();
-    });
-}
+Quagga.init({
+    inputStream: { type: "LiveStream", target: document.querySelector('#interactive'), constraints: { facingMode: "environment" } },
+    decoder: { readers: ["ean_reader"] } // JAN/EANコードに特化
+}, (err) => {
+    if (!err) Quagga.start();
+});
 
 Quagga.onDetected((result) => {
     const code = result.codeResult.code;
+    // 13桁の数字のみを許可
     if (/^\d{13}$/.test(code)) {
         Quagga.stop();
         currentId = code;
@@ -70,17 +66,17 @@ Quagga.onDetected((result) => {
         .then(res => res.json())
         .then(data => {
             if(data.found) {
-                document.getElementById('res-name').innerText = (data.name || '') + ' 様';
-                document.getElementById('res-company').innerText = data.company || 'ー';
-                document.getElementById('res-dept').innerText = data.dept || 'ー';
-                document.getElementById('res-position').innerText = data.position || 'ー';
+                document.getElementById('res-name').innerText = data.name || '-';
+                document.getElementById('res-company').innerText = data.company || '-';
+                document.getElementById('res-dept').innerText = data.dept || '-';
+                document.getElementById('res-position').innerText = data.position || '-';
                 document.getElementById('memo').value = data.memo || '';
                 document.getElementById('exhibitor').value = data.exhibitor || '';
                 document.getElementById('camera-section').style.display = 'none';
                 document.getElementById('result-section').style.display = 'block';
             } else {
-                alert('該当データがありません');
-                startScanner();
+                alert('登録番号: ' + code + ' は見つかりませんでした。');
+                Quagga.start();
             }
         });
     }
@@ -91,16 +87,8 @@ function saveMemo() {
     const exhibitor = document.getElementById('exhibitor').value;
     fetch(`${GAS_API_URL}?action=saveMemo&qr=${currentId}&memo=${encodeURIComponent(memo)}&exhibitor=${encodeURIComponent(exhibitor)}`)
     .then(res => res.json())
-    .then(data => alert('登録しました'));
+    .then(data => alert('登録しました！'));
 }
-
-function resetScanner() {
-    document.getElementById('camera-section').style.display = 'block';
-    document.getElementById('result-section').style.display = 'none';
-    startScanner();
-}
-
-window.onload = startScanner;
 </script>
 </body>
 </html>
