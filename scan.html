@@ -34,7 +34,7 @@
 <body>
 <div class="card">
     <div id="camera-section">
-        <h3 style="margin-top:0;">バーコードを読み取る</h3>
+        <h3 style="margin-top:0;">バーコードスキャン</h3>
         <div id="interactive"></div>
         <button class="btn-home" onclick="location.href='index.html'">ホームへ戻る</button>
     </div>
@@ -83,11 +83,41 @@
         });
     });
 
-    function saveMemo() {
-        const memo = document.getElementById('memo').value, exhibitor = document.getElementById('exhibitor').value;
-        if (!memo.trim() && !exhibitor.trim()) { alert('メモまたは出店社名を入力してください'); return; }
-        fetch(`${GAS_URL}?action=saveMemo&qr=${encodeURIComponent(currentId)}&memo=${encodeURIComponent(memo)}&exhibitor=${encodeURIComponent(exhibitor)}`).then(r => r.json()).then(d => { if(d.success) { alert('登録完了'); location.reload(); } });
-    }
+function saveMemo() {
+    const btn = document.querySelector('.btn-reg');
+    const memo = document.getElementById('memo').value;
+    const exhibitor = document.getElementById('exhibitor').value;
+
+    // バリデーション
+    if (memo.trim() && !exhibitor.trim()) { alert('メモがある場合は出店社名も必須です'); return; }
+    if (!memo.trim() && !exhibitor.trim()) { alert('メモまたは出店社名を入力してください'); return; }
+
+    // 【重要】ボタンを無効化して重複クリックを防ぐ
+    btn.disabled = true;
+    btn.innerText = "登録中...";
+    btn.style.backgroundColor = "#ccc"; // 無効な見た目にする
+
+    fetch(`${GAS_URL}?action=saveMemo&qr=${encodeURIComponent(currentId)}&memo=${encodeURIComponent(memo)}&exhibitor=${encodeURIComponent(exhibitor)}`)
+    .then(r => r.json())
+    .then(d => {
+        if(d.success) {
+            alert('登録完了');
+            location.reload();
+        } else {
+            // エラー時はボタンを戻す
+            alert('登録に失敗しました。もう一度お試しください。');
+            btn.disabled = false;
+            btn.innerText = "登録する";
+            btn.style.backgroundColor = "#28a745";
+        }
+    })
+    .catch(err => {
+        alert('通信エラーが発生しました。');
+        btn.disabled = false;
+        btn.innerText = "登録する";
+        btn.style.backgroundColor = "#28a745";
+    });
+}
 </script>
 </body>
 </html>
