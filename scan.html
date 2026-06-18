@@ -3,36 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>商談メモ (CODE128対応)</title>
+    <title>商談メモ登録</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <style>
         body { font-family: sans-serif; text-align: center; background: #f0f2f5; margin: 0; padding: 10px; }
         .card { background: white; max-width: 400px; margin: auto; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         
+        /* 修正：カメラ映像の隙間を消す設定 */
         #interactive { 
             width: 100%; 
+            height: 300px; /* 固定高さを指定 */
             position: relative; 
             overflow: hidden; 
             border-radius: 8px; 
             background: #000; 
-            line-height: 0; 
         }
         #interactive video { 
             width: 100%; 
-            display: block; 
+            height: 100%;
+            object-fit: cover; /* 映像を枠に合わせて切り抜くことで隙間を消す */
         }
         
         textarea, input { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; }
         button { width: 100%; padding: 14px; margin-top: 8px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; }
         .btn-reg { background: #28a745; }
         .btn-reset { background: #666; }
+        .btn-home { background: #007bff; margin-top: 15px; } /* ホームボタン追加 */
     </style>
 </head>
 <body>
 <div class="card">
     <div id="camera-section">
-        <h3 style="margin-top:0;">バーコード(CODE128)をかざしてください</h3>
+        <h3 style="margin-top:0;">バーコードを読み取る</h3>
         <div id="interactive"></div>
+        <button class="btn-home" onclick="location.href='index.html'">ホームへ戻る</button>
     </div>
     <div id="result-section" style="display:none;">
         <div id="res-name" style="font-weight:bold; padding:10px 0;"></div>
@@ -47,7 +51,6 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbw3G7EONvD4sSJfrlN1yz2ZyiD2I-RY6H0rlyJIc0acStZBZfTSysf-D-5JDgBxjVxmCA/exec";
     let currentId = "", isProcessing = false;
 
-    // Quaggaの初期化設定：code_128_readerを指定
     Quagga.init({ 
         inputStream: { type: "LiveStream", target: document.querySelector('#interactive'), constraints: { facingMode: "environment" } }, 
         decoder: { readers: ["code_128_reader"] } 
@@ -55,10 +58,7 @@
 
     Quagga.onDetected((res) => {
         const code = res.codeResult.code;
-
-        // 処理中の連続スキャンを防止
         if (isProcessing) return;
-
         isProcessing = true; 
         Quagga.stop(); 
         currentId = code;
@@ -76,29 +76,15 @@
                 document.getElementById('camera-section').style.display = 'none';
                 document.getElementById('result-section').style.display = 'block';
             } else {
-                const statusMsg = document.createElement('div');
-                statusMsg.id = "temp-msg";
-                statusMsg.style.color = "red";
-                statusMsg.style.margin = "10px";
-                statusMsg.innerHTML = "未登録コードまたは読取エラー<br>再スキャンします...";
-                document.querySelector('#interactive').appendChild(statusMsg);
-
-                setTimeout(() => {
-                    const msg = document.getElementById('temp-msg');
-                    if(msg) msg.remove();
-                    isProcessing = false;
-                    Quagga.start();
-                }, 2000);
+                alert("登録されていないコードです。");
+                isProcessing = false;
+                Quagga.start();
             }
-        }).catch(err => {
-            isProcessing = false;
-            Quagga.start();
         });
     });
 
     function saveMemo() {
         const memo = document.getElementById('memo').value, exhibitor = document.getElementById('exhibitor').value;
-        if (memo.trim() && !exhibitor.trim()) { alert('メモがある場合は出店社名も必須です'); return; }
         if (!memo.trim() && !exhibitor.trim()) { alert('メモまたは出店社名を入力してください'); return; }
         fetch(`${GAS_URL}?action=saveMemo&qr=${encodeURIComponent(currentId)}&memo=${encodeURIComponent(memo)}&exhibitor=${encodeURIComponent(exhibitor)}`).then(r => r.json()).then(d => { if(d.success) { alert('登録完了'); location.reload(); } });
     }
