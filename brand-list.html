@@ -16,7 +16,7 @@
 }
 body { margin: 0; font-family: 'M PLUS Rounded 1c', sans-serif; background-color: var(--bg-color); color: var(--text-color); }
 
-/* --- ナビゲーション --- */
+/* --- ヘッダー --- */
 nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; }
 .logo { font-size: 28px; color: #ff7eb9; text-shadow: 2px 2px 0px #fff, 4px 4px 0px var(--border-color); text-decoration: none; }
 
@@ -30,7 +30,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
 .category-title { display: inline-block; font-size: 22px; font-weight: 800; padding: 8px 20px; border: 4px solid var(--border-color); border-radius: 50px; background: #fff; margin-bottom: 25px; box-shadow: 5px 5px 0px var(--border-color); }
 
-/* --- グリッド・カード --- */
+/* --- 3列グリッドとカード --- */
 .maker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
 .maker-card {
   display: flex; align-items: center; justify-content: center;
@@ -41,9 +41,14 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 }
 .maker-card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px var(--border-color); background-color: var(--accent); }
 
-/* & more... カード */
-.more-card { background-color: #f0f0f0; border: 2px dashed var(--border-color); color: #888; font-style: italic; }
-.more-card:hover { background-color: var(--border-color); color: white; border-style: solid; }
+/* --- 枠外告知カード --- */
+.more-announcement {
+  display: inline-block; padding: 20px 40px; background: white;
+  border: 4px dashed var(--border-color); border-radius: 50px;
+  text-decoration: none; color: #ff7eb9; font-weight: 800; font-size: 18px;
+  box-shadow: 6px 6px 0px var(--border-color); transition: all 0.3s ease;
+}
+.more-announcement:hover { background: var(--primary); color: white; transform: scale(1.05); border-style: solid; }
 
 /* --- フッターボタン --- */
 .btn-area { text-align: center; margin-bottom: 100px; }
@@ -62,7 +67,10 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 </nav>
 
 <section style="padding: 40px 20px;">
-  <div style="text-align: center; margin-bottom: 40px;"><h1>出展メーカー一覧</h1></div>
+  <div style="text-align: center; margin-bottom: 40px;">
+    <h1>出展メーカー一覧</h1>
+    <p style="font-size: 14px; color: #888; margin-top: -10px;">（敬称略）</p>
+　</div>
 
   <div class="category-box bg-bousai">
     <div class="category-title">🛡️ 防災</div>
@@ -77,7 +85,6 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
       <a href="https://www.sanwa.co.jp/" target="_blank" class="maker-card">サンワサプライ株式会社</a>
       <a href="https://www.hokunen.jp/" target="_blank" class="maker-card">北燃商事株式会社</a>
       <a href="https://www.toyota-lf-miyagi.co.jp/" target="_blank" class="maker-card">トヨタL&F宮城株式会社</a>
-      <a href="#" class="maker-card more-card">& more...</a>
     </div>
   </div>
 
@@ -90,7 +97,6 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
       <a href="https://www.fuva-brain.co.jp/" target="_blank" class="maker-card">株式会社フーバーブレイン</a>
       <a href="https://www.unipex.co.jp/" target="_blank" class="maker-card">ユニペックス株式会社</a>
       <a href="https://www.ricoh.co.jp/" target="_blank" class="maker-card">リコージャパン株式会社</a>
-      <a href="#" class="maker-card more-card">& more...</a>
     </div>
   </div>
 
@@ -98,7 +104,6 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
     <div class="category-title">📈 業務改善・ES向上</div>
     <div class="maker-grid">
       <a href="https://pca.jp/" target="_blank" class="maker-card">ピー・シー・エー株式会社</a>
-      <a href="#" class="maker-card more-card">& more...</a>
     </div>
   </div>
 
@@ -111,7 +116,6 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
       <a href="https://www.sanwa.co.jp/" target="_blank" class="maker-card">サンワサプライ株式会社</a>
       <a href="https://www.sekisho.co.jp/" target="_blank" class="maker-card">関彰商事株式会社</a>
       <a href="https://www.technohorizon.co.jp/" target="_blank" class="maker-card">テクノホライゾン株式会社</a>
-      <a href="#" class="maker-card more-card">& more...</a>
     </div>
   </div>
 
@@ -129,8 +133,13 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
       <a href="https://www.trusco.co.jp/" target="_blank" class="maker-card">トラスコ中山株式会社</a>
       <a href="https://nikko-sg.co.jp/" target="_blank" class="maker-card">日廣産業株式会社</a>
       <a href="https://www.brother.co.jp/corporate/bsl/index.aspx" target="_blank" class="maker-card">ブラザー販売株式会社</a>
-      <a href="#" class="maker-card more-card">& more...</a>
     </div>
+  </div>
+
+  <div style="text-align: center; margin: -20px auto 60px; max-width: 950px;">
+    <a href="index.html" class="more-announcement">
+      <span>✨ＡＮＤ　Ｍｏｒｅ．．．</span>
+    </a>
   </div>
 </section>
 
