@@ -76,6 +76,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .card {
   width: 95%; 
   max-width: 950px; 
+  height: 350px;
   display: flex; 
   align-items: stretch;
   /* ↓ 最小の高さを設定して枠が潰れないようにする */
@@ -93,7 +94,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .slide-in-left { transform: translateX(-100px); }
 .slide-in-right { transform: translateX(100px); }
 .card.show { opacity: 1; transform: translateX(0) translateY(0); }
-.card-text { flex: 1; padding: 40px; }
+.card-text { flex: 1; padding: auto; }
 .card h3 { font-size: clamp(1.4rem, 4vw, 1.8rem); margin-top: 0; border-bottom: 4px solid var(--accent); display: inline-block; margin-bottom: 15px; }
 .card h3.blue-line { border-bottom: 4px solid var(--secondary); }
 .card h3.purple-line { border-bottom: 4px solid var(--purple); }
