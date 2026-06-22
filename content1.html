@@ -74,27 +74,23 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 /* コンテンツカード */
 .cards-vertical { display: flex; flex-direction: column; align-items: center; gap: 60px; padding: 40px 20px 100px; }
 .card {
-  width: 95%; 
-  max-width: 950px; 
-  height: 350px;
-  display: flex; 
+  width: 95%;
+  max-width: 950px;
+  height: 320px; /* 少し高さを抑えるとバランスが良くなる場合もあります */
+  display: flex;
   align-items: stretch;
-  /* ↓ 最小の高さを設定して枠が潰れないようにする */
-  min-height: 300px; 
-  background: rgba(255, 255, 255, 0.85); 
+  background: rgba(255, 255, 255, 0.85);
   border: 4px solid var(--border-color);
-  border-radius: 30px; 
-  box-shadow: 12px 12px 0px var(--border-color); 
+  border-radius: 30px;
+  box-shadow: 12px 12px 0px var(--border-color);
   overflow: hidden;
-  box-sizing: border-box; 
-  opacity: 0;
-  transition: opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-sizing: border-box;
 }
 .card.reverse { flex-direction: row-reverse; }
 .slide-in-left { transform: translateX(-100px); }
 .slide-in-right { transform: translateX(100px); }
 .card.show { opacity: 1; transform: translateX(0) translateY(0); }
-.card-text { flex: 1; padding: auto; }
+.card-text { flex: 1; padding: 50px; display: flex; flex-direction: column; justify-content: center; }
 .card h3 { font-size: clamp(1.4rem, 4vw, 1.8rem); margin-top: 0; border-bottom: 4px solid var(--accent); display: inline-block; margin-bottom: 15px; }
 .card h3.blue-line { border-bottom: 4px solid var(--secondary); }
 .card h3.purple-line { border-bottom: 4px solid var(--purple); }
@@ -102,15 +98,13 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .card p { font-size: 16px; line-height: 1.6; margin: 0; }
 .card-image {
   flex: 0 0 40%; /* 40%の幅で固定する（左側/右側を固定） */
-  position: relative;
   background: #eee;
 }
 
 .card-image img {
   width: 100%; 
   height: 100%; 
-  object-fit: cover; /* これにより、枠に合わせて画像がトリミングされ、はみ出しを防ぐ */
-  display: block;
+  object-fit: cover;
 }
 
 .btn-area { text-align: center; margin-bottom: 100px; }
