@@ -20,21 +20,14 @@ body { margin: 0; font-family: 'M PLUS Rounded 1c', sans-serif; background-color
 nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; }
 .logo { font-size: 28px; color: #ff7eb9; text-shadow: 2px 2px 0px #fff, 4px 4px 0px var(--border-color); text-decoration: none; }
 
-/* --- カテゴリ枠 --- */
-.category-box { border: 4px solid var(--border-color); border-radius: 30px; padding: 30px; margin: 0 auto 50px; max-width: 950px; box-shadow: 8px 8px 0px var(--border-color); }
-.bg-bousai { background-color: #e1f7fb; }
-.bg-it { background-color: #f2edff; }
-.bg-kaikei { background-color: #f0ffe9; }
-.bg-hataraki { background-color: #fff9e6; }
-.bg-trend { background-color: #fff0f7; }
-
-.category-title { display: inline-block; font-size: 22px; font-weight: 800; padding: 8px 20px; border: 4px solid var(--border-color); border-radius: 50px; background: #fff; margin-bottom: 25px; box-shadow: 5px 5px 0px var(--border-color); }
+/* --- メインコンテンツ枠 --- */
+.container { border: 4px solid var(--border-color); border-radius: 30px; padding: 30px; margin: 0 auto 50px; max-width: 950px; box-shadow: 8px 8px 0px var(--border-color); background-color: #fff; }
 
 /* --- 3列グリッドとカード --- */
 .maker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
 .maker-card {
   display: flex; align-items: center; justify-content: center;
-  padding: 12px 10px; background: white; border: 3px solid var(--border-color); border-radius: 12px;
+  padding: 12px 10px; background: #fdf6ff; border: 3px solid var(--border-color); border-radius: 12px;
   text-decoration: none; color: var(--text-color); font-weight: bold;
   text-align: center; font-size: 14px; box-shadow: 4px 4px 0px var(--border-color);
   transition: transform 0.2s, box-shadow 0.2s; word-break: keep-all;
@@ -69,76 +62,57 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 <section style="padding: 40px 20px;">
   <div style="text-align: center; margin-bottom: 40px;">
     <h1>出展メーカーリスト</h1>
-    <p style="font-size: 14px; color: #888; margin-top: -10px;">（敬称略）</p>
-　</div>
+    <p style="font-size: 14px; color: #888; margin-top: -10px;">（５０音順・敬称略）</p>
+  </div>
 
-  <div class="category-box bg-bousai">
-    <div class="category-title">🛡️ 防災</div>
+  <div class="container">
     <div class="maker-grid">
-      <a href="https://g-and-eco.jp/" target="_blank" class="maker-card">株式会社G＆ECO</a>
-      <a href="https://www.alpha-foods.net/" target="_blank" class="maker-card">アルファフーズ株式会社</a>
-      <a href="https://www.okum.net/" target="_blank" class="maker-card">奥村印刷株式会社</a>
-      <a href="https://www.lion-jimuki.co.jp/ja/index.html" target="_blank" class="maker-card">株式会社ライオン事務器</a>
-      <a href="https://nihon-crinos.co.jp/" target="_blank" class="maker-card">株式会社日本クリノス</a>
-      <a href="https://www.3rd-eyes.co.jp/" target="_blank" class="maker-card">株式会社サードアイズ</a>
-      <a href="https://www.sunfunny.co.jp/" target="_blank" class="maker-card">株式会社三喜</a>
-      <a href="https://www.sanwa.co.jp/" target="_blank" class="maker-card">サンワサプライ株式会社</a>
-      <a href="https://www.hokunen.jp/" target="_blank" class="maker-card">北燃商事株式会社</a>
-      <a href="https://www.toyota-lf-miyagi.co.jp/" target="_blank" class="maker-card">トヨタL&F宮城株式会社</a>
+      <a href="https://www.artec-kk.co.jp/goods/workshop/product/051273/" target="_blank" class="maker-card">株式会社アーテック<br></a>
+      <a href="https://ima-s.biz//" target="_blank" class="maker-card">株式会社アイエムエー</a>
+      <a href="https://iflytek.co.jp/products/iflytek-ainote-2/" target="_blank" class="maker-card">iFLYTEK JAPAN AI SOLUTIONS株式会社</a>
+      <a href="https://lp.rec-ace.com//" target="_blank" class="maker-card">株式会社アセンド</a>
+      <a href="https://www.alpha-foods.net//" target="_blank" class="maker-card">アルファフーズ株式会社</a>
+      <a href="https://ecole-digital.jp//" target="_blank" class="maker-card">エコール流通グループ</a>
+      <a href="https://jp.ecoflow.com//" target="_blank" class="maker-card">EcoFlow</a>
+      <a href="https://www.lrm.jp/seculio/lp/trial?utm_source=bing&utm_medium=cpc&utm_campaign=lrm&msclkid=061d5497dc271e52b17f3d577245f190/" target="_blank" class="maker-card">LRM株式会社</a>
+      <a href="https://www.obc.co.jp/bugyo-edge/attend/" target="_blank" class="maker-card">株式会社オービックビジネスコンサルタント</a>
+      <a href="https://origami-tablewear.square.site/s/shop/" target="_blank" class="maker-card">奥村印刷株式会社</a>
+      <a href="https://www.kakuri.co.jp//" target="_blank" class="maker-card">角利産業株式会社</a>
+      <a href="https://www.kanaden.co.jp//" target="_blank" class="maker-card">株式会社カナデン</a>
+      <a href="https://kingjim.com/collections/office?srsltid=AfmBOoo588tuSHZ-gMyGLliHS1IUlfcLgFIj5jm86k0CaI34p5vN1UYn/" target="_blank" class="maker-card">株式会社キングジム</a>
+      <a href="https://hc.kowa.co.jp/syncronkowa//" target="_blank" class="maker-card">興和株式会社</a>
+      <a href="https://www.kokuyo-marketing.co.jp/blog/kokuyo-case-study/post-20240124154924//" target="_blank" class="maker-card">コクヨマーケティング株式会社</a>
+      <a href="http://www.3rd-eyes.co.jp//" target="_blank" class="maker-card">株式会社サードアイズ</a>
+      <a href="https://www.sunfunny.co.jp//" target="_blank" class="maker-card">株式会社三喜</a>
+      <a href="https://www.sanwa.co.jp/product/syohin?code=MM-WLMSP2/" target="_blank" class="maker-card">サンワサプライ</a>
+      <a href="https://g-and-eco.jp/items/elsona/" target="_blank" class="maker-card">株式会社G＆ECO</a>
+      <a href="https://www.cielat.co.jp/mh/hoscare//" target="_blank" class="maker-card">シエラ株式会社</a>
+      <a href="https://www.ilii.jp//" target="_blank" class="maker-card">株式会社システムリサーチイリイ</a>
+      <a href="https://jp.sharp/business/reizo//" target="_blank" class="maker-card">シャープマーケティングジャパン</a>
+      <a href="https://www.sirius-agent.co.jp/products/detail/78/" target="_blank" class="maker-card">株式会社シリウス</a>
+      <a href="https://www.skyseaclientview.net/?_gl=1*1nn3a33*_gcl_au*MTc2OTc3MTQ1OC4xNzc0MjQ4NDEy/" target="_blank" class="maker-card">Ｓｋｙ株式会社</a>
+      <a href="https://skkgroup-net.com//" target="_blank" class="maker-card">セキカワ株式会社</a>
+      <a href="https://brand.taisho.co.jp/lipovitan/iceslurry//" target="_blank" class="maker-card">大正製薬株式会社</a>
+      <a href="https://www.elmo.co.jp/education/mobile_display_edu//" target="_blank" class="maker-card">テクノホライゾン株式会社 エルモカンパニー</a>
+      <a href="https://www.toshibatec.co.jp/release/20221101_01.html/" target="_blank" class="maker-card">東芝テック株式会社　株式会社SGST</a>
+      <a href="https://www.toyota-lf.com/webcatalog/solution/book/index.html#page=43/" target="_blank" class="maker-card">株式会社豊田自動織機　トヨタL&Fカンパニー</a>
+      <a href="https://toyota.jp/mirai//" target="_blank" class="maker-card">トヨタ自動車株式会社</a>
+      <a href="https://trusco.meclib.jp/library/books/COOLNAVI_2026/book/#target/page_no=3/" target="_blank" class="maker-card">トラスコ中山株式会社</a>
+      <a href="https://nikko-sg.co.jp//" target="_blank" class="maker-card">日廣産業株式会社</a>
+      <a href="https://www.fuva-brain.co.jp/products_services/eye247spamshield//" target="_blank" class="maker-card">株式会社フーバーブレイン</a>
+      <a href="https://www.felco.co.jp/original_product/polcar.html/" target="_blank" class="maker-card">福伸電機株式会社</a>
+      <a href="https://www.brother.co.jp/product/air/pd7105/index.aspx/" target="_blank" class="maker-card">ブラザー販売株式会社</a>
+      <a href="https://sound-solution.yamaha.com/products/speechprivacy/vsp-2/index/" target="_blank" class="maker-card">ヤマハ株式会社</a>
+      <a href="https://www.yamamotocorp.com/hotfoodbox.html/" target="_blank" class="maker-card">有限会社山本商事</a>
+      <a href="https://unipex.co.jp/news/download/pdf/product/product_74.pdf/" target="_blank" class="maker-card">ユニペックス株式会社</a>
+      <a href="https://www.ricoh.co.jp/special/ricoh-im-c6010sd-c4510sd-c3010sd/" target="_blank" class="maker-card">リコー</a>
+
     </div>
   </div>
 
-  <div class="category-box bg-it">
-    <div class="category-title">💻 IT・デジタル</div>
-    <div class="maker-grid">
-      <a href="https://www.lrm.jp/" target="_blank" class="maker-card">LRM株式会社</a>
-      <a href="https://corporate.jp.canon/" target="_blank" class="maker-card">キヤノンマーケティングジャパン</a>
-      <a href="https://corporate.jp.sharp/" target="_blank" class="maker-card">シャープ株式会社</a>
-      <a href="https://www.fuva-brain.co.jp/" target="_blank" class="maker-card">株式会社フーバーブレイン</a>
-      <a href="https://www.unipex.co.jp/" target="_blank" class="maker-card">ユニペックス株式会社</a>
-      <a href="https://www.ricoh.co.jp/" target="_blank" class="maker-card">リコージャパン株式会社</a>
-    </div>
-  </div>
-
-  <div class="category-box bg-kaikei">
-    <div class="category-title">📈 業務改善・ES向上</div>
-    <div class="maker-grid">
-      <a href="https://pca.jp/" target="_blank" class="maker-card">ピー・シー・エー株式会社</a>
-    </div>
-  </div>
-
-  <div class="category-box bg-hataraki">
-    <div class="category-title">✨ 働き方改革</div>
-    <div class="maker-grid">
-      <a href="https://www.skygroup.jp/" target="_blank" class="maker-card">Sky株式会社</a>
-      <a href="https://www.kingjim.co.jp/" target="_blank" class="maker-card">株式会社キングジム</a>
-      <a href="https://www.kokuyo.com/" target="_blank" class="maker-card">コクヨ株式会社</a>
-      <a href="https://www.sanwa.co.jp/" target="_blank" class="maker-card">サンワサプライ株式会社</a>
-      <a href="https://www.sekisho.co.jp/" target="_blank" class="maker-card">関彰商事株式会社</a>
-      <a href="https://www.technohorizon.co.jp/" target="_blank" class="maker-card">テクノホライゾン株式会社</a>
-    </div>
-  </div>
-
-  <div class="category-box bg-trend">
-    <div class="category-title">🔥 トレンド（季節商材含む）</div>
-    <div class="maker-grid">
-      <a href="https://www.koseki.co.jp/" target="_blank" class="maker-card">コセキ株式会社</a>
-      <a href="https://www.artec-kk.co.jp/" target="_blank" class="maker-card">株式会社アーテック</a>
-      <a href="https://ima-s.biz/" target="_blank" class="maker-card">株式会社アイエムエー</a>
-      <a href="https://www.ascend-corp.co.jp/" target="_blank" class="maker-card">株式会社アセンド</a>
-      <a href="https://www.kanaden.co.jp/" target="_blank" class="maker-card">株式会社カナデン</a>
-      <a href="https://www.showashokai.com/" target="_blank" class="maker-card">株式会社 昭和商会</a>
-      <a href="https://www.ilii.jp/" target="_blank" class="maker-card">株式会社システムリサーチ</a>
-      <a href="https://smj.jp/sharp/" target="_blank" class="maker-card">シャープマーケティングジャパン</a>
-      <a href="https://www.trusco.co.jp/" target="_blank" class="maker-card">トラスコ中山株式会社</a>
-      <a href="https://nikko-sg.co.jp/" target="_blank" class="maker-card">日廣産業株式会社</a>
-      <a href="https://www.brother.co.jp/corporate/bsl/index.aspx" target="_blank" class="maker-card">ブラザー販売株式会社</a>
-    </div>
-  </div>
-
-  <div style="text-align: center; margin: -20px auto 60px; max-width: 950px;">
+  <div style="text-align: center; margin: 20px auto 60px; max-width: 950px;">
     <a href="index.html" class="more-announcement">
-      <span>✨ＡＮＤ　Ｍｏｒｅ．．．</span>
+      <span>✨ＡＮＤ Ｍｏｒｅ．．．</span>
     </a>
   </div>
 </section>
