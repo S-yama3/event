@@ -118,12 +118,53 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 
 /* --- スマホ時の設定も忘れずに調整 --- */
 @media (max-width: 768px) {
-  .card, .card.reverse { flex-direction: column; }
-  .card-image { 
-    width: 100%; 
-    height: 220px; /* スマホ時は高さを固定 */
-    order: -1; 
+
+  nav {
+    padding: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
   }
+
+  .logo {
+    font-size: 20px;
+  }
+
+  .cards-vertical {
+    gap: 30px;
+    padding: 20px 10px 60px;
+  }
+
+  .card,
+  .card.reverse {
+    flex-direction: column;
+    height: auto;
+    min-height: unset;
+  }
+
+  .card-image {
+    width: 100%;
+    height: 220px;
+    flex: 0 0 220px;
+    order: -1;
+  }
+
+  .card-text {
+    padding: 20px;
+  }
+
+  .card p {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .back-btn {
+    width: calc(100% - 40px);
+    max-width: 400px;
+    box-sizing: border-box;
+    font-size: 16px;
+    padding: 15px;
+  }
+
 }
 </style>
 </head>
