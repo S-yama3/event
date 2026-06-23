@@ -3,143 +3,67 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>オフィスの防災対策 ｜ Ｎｅｗビジネスフェア</title>
+<title>オフィスの安心と備え ｜ Ｎｅｗビジネスフェア</title>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght=700;800&display=swap" rel="stylesheet">
 
 <style>
 :root {
   --bg-color: #fdf6ff;
-  --primary: #ffadd2;    /* ピンク */
-  --secondary: #95deea;  /* 青（水色） */
-  --accent: #fff3bf;      /* 黄色 */
-  --green: #c2f0af;      /* 緑 */
-  --purple: #d3bfff;     /* 紫 */
+  --primary: #ffadd2;
+  --secondary: #95deea;
+  --accent: #fff3bf;
+  --green: #c2f0af;
+  --purple: #d3bfff;
   --text-color: #4a4a4a;
   --border-color: #333;
 }
 
-body {
-  margin: 0;
-  font-family: 'M PLUS Rounded 1c', sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  overflow-x: hidden;
-}
+/* アニメーション用：初期状態 */
+.slide-in-left { transform: translateX(-100px); opacity: 0; transition: all 0.8s ease-out; }
+.slide-in-right { transform: translateX(100px); opacity: 0; transition: all 0.8s ease-out; }
 
-/* 背景ドット */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image: radial-gradient(#d1d1d1 2px, transparent 2px);
-  background-size: 35px 35px;
-  z-index: -1;
-}
+/* アニメーション用：表示状態 */
+.card.show { opacity: 1 !important; transform: translateX(0) translateY(0) !important; }
 
-/* 背景装飾（5色アブストラクトアニメーション） */
-.deco { 
-  position: fixed; 
-  border-radius: 50%; 
-  z-index: -1; 
-  opacity: 0.5; 
-  filter: blur(80px); 
-}
-.deco-pink { width: 400px; height: 400px; background: var(--primary); top: -100px; left: -100px; animation: float-pink 25s infinite alternate ease-in-out; }
-.deco-blue { width: 500px; height: 500px; background: var(--secondary); bottom: -150px; right: -150px; animation: float-blue 28s infinite alternate ease-in-out; }
-.deco-yellow { width: 350px; height: 350px; background: var(--accent); top: 40vh; right: -100px; animation: float-yellow 22s infinite alternate ease-in-out; }
-.deco-green { width: 450px; height: 450px; background: var(--green); bottom: 30vh; left: -150px; animation: float-green 30s infinite alternate ease-in-out; }
-.deco-purple { width: 380px; height: 380px; background: var(--purple); top: -50px; right: 20vw; animation: float-purple 26s infinite alternate ease-in-out; }
+body { margin: 0; font-family: 'M PLUS Rounded 1c', sans-serif; background-color: var(--bg-color); color: var(--text-color); overflow-x: hidden; }
 
-@keyframes float-pink { 0% { transform: translate(0, 0); } 100% { transform: translate(50vw, 20vh); } }
-@keyframes float-blue { 0% { transform: translate(0, 0); } 100% { transform: translate(-30vw, -50vh); } }
-@keyframes float-yellow { 0% { transform: translate(-40vw, -20vh); } 100% { transform: translate(0, 0); } }
-@keyframes float-green { 0% { transform: translate(0, 0); } 100% { transform: translate(35vw, -30vh); } }
-@keyframes float-purple { 0% { transform: translate(0, 0); } 100% { transform: translate(-20vw, 40vh); } }
+/* 背景・装飾（省略なし） */
+body::before { content: ""; position: fixed; inset: 0; background-image: radial-gradient(#d1d1d1 2px, transparent 2px); background-size: 35px 35px; z-index: -1; }
+.deco { position: fixed; border-radius: 50%; z-index: -1; opacity: 0.5; filter: blur(80px); }
+.deco-pink { width: 400px; height: 400px; background: var(--primary); top: -100px; left: -100px; }
+.deco-blue { width: 500px; height: 500px; background: var(--secondary); bottom: -150px; right: -150px; }
+.deco-yellow { width: 350px; height: 350px; background: var(--accent); top: 40vh; right: -100px; }
+.deco-green { width: 450px; height: 450px; background: var(--green); bottom: 30vh; left: -150px; }
+.deco-purple { width: 380px; height: 380px; background: var(--purple); top: -50px; right: 20vw; }
 
-/* ナビゲーション */
+/* ナビ・ヒーロー */
 nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; }
 .logo { font-size: 28px; color: #ff7eb9; text-shadow: 2px 2px 0px #fff, 4px 4px 0px var(--border-color); text-decoration: none; }
-
-/* ヒーローセクション */
 .hero { text-align: center; padding: 40px 20px; }
-.hero h1 { font-size: clamp(24px, 6vw, 42px); line-height: 1.4; margin: 0 0 10px 0; }
-.hero h1 span {
-  display: inline-block; background: #a9e34b; /* 画像の黄緑色に近い鮮やかなライトグリーン */
-  padding: 5px 15px; border: 4px solid var(--border-color);
-  box-shadow: 6px 6px 0px var(--border-color);
-  transform: rotate(-1deg); margin: 5px;
-}
-.hero p { font-size: clamp(14px, 4vw, 18px); margin: 15px 0 0 0; font-weight: bold; line-height: 1.6; }
+.hero h1 span { display: inline-block; background: var(--purple); padding: 5px 15px; border: 4px solid var(--border-color); box-shadow: 6px 6px 0px var(--border-color); transform: rotate(-1deg); margin: 5px; }
 
-/* コンテンツカードベース */
+/* カード共通 */
 .cards-vertical { display: flex; flex-direction: column; align-items: center; gap: 60px; padding: 40px 20px 100px; }
-
-.card {
-  width: 95%; max-width: 950px; display: flex; align-items: stretch;
-  background: rgba(255, 255, 255, 0.85); border: 4px solid var(--border-color);
-  border-radius: 30px; box-shadow: 12px 12px 0px var(--border-color); overflow: hidden;
-  box-sizing: border-box;
-  opacity: 0;
-  transition: opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
+.card { width: 95%; max-width: 950px; display: flex; align-items: stretch; background: rgba(255, 255, 255, 0.85); border: 4px solid var(--border-color); border-radius: 30px; box-shadow: 12px 12px 0px var(--border-color); overflow: hidden; box-sizing: border-box; }
 .card.reverse { flex-direction: row-reverse; }
-
-/* 左右スライド初期位置 */
-.slide-in-left { transform: translateX(-100px); }
-.slide-in-right { transform: translateX(100px); }
-
-.card.show {
-  opacity: 1;
-  transform: translateX(0) translateY(0);
-}
-
-.card-text { flex: 1; padding: 40px; }
+.card-text { flex: 1; padding: 50px; display: flex; flex-direction: column; justify-content: center; }
 .card h3 { font-size: clamp(1.4rem, 4vw, 1.8rem); margin-top: 0; border-bottom: 4px solid var(--accent); display: inline-block; margin-bottom: 15px; }
+.card-image { flex: 0 0 40%; background: #eee; }
+.card-image img { width: 100%; height: 100%; object-fit: cover; }
 .card h3.blue-line { border-bottom: 4px solid var(--secondary); }
 .card h3.purple-line { border-bottom: 4px solid var(--purple); }
-.card p { font-size: 16px; line-height: 1.6; margin: 0 0 15px 0; }
+.card h3.green-line { border-bottom: 4px solid var(--green); }
 
-.card-image { flex: 1; min-height: 300px; background: #eee; }
-.card-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-/* ページ下部ボタン */
+/* ボタン */
 .btn-area { text-align: center; margin-bottom: 100px; }
-.back-btn {
-  display: inline-block; font-weight: bold; text-decoration: none; color: var(--text-color); 
-  border: 4px solid var(--border-color); padding: 15px 40px; border-radius: 50px; 
-  background: var(--green); font-size: 18px; box-shadow: 6px 6px 0px var(--border-color);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.back-btn:hover { transform: translate(-4px, -4px); box-shadow: 10px 10px 0px var(--border-color); }
+.back-btn { display: inline-block; font-weight: bold; text-decoration: none; color: var(--text-color); border: 4px solid var(--border-color); padding: 15px 40px; border-radius: 50px; background: var(--green); font-size: 18px; box-shadow: 6px 6px 0px var(--border-color); }
 
-/* --- レスポンシブ対応 --- */
-@media (max-width: 1024px) {
-  nav { padding: 20px 30px; }
-  .card-text { padding: 30px; }
-  .slide-in-left { transform: translateX(-50px); }
-  .slide-in-right { transform: translateX(50px); }
-}
-
-@media (max-width: 768px) {
-  nav { padding: 15px 20px; }
-  .logo { font-size: 20px; }
-  .card, .card.reverse { flex-direction: column; }
-  .card-image { min-height: 220px; max-height: 250px; order: -1; }
-  .card-text { padding: 25px 20px; }
-  .slide-in-left { transform: translateX(-30px) translateY(20px); }
-  .slide-in-right { transform: translateX(30px) translateY(20px); }
-  .cards-vertical { gap: 40px; padding-bottom: 60px; }
-  .btn-area { margin-bottom: 50px; }
-}
+@media (max-width: 768px) { .card, .card.reverse { flex-direction: column; } .card-image { width: 100%; height: 220px; order: -1; } }
 </style>
 </head>
 <body>
 
-<div class="deco deco-pink"></div>
-<div class="deco deco-blue"></div>
-<div class="deco deco-yellow"></div>
-<div class="deco deco-green"></div>
-<div class="deco deco-purple"></div>
+<div class="deco deco-pink"></div><div class="deco deco-blue"></div><div class="deco deco-yellow"></div><div class="deco deco-green"></div><div class="deco deco-purple"></div>
 
 <nav>
   <a href="index.html" class="logo">Ｎｅｗビジネスフェア×仙台山三 ✨</a>
@@ -147,72 +71,96 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 </nav>
 
 <section class="hero">
-  <h1>「もしも」の時に<br>社員と会社を守る！<span>今すぐ始めるオフィスの防災対策</span></h1>
-  <p>いつ起こるか分からない災害への備え。<br>準備からオフィスの安全対策まで、企業の安全配慮義務に応えるソリューションをご紹介。</p>
+  <h1>「もしも」に備える！<br>オフィスと現場の<span>防災対策</span></h1>
+  <p>
+    社員の安全確保と事業継続を支えるために。<br>
+    災害発生時の「食」「衛生」「備え」を見直し、
+    企業の防災力を高める実践的なソリューションをご提案します。
+  </p>
 </section>
 
 <section class="cards-vertical">
 
+  <!-- 1 -->
   <div class="card slide-in-left">
     <div class="card-text">
-      <h3>☆避難経路確保の為の什器転倒防止対策</h3>
-      <p>大地震発生時、オフィスの大型キャビネットやデスクの転倒は重大なケガにつながるだけでなく、脱出ルートを塞ぐ原因になります。レイアウトの工夫や固定金具のアプローチなど、日常の業務効率を損なわずに安全性を高める対策をご提案します。</p>
+      <h3>☆紙から生まれる防災の知恵</h3>
+      <p>
+        災害時の避難生活では、食器や容器の不足が大きな課題となります。
+        身近な紙から簡単に作れる折り紙食器は、水の使用を抑えながら衛生的な
+        食事環境をサポート。いざという時に役立つ実践的な防災技術をご紹介します。
+      </p>
     </div>
     <div class="card-image">
-      <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=600" alt="整理された安全なオフィスの棚イメージ">
+      <img src="images/c3-1.jpg" alt="折り紙食器">
     </div>
   </div>
 
+  <!-- 2 -->
   <div class="card reverse slide-in-right">
     <div class="card-text">
-      <h3 class="blue-line">☆最新の非常食などの備蓄品選び</h3>
-      <p>災害発生後、従業員が数日間オフィスに留まらざるを得ない状況を想定した備えが必要です。スペースを取らずに長期保存ができる最新の非常食や、衛生面・プライバシーに配慮した簡易トイレなど、企業の規模や環境に合わせた最適な備蓄選定をサポートします。</p>
+      <h3 class="blue-line">☆安心を支える備蓄食</h3>
+      <p>
+        長期保存と美味しさを両立した防災備蓄食をご提案します。
+        非常時の栄養補給だけでなく、従業員の安心感や健康維持にも貢献。
+        企業の備蓄対策をより実効性の高いものへと進化させます。
+      </p>
     </div>
     <div class="card-image">
-      <img src="https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=600" alt="救急・備蓄パックのイメージ">
+      <img src="images/c3-2.jpg" alt="備蓄食">
     </div>
   </div>
 
+  <!-- 3 -->
   <div class="card slide-in-left">
     <div class="card-text">
-      <h3 class="purple-line">☆防災マニュアルと連絡網の構築</h3>
-      <p>ハード面の備えだけでなく、「いざという時に全員がどう動くか」というソフト面の計画が重要です。混乱時でも機能する安否確認システムや、実用的な初動マニュアルの策定など、組織全体が迷わず行動できる体制づくりをご紹介します。</p>
+      <h3 class="purple-line">☆温かい食事で心を支える</h3>
+      <p>
+        停電やライフライン停止時でも、温かい食事を提供できる加熱ソリューション。
+        避難生活や事業所待機時のストレス軽減につながり、働く人々の安心と活力を
+        支える新しい防災対策です。
+      </p>
     </div>
     <div class="card-image">
-      <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=600" alt="ミーティング・計画策定のイメージ">
+      <img src="images/c3-3.jpg" alt="加熱システム">
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card reverse slide-in-right">
+    <div class="card-text">
+      <h3 style="border-bottom:4px solid var(--green);">
+        ☆清潔を守る衛生環境づくり
+      </h3>
+      <p>
+        災害時に重要となる衛生管理をサポート。
+        感染症対策や身体の清潔保持を支援する衛生用品により、
+        避難生活の快適性と安全性を向上。企業の防災備蓄を
+        トータルに支えます。
+      </p>
+    </div>
+    <div class="card-image">
+      <img src="images/c3-4.jpg" alt="衛生用品">
     </div>
   </div>
 
 </section>
-
 <div class="btn-area">
   <a href="index.html" class="back-btn">フェアトップへ戻ってエントリーする 💌</a>
 </div>
-
 <script>
 function initScrollAnimation() {
   const targetCards = document.querySelectorAll('.card');
-  
-  const observerOptions = {
-    root: null,
-    rootMargin: '0px',
-    threshold: 0.1
-  };
-
+  const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('show');
-      }
+      if (entry.isIntersecting) { entry.target.classList.add('show'); }
     });
   }, observerOptions);
-
   targetCards.forEach(card => observer.observe(card));
 }
-
-window.onload = () => {
-  initScrollAnimation();
-};
+window.onload = () => { initScrollAnimation(); };
 </script>
+
 </body>
 </html>
