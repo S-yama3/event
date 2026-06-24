@@ -8,51 +8,135 @@
 <style>
 :root {
   --bg-color: #fdf6ff;
+  --container-bg: #fffcf5;   /* コンテナ用の優しい色 */
+  --card-bg: #e0f7fa;       /* カード用の控えめなパステルブルー */
   --primary: #ffadd2;
+  --secondary: #95deea;
   --accent: #fff3bf;
   --green: #c2f0af;
   --text-color: #4a4a4a;
   --border-color: #333;
 }
-body { margin: 0; font-family: 'M PLUS Rounded 1c', sans-serif; background-color: var(--bg-color); color: var(--text-color); }
+
+body {
+  margin: 0;
+  font-family: 'M PLUS Rounded 1c', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  overflow-x: hidden;
+}
+
+/* 背景ドット・装飾 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(#d1d1d1 2px, transparent 2px);
+  background-size: 35px 35px;
+  z-index: -1;
+}
+
+.deco { position: fixed; border-radius: 50%; z-index: -1; opacity: 0.5; filter: blur(80px); }
+.deco-pink { width: 400px; height: 400px; background: var(--primary); top: -100px; left: -100px; }
+.deco-blue { width: 500px; height: 500px; background: var(--secondary); bottom: -150px; right: -150px; }
 
 /* --- ヘッダー --- */
 nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; }
 .logo { font-size: 28px; color: #ff7eb9; text-shadow: 2px 2px 0px #fff, 4px 4px 0px var(--border-color); text-decoration: none; }
 
 /* --- メインコンテンツ枠 --- */
-.container { border: 4px solid var(--border-color); border-radius: 30px; padding: 30px; margin: 0 auto 50px; max-width: 950px; box-shadow: 8px 8px 0px var(--border-color); background-color: #fff; }
+.container { 
+  border: 4px solid var(--border-color); 
+  border-radius: 30px; 
+  padding: 40px; 
+  margin: 0 auto 50px; 
+  max-width: 950px; 
+  box-shadow: 12px 12px 0px var(--border-color); 
+  background-color: var(--container-bg);
+}
 
-/* --- 3列グリッドとカード --- */
-.maker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+/* --- 2列グリッド --- */
+.maker-grid { 
+  display: grid; 
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 20px; 
+}
 .maker-card {
   display: flex; align-items: center; justify-content: center;
-  padding: 12px 10px; background: #fdf6ff; border: 3px solid var(--border-color); border-radius: 12px;
-  text-decoration: none; color: var(--text-color); font-weight: bold;
-  text-align: center; font-size: 14px; box-shadow: 4px 4px 0px var(--border-color);
-  transition: transform 0.2s, box-shadow 0.2s; word-break: keep-all;
+  padding: 25px 20px; border: 3px solid var(--border-color); border-radius: 20px;
+  text-decoration: none; color: var(--text-color); font-weight: 800;
+  text-align: center; font-size: 18px; /* 文字サイズを調整 */
+  box-shadow: 4px 4px 0px var(--border-color);
+  transition: transform 0.2s, box-shadow 0.2s;
+  background-color: var(--card-bg);
 }
-.maker-card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px var(--border-color); background-color: var(--accent); }
+.maker-card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px var(--border-color); background-color: #d0eff2; }
 
-/* --- 枠外告知カード --- */
+/* --- その他 --- */
 .more-announcement {
   display: inline-block; padding: 20px 40px; background: white;
   border: 4px dashed var(--border-color); border-radius: 50px;
   text-decoration: none; color: #ff7eb9; font-weight: 800; font-size: 18px;
   box-shadow: 6px 6px 0px var(--border-color); transition: all 0.3s ease;
 }
-.more-announcement:hover { background: var(--primary); color: white; transform: scale(1.05); border-style: solid; }
+.more-announcement:hover { background: var(--primary); color: white; transform: scale(1.05); }
 
-/* --- フッターボタン --- */
-.btn-area { text-align: center; margin-bottom: 100px; }
-.back-btn { display: inline-block; font-weight: bold; text-decoration: none; color: var(--text-color); border: 4px solid var(--border-color); padding: 15px 40px; border-radius: 50px; background: var(--green); font-size: 18px; box-shadow: 6px 6px 0px var(--border-color); transition: transform 0.2s, box-shadow 0.2s; }
-.back-btn:hover { transform: translate(-4px, -4px); box-shadow: 10px 10px 0px var(--border-color); }
+.back-btn { display: inline-block; font-weight: bold; text-decoration: none; color: var(--text-color); border: 4px solid var(--border-color); padding: 15px 40px; border-radius: 50px; background: var(--green); font-size: 18px; box-shadow: 6px 6px 0px var(--border-color); }
 
-@media (max-width: 768px) { .maker-grid { grid-template-columns: repeat(2, 1fr); } nav { padding: 20px; } }
-@media (max-width: 480px) { .maker-grid { grid-template-columns: 1fr; } }
+/* ---------------------------
+   スマホ・タブレット対応
+--------------------------- */
+@media (max-width: 768px) {
+
+  nav {
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .logo {
+    font-size: 20px;
+    line-height: 1.4;
+  }
+
+  .container {
+    padding: 20px;
+    margin: 0 10px 40px;
+    border-radius: 20px;
+    box-shadow: 8px 8px 0px var(--border-color);
+  }
+
+  .maker-grid {
+    grid-template-columns: 1fr; /* 1列表示 */
+    gap: 15px;
+  }
+
+  .maker-card {
+    padding: 18px 15px;
+    font-size: 16px;
+  }
+
+  h1 {
+    font-size: 28px;
+  }
+
+  .more-announcement {
+    padding: 16px 24px;
+    font-size: 16px;
+  }
+
+  .back-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+  }
+}
 </style>
 </head>
 <body>
+
+<div class="deco deco-pink"></div>
+<div class="deco deco-blue"></div>
 
 <nav>
   <a href="index.html" class="logo">Ｎｅｗビジネスフェア×仙台山三 ✨</a>
@@ -101,18 +185,15 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
       <a class="maker-card">山寺</a>
       <a class="maker-card">山本商事</a>
       <a class="maker-card">ユニペックス</a>
-
     </div>
   </div>
 
-  <div style="text-align: center; margin: 20px auto 60px; max-width: 950px;">
-    <a href="index.html" class="more-announcement">
-      <span>✨ＡＮＤ Ｍｏｒｅ．．．</span>
-    </a>
+  <div style="text-align: center; margin: 20px auto 60px;">
+    <a href="index.html" class="more-announcement">✨ＡＮＤ Ｍｏｒｅ．．．</a>
   </div>
 </section>
 
-<div class="btn-area">
+<div style="text-align: center; margin-bottom: 100px;">
   <a href="index.html" class="back-btn">フェアトップへ戻る 💌</a>
 </div>
 
