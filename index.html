@@ -564,7 +564,19 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   color: var(--text-color);
   margin-top: 40px;
 }
-  
+
+/* 📍 マップアイコンのスタイル */
+.map-icon {
+  margin-left: 10px;
+  font-size: 1.2em;
+  text-decoration: none;
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+.map-icon:hover {
+  transform: scale(1.2);
+}
+
 </style>
 </head>
 <body onclick="handleInteraction()">
@@ -640,11 +652,22 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
       7月17日<span class="weekday">(金)</span> <span class="time">10:00～17:00 開催</span>
     </div>
     
-    <a href="https://maps.google.com/?q=38.25401848532476,140.92433925123342" target="_blank" rel="noopener noreferrer" class="info-location-link" onclick="event.stopPropagation();">
-      <div class="info-location">
-        📍 場所：仙台山三本社（仙台市若林区卸町2丁目5-9）
-      </div>
-    </a>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+  
+  <a href="https://maps.google.com/?q=38.25401848532476,140.92433925123342" target="_blank" rel="noopener noreferrer" class="info-location-link" onclick="event.stopPropagation();">
+    <div class="info-location">
+      📍 場所：仙台山三本社（仙台市若林区卸町2丁目5-9）
+    </div>
+  </a>
+
+  <a href="map.html" class="info-location-link" onclick="event.stopPropagation();">
+    <div class="info-location">
+      📍 専用駐車場ＭＡＰ 🗺️
+    </div>
+  </a>
+
+</div>
+
 
     <div class="hero-badges-container">
       <div class="bubble-alert left">
