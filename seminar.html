@@ -70,26 +70,32 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .seminar-card.show { opacity: 1; transform: translateY(0); }
 
 /* ヘッダー・内容パーツ */
-.semi-header { display: flex; align-items: center; border-bottom: 4px solid var(--border-color); padding-bottom: 20px; margin-bottom: 30px; }
+.semi-header { display: flex; align-items: center; border-bottom: 4px solid var(--border-color); padding-bottom: 20px; margin-bottom: 30px; flex-wrap: nowrap; }
 .ribbon-icon { display: flex; align-items: center; justify-content: center; width: 55px; height: 65px; color: white; font-size: 32px; font-weight: 800; clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 50% 100%, 0% 75%); box-shadow: 3px 3px 0px var(--border-color); flex-shrink: 0; margin-right: 20px; }
 .semi-title { font-size: 26px; font-weight: 800; margin: 0; flex-grow: 1; }
-.semi-time { font-size: 24px; border: 3px solid var(--border-color); padding: 8px 20px; border-radius: 15px; box-shadow: 4px 4px 0px var(--border-color); font-weight: 800; background: var(--secondary); margin-left: 20px; }
+.semi-time { font-size: 24px; border: 3px solid var(--border-color); padding: 8px 20px; border-radius: 15px; box-shadow: 4px 4px 0px var(--border-color); font-weight: 800; background: var(--secondary); margin-left: 20px; white-space: nowrap;}
 
-.info-block { background: #fff; border: 3px solid var(--border-color); border-radius: 20px; padding: 25px; margin-bottom: 25px; }
-.info-block h4 { margin: 0 0 15px 0; font-size: 20px; font-weight: 800; display: inline-block; padding: 5px 15px; border: 2px solid var(--border-color); border-radius: 10px; background: var(--accent); }
+.info-block { background: #fff; border-radius: 20px; padding: 25px; margin-bottom: 25px; }
+.info-block h4 { margin: 0 0 15px 0; font-size: 20px; font-weight: 800; display: inline-block; padding: 5px 15px; border: 2px solid var(--border-color); border-radius: 10px; }
 .info-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 15px; }
 .info-list li { font-size: 18px; font-weight: bold; padding-left: 25px; position: relative; }
 .info-list li::before { content: "●"; position: absolute; left: 0; color: #ff7eb9; }
 
-.instructor-section { background: #fffdf3; border: 3px dashed var(--border-color); border-radius: 22px; padding: 25px; display: flex; gap: 25px; align-items: flex-start; }
+.instructor-section { background-color: #fffdf3 !important; border: 3px dashed var(--border-color); border-radius: 22px; padding: 25px; display: flex; gap: 25px; align-items: flex-start; }
 .instructor-img { width: 110px; height: 140px; border-radius: 50%; border: 3px solid var(--border-color); object-fit: cover; flex-shrink: 0; }
+
+.block-recommend h4 { background: var(--primary); /* ピンク背景 */}
+.block-points h4 { background: var(--secondary); /* 青（水色）背景 */}
+
+.block-recommend { background-color: #fff5fa; border: 3px solid var(--primary) !important; }
+.block-points { background-color: #f0fbfe; border: 3px solid var(--secondary) !important; }
+
 
 @media (max-width: 768px) {
   .seminar-card { padding: 20px; }
   .semi-header { flex-wrap: wrap; }
   .semi-title { width: 100%; margin-top: 15px; }
   .semi-time { margin-left: 0; margin-top: 10px; width: 100%; text-align: center; }
-  .instructor-section { flex-direction: column; align-items: center; text-align: center; }
 }
 </style>
 </head>
@@ -115,16 +121,27 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
     <div class="semi-header">
       <div class="ribbon-icon" style="background-color: var(--secondary);">1</div>
       <h3 class="semi-title">AI活用による1on1の質的向上とエンゲージメント向上へのアプローチ</h3>
-      <div class="semi-time">11:00 ～</div>
+      <div class="semi-time">11:00～</div>
     </div>
-    <div class="info-block">
-      <h4>🎯 こんな方におすすめ！</h4>
+    <div class="info-block block-recommend">
+     <h4>🎯 こんな方におすすめ！</h4>
       <ul class="info-list">
         <li>1on1の効果に悩む管理職の方</li>
         <li>管理業務に追われるマネージャー</li>
         <li>経験や勘（3K）の指導から脱却したいリーダー</li>
+	<li>組織のエンゲージメントを高めたい人事担当者</li>
       </ul>
     </div>
+    <div class="info-block block-points">
+     <h4>💡 学べるポイント</h4>
+      <ul class="info-list">
+        <li>ＡＩによる１ｏｎ１の質とエンゲージメントの向上策</li>
+        <li>管理職の負担を削減する自動化の手法</li>
+        <li>対話ログを可視化し「組織の資産」にする方法</li>
+	<li>ＡＩと人の力を融合した「次世代マネジメント」</li>
+      </ul>
+    </div>
+
     <div class="instructor-section">
       <img class="instructor-img" src="講師１.png" alt="講師">
       <div class="instructor-txt">
@@ -140,12 +157,22 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
       <h3 class="semi-title">ライオン事務器がお届けするエンゲージメントを高める”ワーキングプレイス”</h3>
       <div class="semi-time">14:00 ～</div>
     </div>
-    <div class="info-block">
-      <h4>💡 学べるポイント</h4>
+    <div class="info-block block-recommend">
+     <h4>🎯 こんな方におすすめ！</h4>
+      <ul class="info-list">
+        <li>社員の出社率やモチベーションを高めたい経営者・管理職</li>
+        <li>オフィスのリニューアルや環境改善を検討している担当者</li>
+        <li>社内のコミュニケーション不足や希薄化に課題を感じる方</li>
+	<li>社員のエンゲージメント向上を目指す人事・総務担当者</li>
+      </ul>
+    </div>
+    <div class="info-block block-points">
+     <h4>💡 学べるポイント</h4>
       <ul class="info-list">
         <li>社員が「出社したくなる」オフィス環境づくりのヒント</li>
         <li>「場所」中心から「ひと」中心へと変化する最新のワークプレイス</li>
-        <li>エンゲージメントを高めるオフィスの具体事例</li>
+        <li>社内のコミュニケーションを円滑にするための空間設計</li>
+	<li>経験や勘（3K）の指導から脱却したいリーダー</li>
       </ul>
     </div>
     <div class="instructor-section">
