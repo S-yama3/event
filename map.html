@@ -140,6 +140,11 @@ body::before {
 /* マップセクション */
 .map-section { text-align: center; margin: 60px 0; }
 .map-wrapper { display: inline-block; padding: 10px; background: #fff; border: 3px solid var(--border-color); border-radius: 20px; box-shadow: 10px 10px 0px rgba(0,0,0,0.1); }
+.map-button{ display:inline-block; margin-top:15px; padding:14px 28px; background:#4285F4; color:#fff; text-decoration:none; font-weight:700; border:3px solid var(--border-color); border-radius:50px; box-shadow:6px 6px 0 var(--border-color); transition:.25s; }
+.map-button:hover{
+  transform:translateY(-3px);
+  box-shadow:8px 8px 0 var(--border-color);
+}
 .map-wrapper img { display: block; max-width: 90vw; width: 700px; border-radius: 12px; }
 .map-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
@@ -227,6 +232,15 @@ TOPへ
   <div class="map-wrapper"><img src="images/map01010101.jpg" alt="駐車場マップ"></div>
 </section>
 
+<div style="margin-top:20px;">
+  <a href="https://www.google.com/maps?q=38.2536622921063,140.9253804477556"
+     target="_blank"
+     rel="noopener noreferrer"
+     class="map-button">
+     📍 Googleマップで開く
+  </a>
+</div>
+  
 <div class="container">
   <div class="card">
     <div class="card-video"><video src="images/01.mp4" autoplay muted playsinline loop></video></div>
