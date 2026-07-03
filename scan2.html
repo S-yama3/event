@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>商談メモ登録</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f0f2f5; margin: 0; padding: 10px; }
+        .card { background: white; max-width: 400px; margin: auto; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        
+        /* 修正：カメラ映像の隙間を消す設定 */
+        #interactive { 
+            width: 100%; 
+            height: 300px; /* 固定高さを指定 */
+            position: relative; 
+            overflow: hidden; 
+            border-radius: 8px; 
+            background: #000; 
+        }
+        #interactive video { 
+            width: 100%; 
+            height: 100%;
+            object-fit: cover; /* 映像を枠に合わせて切り抜くことで隙間を消す */
+        }
+        
+        textarea, input { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; }
+        button { width: 100%; padding: 14px; margin-top: 8px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; }
+        .btn-reg { background: #28a745; }
+        .btn-reset { background: #666; }
+        .btn-home { background: #007bff; margin-top: 15px; } /* ホームボタン追加 */
+    </style>
+</head>
+<body>
+<div class="card">
+    <div id="camera-section">
+        <h3 style="margin-top:0;">バーコードスキャン</h3>
+        <div id="interactive"></div>
+        <button class="btn-home" onclick="location.href='index.html'">ホームへ戻る</button>
+    </div>
+    <div id="result-section" style="display:none;">
+        <div id="res-name" style="font-weight:bold; padding:10px 0;"></div>
+        <textarea id="memo" rows="3" placeholder="商談メモ"></textarea>
+        <input type="text" id="exhibitor" placeholder="出店社名">
+        <button class="btn-reg" onclick="saveMemo()">登録する</button>
+        <button class="btn-reset" onclick="location.reload()">再スキャン</button>
+    </div>
+</div>
+
+<script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz_lNsM4kK32FXhsORbuFjiGl1zJ8W6PX5RJvf5RSymiwxqrxJXlBQoWoH1ipilo3nc4w/exec";
+    let currentId = "", isProcessing = false;
+
+    Quagga.init({ 
+        inputStream: { type: "LiveStream", target: document.querySelector('#interactive'), constraints: { facingMode: "environment" } }, 
+        decoder: { readers: ["code_128_reader"] } 
+    }, (err) => { if (!err) Quagga.start(); });
+
+    Quagga.onDetected((res) => {
+        const code = res.codeResult.code;
+        if (isProcessing) return;
+        isProcessing = true; 
+        Quagga.stop(); 
+        currentId = code;
+        
+        fetch(`${GAS_URL}?qr=${encodeURIComponent(code)}`).then(r => r.json()).then(data => {
+            if(data.found) {
+                let infoHtml = `
+                    <div id="info-box" style="text-align: left; margin-bottom: 10px; font-size: 0.9em; background: #f9f9f9; padding: 10px; border-radius: 6px;">
+                        <div><strong>部署:</strong> ${data.dept || '---'}</div>
+                        <div><strong>役職:</strong> ${data.position || '---'}</div>
+                    </div>
+                `;
+                document.getElementById('res-name').innerHTML = `<strong>${data.name} 様</strong><br>(${data.company})`;
+                document.getElementById('res-name').insertAdjacentHTML('afterend', infoHtml);
+                document.getElementById('camera-section').style.display = 'none';
+                document.getElementById('result-section').style.display = 'block';
+            } else {
+                alert("登録されていないコードです。");
+                isProcessing = false;
+                Quagga.start();
+            }
+        });
+    });
+
+function saveMemo() {
+    const btn = document.querySelector('.btn-reg');
+    const memo = document.getElementById('memo').value;
+    const exhibitor = document.getElementById('exhibitor').value;
+
+    // バリデーション
+    if (memo.trim() && !exhibitor.trim()) { alert('メモがある場合は出店社名も必須です'); return; }
+    if (!memo.trim() && !exhibitor.trim()) { alert('メモまたは出店社名を入力してください'); return; }
+
+    // 【重要】ボタンを無効化して重複クリックを防ぐ
+    btn.disabled = true;
+    btn.innerText = "登録中...";
+    btn.style.backgroundColor = "#ccc"; // 無効な見た目にする
+
+    fetch(`${GAS_URL}?action=saveMemo&qr=${encodeURIComponent(currentId)}&memo=${encodeURIComponent(memo)}&exhibitor=${encodeURIComponent(exhibitor)}`)
+    .then(r => r.json())
+    .then(d => {
+        if(d.success) {
+            alert('登録完了');
+            location.reload();
+        } else {
+            // エラー時はボタンを戻す
+            alert('登録に失敗しました。もう一度お試しください。');
+            btn.disabled = false;
+            btn.innerText = "登録する";
+            btn.style.backgroundColor = "#28a745";
+        }
+    })
+    .catch(err => {
+        alert('通信エラーが発生しました。');
+        btn.disabled = false;
+        btn.innerText = "登録する";
+        btn.style.backgroundColor = "#28a745";
+    });
+}
+</script>
+</body>
+</html>
