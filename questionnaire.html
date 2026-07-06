@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ｎｅｗビジネスフェア ｜ アンケート回答ページ</title>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght=700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root { --bg-color: #fdf6ff; --primary: #ffadd2; --secondary: #95deea; --border-color: #333; --text-color: #4a4a4a; --error-color: #ff9800; }
+body { font-family: 'M PLUS Rounded 1c', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 10px; }
+.form-container { max-width: 700px; margin: 20px auto; background: rgba(255, 255, 255, 0.9); padding: 30px; border: 4px solid var(--border-color); border-radius: 30px; box-shadow: 12px 12px 0px var(--border-color); }
+h2 { text-align: center; margin-bottom: 25px; }
+.form-group { margin-bottom: 30px; position: relative; }
+input[type="text"] { width: 100%; padding: 12px; border: 3px solid var(--border-color); border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+
+/* テキストエリアのスタイル（スマホ対応＆自動伸縮） */
+textarea {
+  width: 100%;
+  padding: 12px;
+  border: 3px solid var(--border-color);
+  border-radius: 10px;
+  box-sizing: border-box;
+  font-size: 16px;
+  min-height: 150px; /* スマホで丁度いい初期の高さ */
+  resize: none;      /* 手動リサイズ無効化 */
+  overflow: hidden;  /* スクロールバー非表示 */
+  display: block;
+  line-height: 1.5;
+  font-family: inherit;
+}
+
+.error-bubble { position: absolute; top: -45px; left: 0; background: var(--error-color); color: #fff; padding: 8px 12px; border-radius: 5px; font-size: 14px; white-space: nowrap; display: none; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); z-index: 10; }
+.error-bubble::after { content: ""; position: absolute; bottom: -8px; left: 20px; border-width: 8px 8px 0; border-style: solid; border-color: var(--error-color) transparent; }
+.checkbox-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 5px; }
+.star-rating { display: flex; gap: 10px; }
+.star-rating input { display: none; }
+.star-rating label { font-size: 35px; color: #ccc; cursor: pointer; }
+.star-rating input:checked ~ label, .star-rating label:hover, .star-rating label:hover ~ label { color: #ffcc00; }
+button { width: 100%; padding: 15px; background: var(--secondary); border: 4px solid var(--border-color); border-radius: 50px; font-weight: bold; font-size: 18px; cursor: pointer; }
+#overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center; color:white; font-size:24px; }
+#resultArea { display: none; text-align: center; padding: 20px; }
+</style>
+</head>
+<body>
+
+<div id="overlay">送信中...</div>
+
+<div class="form-container">
+  <div id="formSection">
+    <h2>酷暑対策アンケート</h2>
+    <form id="surveyForm" novalidate>
+      <div class="form-group" id="group-company">
+        <label>貴社名（必須）</label>
+        <div class="error-bubble">貴社名を入力してください。</div>
+        <input type="text" name="company" id="company">
+      </div>
+      <div class="form-group">
+        <label>お名前</label>
+        <input type="text" name="name">
+      </div>
+      <div class="form-group" id="group-interest">
+        <label>興味のあったコンテンツ（必須・複数選択可）</label>
+        <div class="error-bubble">選択してください。</div>
+        <div class="checkbox-group">
+          <label><input type="checkbox" name="interest" value="セミナー"> セミナー</label>
+          <label><input type="checkbox" name="interest" value="酷暑リスク軽減"> 酷暑リスク軽減</label>
+          <label><input type="checkbox" name="interest" value="ライブオフィス"> ライブオフィス</label>
+          <label><input type="checkbox" name="interest" value="防災対策"> 防災対策</label>
+          <label><input type="checkbox" name="interest" value="ＤＸ"> ＤＸ</label>
+          <label><input type="checkbox" name="interest" value="特になし"> 特になし</label>
+        </div>
+      </div>
+      <div class="form-group" id="group-meeting">
+        <label>商談について（必須）</label>
+        <div class="error-bubble">選択してください。</div>
+        <label><input type="radio" name="meeting" value="商談を希望する"> 商談を希望する</label>
+        <label><input type="radio" name="meeting" value="商談は不要"> 商談は不要</label>
+      </div>
+      <div class="form-group">
+        <label>満足度（関心度）</label>
+        <div class="star-rating">
+          <input type="radio" name="rating" id="s1" value="1"><label for="s1">★</label>
+          <input type="radio" name="rating" id="s2" value="2"><label for="s2">★</label>
+          <input type="radio" name="rating" id="s3" value="3"><label for="s3">★</label>
+          <input type="radio" name="rating" id="s4" value="4"><label for="s4">★</label>
+          <input type="radio" name="rating" id="s5" value="5"><label for="s5">★</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>アンケートへのご意見・ご感想</label>
+        <textarea name="message"></textarea>
+      </div>
+      <button type="submit">回答を送信する</button>
+    </form>
+  </div>
+
+  <div id="resultArea">
+    <h2>受付が完了しました</h2>
+    <p>あなたの受付ID:</p>
+    <h2 id="displayId" style="font-size: 28px; color: var(--secondary);"></h2>
+    <div id="qrcode" style="display:inline-block; margin-top:10px;"></div>
+    <p style="margin-top:20px;">この画面を受付でご提示ください。</p>
+  </div>
+</div>
+
+<script>
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbx4ShdE0XwzeWapoOaSzYQEIDfQOpW1E3AvJBrUvh_up0fW-DhqpRACu4gE7v1yTAKl/exec';
+  
+  // --- テキストエリア自動調整のJS ---
+  function autoResizeTextarea() {
+    this.style.height = 'auto';
+    this.style.height = this.scrollHeight + 'px';
+  }
+  const messageTextarea = document.querySelector('textarea[name="message"]');
+  if (messageTextarea) {
+    messageTextarea.addEventListener('input', autoResizeTextarea);
+  }
+
+  const form = document.getElementById('surveyForm');
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    document.querySelectorAll('.error-bubble').forEach(b => b.style.display = 'none');
+    
+    let hasError = false;
+    if (!document.getElementById('company').value.trim()) {
+      document.querySelector('#group-company .error-bubble').style.display = 'block';
+      hasError = true;
+    }
+    if (document.querySelectorAll('input[name="interest"]:checked').length === 0) {
+      document.querySelector('#group-interest .error-bubble').style.display = 'block';
+      hasError = true;
+    }
+    if (!document.querySelector('input[name="meeting"]:checked')) {
+      document.querySelector('#group-meeting .error-bubble').style.display = 'block';
+      hasError = true;
+    }
+    if (hasError) return;
+
+    document.getElementById('overlay').style.display = 'flex';
+    const formData = new FormData(this);
+    formData.set('interest', Array.from(document.querySelectorAll('input[name="interest"]:checked')).map(cb => cb.value).join(', '));
+    
+    fetch(GAS_URL, { method: 'POST', body: formData })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('formSection').style.display = 'none';
+      document.getElementById('resultArea').style.display = 'block';
+      document.getElementById('displayId').innerText = data.uniqueId;
+      new QRCode(document.getElementById("qrcode"), { text: data.uniqueId, width: 150, height: 150 });
+    })
+    .catch(err => {
+      document.getElementById('overlay').style.display = 'none';
+      alert('エラーが発生しました。もう一度お試しください。');
+    });
+  });
+</script>
+</body>
+</html>
