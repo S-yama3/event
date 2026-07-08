@@ -115,15 +115,19 @@ button { width: 100%; padding: 15px; background: var(--secondary); border: 4px s
           <label><input type="checkbox" name="interest" value="特になし"> 特になし</label>
         </div>
       </div>
-<div class="form-group" id="group-meeting">
-  <label>商談について（必須）</label>
-  <div class="error-bubble">選択してください。</div>
-  <label><input type="radio" name="meeting" value="【★★★★★】具体的な相談をしたいので、一度話を聞きたい"> 【★★★★★】具体的な相談をしたいので、一度話を聞きたい</label>
-  <label><input type="radio" name="meeting" value="【★★★★☆】サービスの詳細説明を聞いてから検討したい"> 【★★★★☆】サービスの詳細説明を聞いてから検討したい</label>
-  <label><input type="radio" name="meeting" value="【★★★☆☆】資料や事例を見て、まずは自分で検討してみたい"> 【★★★☆☆】資料や事例を見て、まずは自分で検討してみたい</label>
-  <label><input type="radio" name="meeting" value="【★★☆☆☆】最新情報や案内があれば、たまに送ってほしい"> 【★★☆☆☆】最新情報や案内があれば、たまに送ってほしい</label>
-  <label><input type="radio" name="meeting" value="【★☆☆☆☆】案内や連絡は不要である"> 【★☆☆☆☆】案内や連絡は不要である</label>
-</div>
+    <div class="form-group">
+      <label>気になった商品があれば教えてください</label>
+      <input type="text" name="interested_product" placeholder="商品名などをご記入ください">
+    </div>
+    <div class="form-group" id="group-meeting">
+      <label>商談について（必須）</label>
+      <div class="error-bubble">選択してください。</div>
+      <label><input type="radio" name="meeting" value="【★★★★★】具体的な相談をしたいので、一度話を聞きたい"> 【★★★★★】具体的な相談をしたいので、一度話を聞きたい</label>
+      <label><input type="radio" name="meeting" value="【★★★★☆】サービスの詳細説明を聞いてから検討したい"> 【★★★★☆】サービスの詳細説明を聞いてから検討したい</label>
+      <label><input type="radio" name="meeting" value="【★★★☆☆】資料や事例を見て、まずは自分で検討してみたい"> 【★★★☆☆】資料や事例を見て、まずは自分で検討してみたい</label>
+      <label><input type="radio" name="meeting" value="【★★☆☆☆】最新情報や案内があれば、たまに送ってほしい"> 【★★☆☆☆】最新情報や案内があれば、たまに送ってほしい</label>
+      <label><input type="radio" name="meeting" value="【★☆☆☆☆】案内や連絡は不要である"> 【★☆☆☆☆】案内や連絡は不要である</label>
+    </div>
       <div class="form-group">
         <label>満足度（関心度）</label>
         <div class="star-rating">
