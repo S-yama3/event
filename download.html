@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>データ管理・ダウンロード</title>
+    <!-- Excel出力用ライブラリ (SheetJS / xlsx.full.min.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --danger-color: #dc2626;
+            --danger-hover: #b91c1c;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #cbd5e1;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+        }
+        h2 {
+            font-size: 1.25rem;
+            margin-top: 0;
+            color: #0f172a;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px;
+        }
+        p {
+            font-size: 0.95rem;
+            color: #475569;
+            line-height: 1.5;
+        }
+        .section {
+            margin-bottom: 24px;
+        }
+        .section.danger-zone {
+            border-top: 1px dashed var(--border-color);
+            padding-top: 20px;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:active { background-color: var(--primary-hover); }
+        button:disabled { background-color: #94a3b8; cursor: not-allowed; }
+
+        .danger-btn {
+            background-color: var(--danger-color);
+        }
+        .danger-btn:active { background-color: var(--danger-hover); }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            margin-bottom: 8px;
+        }
+
+        /* ローディング用オーバーレイ */
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ffffff;
+            border-top: 4px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 読込中オーバーレイ -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loading-text">処理中...</div>
+    </div>
+
+<div class="container">
+    <h2>データ管理・ダウンロード</h2>
+    
+    <!-- ダウンロードセクション -->
+    <div class="section">
+        <p>蓄積されたすべてのデータをExcelファイル（.xlsx）としてダウンロードします。</p>
+        <button id="download-btn" onclick="downloadExcel()">Excelファイルをダウンロード</button>
+    </div>
+
+    <!-- 履歴削除セクション -->
+    <div class="section danger-zone">
+        <h2 style="border-bottom-color: var(--danger-color); color: var(--danger-color);">履歴の削除（初期化）</h2>
+        <p>スプレッドシートのデータをすべて削除します。実行するにはパスワードを入力してください。</p>
+        <input type="password" id="delete-password" placeholder="パスワードを入力">
+        <button id="delete-btn" class="danger-btn" onclick="clearData()">データをすべて削除する</button>
+    </div>
+</div>
+
+<script>
+    // ★ 設定済みのGASウェブアプリURL
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyRBFjBoiVPqB2g0FtgQtO8uPWe-zo9HR1fG7M8ECeZ-cn-fTwkl1e3LUdhXDREnZHDZQ/exec';
+    
+    // 設定するパスワード（後日変更可能）
+    const CORRECT_PASSWORD = "1234";
+
+    // --- Excelダウンロード処理 ---
+    async function downloadExcel() {
+        const overlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
+        const btn = document.getElementById('download-btn');
+
+        overlay.style.display = 'flex';
+        loadingText.innerText = "スプレッドシートからデータを取得中...";
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(GAS_URL);
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                const data = result.data;
+
+                if (!data || data.length === 0) {
+                    alert('ダウンロードするデータが存在しません。');
+                    return;
+                }
+
+                loadingText.innerText = "Excelファイルを生成中...";
+
+                const worksheet = XLSX.utils.aoa_to_sheet(data);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "DATA");
+
+                const now = new Date();
+                const dateStr = now.toISOString().slice(0, 10);
+                const fileName = `survey_data_${dateStr}.xlsx`;
+
+                XLSX.writeFile(workbook, fileName);
+
+            } else {
+                alert('データ取得失敗: ' + result.message);
+            }
+        } catch (err) {
+            alert('通信エラーが発生しました: ' + err);
+        } finally {
+            overlay.style.display = 'none';
+            btn.disabled = false;
+        }
+    }
+
+    // --- 履歴削除処理 ---
+    async function clearData() {
+        const inputPass = document.getElementById('delete-password').value;
+
+        if (inputPass !== CORRECT_PASSWORD) {
+            alert('パスワードが間違っています。');
+            return;
+        }
+
+        if (!confirm('本当にスプレッドシートのデータをすべて削除しますか？\nこの操作は元に戻せません。')) {
+            return;
+        }
+
+        const overlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
+        const btn = document.getElementById('delete-btn');
+
+        overlay.style.display = 'flex';
+        loadingText.innerText = "データを削除中...";
+        btn.disabled = true;
+
+        try {
+            // パスワードを含めて削除用のPOSTリクエストを送信
+            const response = await fetch(GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'clear', password: inputPass })
+            });
+            const result = await response.json();
+
+            overlay.style.display = 'none';
+
+            if (result.status === 'success') {
+                alert('データをすべて削除しました。');
+                document.getElementById('delete-password').value = '';
+            } else {
+                alert('削除失敗: ' + result.message);
+            }
+        } catch (err) {
+            overlay.style.display = 'none';
+            alert('通信エラーが発生しました: ' + err);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>
