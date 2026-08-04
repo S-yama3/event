@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>バーコード読取・アンケート</title>
+    <title>バーコード読取所感登録</title>
     <!-- ライブカメラ読取用ライブラリ (html5-qrcode) -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
@@ -155,13 +155,13 @@
 <div class="container">
     <!-- スキャン1 -->
     <div id="screen-scan1" class="step-screen active">
-        <h2>1つ目のバーコード読取</h2>
+        <h2>出展者バーコード読取</h2>
         <div id="reader-1"></div>
     </div>
 
     <!-- スキャン2 -->
     <div id="screen-scan2" class="step-screen">
-        <h2>2つ目のバーコード読取</h2>
+        <h2>顧客バーコード読取</h2>
         <div class="info-badge">1つ目: <span id="display-b1"></span></div>
         <div id="reader-2"></div>
         <button class="secondary" onclick="resetBarcode1()">最初からやり直す</button>
@@ -211,7 +211,7 @@
             <div class="preview-item"><strong id="prev-q1-title">質問1:</strong> <span id="prev-q1-ans"></span></div>
             <div class="preview-item"><strong id="prev-q2-title">質問2:</strong> <span id="prev-q2-ans"></span></div>
             <div class="preview-item"><strong id="prev-q3-title">質問3:</strong> <span id="prev-q3-ans"></span></div>
-            <div class="preview-item"><strong>自由メモ:</strong> <span id="prev-memo"></span></div>
+            <div class="preview-item"><strong>メモ:</strong> <span id="prev-memo"></span></div>
         </div>
         <button onclick="submitData()">登録する</button>
         <button class="secondary" onclick="goToStep('screen-memo')">修正する</button>
@@ -225,16 +225,16 @@
     // 質問内容の定義（Qシートの内容に対応）
     const questions = [
         {
-            question: "疑問はありますか",
-            options: ["かなり", "まあかなり", "どちらでもない", "まあ少ない", "少ない"]
+            question: "お客様の所感を登録してください",
+            options: ["☆☆☆☆☆", "☆☆☆☆★", "☆☆☆★★", "☆☆★★★", "☆★★★★"]
         },
         {
-            question: "質問はありますか",
-            options: ["かなり", "まあかなり", "どちらでもない", "まあ少ない", "少ない"]
+            question: "商談が必要そうでしたか",
+            options: ["☆☆☆☆☆", "☆☆☆☆★", "☆☆☆★★", "☆☆★★★", "☆★★★★"]
         },
         {
-            question: "なにかありますか",
-            options: ["かなり", "まあかなり", "どちらでもない", "まあ少ない", "少ない"]
+            question: "サンプルやカタログを希望していましたか",
+            options: ["☆☆☆☆☆", "☆☆☆☆★", "☆☆☆★★", "☆☆★★★", "☆★★★★"]
         }
     ];
 
