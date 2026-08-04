@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>バーコード読取登録</title>
+    <title>バーコード読取・アンケート</title>
+    <!-- ライブカメラ読取用ライブラリ (html5-qrcode) -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         :root {
@@ -71,8 +72,11 @@
             font-weight: bold;
             cursor: pointer;
             margin-top: 12px;
+            transition: background 0.2s;
         }
+        button:active { background-color: var(--primary-hover); }
         button.secondary { background-color: #64748b; }
+        button.secondary:active { background-color: #475569; }
         .option-btn {
             background-color: #ffffff;
             color: var(--text-color);
@@ -96,6 +100,7 @@
             border-radius: 8px;
             font-size: 1rem;
             box-sizing: border-box;
+            resize: vertical;
         }
         .preview-box {
             background: #f1f5f9;
@@ -106,9 +111,46 @@
         }
         .preview-item { margin-bottom: 8px; }
         .preview-item strong { display: inline-block; width: 110px; color: #475569; }
+
+        /* 登録中グレーアウト用オーバーレイ */
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ffffff;
+            border-top: 4px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
+
+    <!-- 登録中のグレーアウトオーバーレイ -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div>データを登録中...</div>
+    </div>
 
 <div class="container">
     <!-- スキャン1 -->
@@ -151,15 +193,16 @@
         <button class="secondary" onclick="goToStep('screen-q2')">戻る</button>
     </div>
 
-    <!-- 自由メモ -->
+    <!-- 自由メモ入力 -->
     <div id="screen-memo" class="step-screen">
-        <h2>選択肢になかった商談メモを入力</h2>
-        <textarea id="memo-input" placeholder="メモを入力（空欄可）"></textarea>
+        <h2>自由メモ入力</h2>
+        <p style="margin-bottom: 8px; font-size: 0.9rem; color: #475569;">特記事項やメモがあれば入力してください（空欄可）：</p>
+        <textarea id="memo-input" placeholder="ここにメモを入力..."></textarea>
         <button onclick="goToPreview()">確認画面へ</button>
         <button class="secondary" onclick="goToStep('screen-q3')">戻る</button>
     </div>
 
-    <!-- プレビュー -->
+    <!-- プレビュー画面 -->
     <div id="screen-preview" class="step-screen">
         <h2>入力内容の確認</h2>
         <div class="preview-box">
@@ -176,22 +219,22 @@
 </div>
 
 <script>
-    // ★ ここにデプロイしたGASのウェブアプリURLを設定してください
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxdoFk-yBx6cWu7-kbfs8cSo_tth9Y_BQCdNGATOAWyhrhmNEhkYz7CQKNt5oWkkl_O_w/exec';
+    // ★ デプロイしたGASのウェブアプリURLを設定
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwqMzL03X39idqAIL8-6eICQLeO7X-bim7rT0a0iLVlvMpAdZ74el25mIp1JTKiHRW8ow/exec';
 
-    // ★ 質問内容をHTML（JS）内に直接定義
+    // 質問内容の定義（Qシートの内容に対応）
     const questions = [
         {
-            question: "今のお客様の所感はどうでしたか",
-            options: ["☆☆☆☆☆", "☆☆☆☆★", "☆☆☆★★", "☆☆★★★", "☆★★★★"]
+            question: "疑問はありますか",
+            options: ["かなり", "まあかなり", "どちらでもない", "まあ少ない", "少ない"]
         },
         {
-            question: "連絡が欲しいようでしたか",
-            options: ["☆☆☆☆☆", "☆☆☆☆★", "☆☆☆★★", "☆☆★★★", "☆★★★★"]
+            question: "質問はありますか",
+            options: ["かなり", "まあかなり", "どちらでもない", "まあ少ない", "少ない"]
         },
         {
-            question: "商談が必要そうでしたか",
-            options: ["☆☆☆☆☆", "☆☆☆☆★", "☆☆☆★★", "☆☆★★★", "☆★★★★"]
+            question: "なにかありますか",
+            options: ["かなり", "まあかなり", "どちらでもない", "まあ少ない", "少ない"]
         }
     ];
 
@@ -199,7 +242,7 @@
     let html5QrCode1 = null;
     let html5QrCode2 = null;
 
-    // 起動時に即座に質問をセットしてカメラ起動
+    // 起動時に即座に質問を配置してカメラを起動
     window.addEventListener('DOMContentLoaded', () => {
         setupQuestions();
         startScanner1();
@@ -215,6 +258,7 @@
         goToScreen(screenId);
     }
 
+    // --- スキャナー1 ---
     function startScanner1() {
         if (!html5QrCode1) html5QrCode1 = new Html5Qrcode("reader-1");
         html5QrCode1.start(
@@ -232,6 +276,7 @@
         ).catch(err => alert("カメラ起動エラー: " + err));
     }
 
+    // --- スキャナー2 ---
     function startScanner2() {
         if (!html5QrCode2) html5QrCode2 = new Html5Qrcode("reader-2");
         html5QrCode2.start(
@@ -262,6 +307,7 @@
         startScanner1();
     }
 
+    // --- 質問画面の構築 ---
     function setupQuestions() {
         for(let i = 0; i < 3; i++) {
             let qNum = i + 1;
@@ -293,6 +339,7 @@
         }
     }
 
+    // --- プレビュー ---
     function goToPreview() {
         appData.memo = document.getElementById('memo-input').value;
         document.getElementById('prev-b1').innerText = appData.barcode1;
@@ -309,10 +356,10 @@
         goToScreen('screen-preview');
     }
 
+    // --- データ送信（ローディングオーバーレイ付き） ---
     async function submitData() {
-        const btn = event.target;
-        btn.disabled = true;
-        btn.innerText = "登録中...";
+        const overlay = document.getElementById('loading-overlay');
+        overlay.style.display = 'flex';
 
         try {
             const response = await fetch(GAS_URL, {
@@ -320,8 +367,12 @@
                 body: JSON.stringify(appData)
             });
             const result = await response.json();
+            
+            overlay.style.display = 'none';
+
             if(result.status === 'success') {
                 alert('データを登録しました！');
+                // 登録後：1つ目のバーコードは保持したまま、2つ目の読取モードへ戻る
                 appData.barcode2 = '';
                 appData.q1 = '';
                 appData.q2 = '';
@@ -336,10 +387,8 @@
                 alert('登録失敗: ' + result.message);
             }
         } catch (err) {
+            overlay.style.display = 'none';
             alert('通信エラー: ' + err);
-        } finally {
-            btn.disabled = false;
-            btn.innerText = "登録する";
         }
     }
 </script>
