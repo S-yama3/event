@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>バーコード読取</title>
-    <!-- ライブカメラ読取用ライブラリ (html5-qrcode) -->
+    <title>バーコード読取登録</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         :root {
@@ -36,12 +35,8 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             box-sizing: border-box;
         }
-        .step-screen {
-            display: none;
-        }
-        .step-screen.active {
-            display: block;
-        }
+        .step-screen { display: none; }
+        .step-screen.active { display: block; }
         h2 {
             font-size: 1.25rem;
             margin-top: 0;
@@ -58,7 +53,7 @@
             margin-bottom: 16px;
             border: 1px solid #bfdbfe;
         }
-        #reader {
+        #reader-1, #reader-2 {
             width: 100% !important;
             border-radius: 8px;
             overflow: hidden;
@@ -76,17 +71,8 @@
             font-weight: bold;
             cursor: pointer;
             margin-top: 12px;
-            transition: background 0.2s;
         }
-        button:active {
-            background-color: var(--primary-hover);
-        }
-        button.secondary {
-            background-color: #64748b;
-        }
-        button.secondary:active {
-            background-color: #475569;
-        }
+        button.secondary { background-color: #64748b; }
         .option-btn {
             background-color: #ffffff;
             color: var(--text-color);
@@ -110,7 +96,6 @@
             border-radius: 8px;
             font-size: 1rem;
             box-sizing: border-box;
-            resize: vertical;
         }
         .preview-box {
             background: #f1f5f9;
@@ -119,35 +104,17 @@
             margin-bottom: 16px;
             font-size: 0.9rem;
         }
-        .preview-item {
-            margin-bottom: 8px;
-        }
-        .preview-item strong {
-            display: inline-block;
-            width: 110px;
-            color: #475569;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
+        .preview-item { margin-bottom: 8px; }
+        .preview-item strong { display: inline-block; width: 110px; color: #475569; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- ローディング / 初期画面 -->
-    <div id="screen-loading" class="step-screen active">
-        <div class="loading">設定と質問データを読み込んでいます...</div>
-    </div>
-
     <!-- スキャン1 -->
-    <div id="screen-scan1" class="step-screen">
+    <div id="screen-scan1" class="step-screen active">
         <h2>1つ目のバーコード読取</h2>
         <div id="reader-1"></div>
-        <div id="scan1-result" style="margin-top: 10px; font-weight: bold;"></div>
     </div>
 
     <!-- スキャン2 -->
@@ -184,17 +151,15 @@
         <button class="secondary" onclick="goToStep('screen-q2')">戻る</button>
     </div>
 
-    <!-- 最終ページ（自由メモ） -->
+    <!-- 自由メモ -->
     <div id="screen-memo" class="step-screen">
-        <h2>自由メモ入力</h2>
-        <div class="info-badge">確認画面へ進みます</div>
-        <p style="margin-bottom: 8px;">特記事項やメモがあれば入力してください（空欄でも可）：</p>
-        <textarea id="memo-input" placeholder="ここにメモを入力..."></textarea>
+        <h2>選択肢になかった商談メモを入力</h2>
+        <textarea id="memo-input" placeholder="メモを入力（空欄可）"></textarea>
         <button onclick="goToPreview()">確認画面へ</button>
         <button class="secondary" onclick="goToStep('screen-q3')">戻る</button>
     </div>
 
-    <!-- プレビュー画面 -->
+    <!-- プレビュー -->
     <div id="screen-preview" class="step-screen">
         <h2>入力内容の確認</h2>
         <div class="preview-box">
@@ -212,37 +177,32 @@
 
 <script>
     // ★ ここにデプロイしたGASのウェブアプリURLを設定してください
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwqMzL03X39idqAIL8-6eICQLeO7X-bim7rT0a0iLVlvMpAdZ74el25mIp1JTKiHRW8ow/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxdoFk-yBx6cWu7-kbfs8cSo_tth9Y_BQCdNGATOAWyhrhmNEhkYz7CQKNt5oWkkl_O_w/exec';
 
-    let appData = {
-        barcode1: '',
-        barcode2: '',
-        q1: '',
-        q2: '',
-        q3: '',
-        memo: ''
-    };
+    // ★ 質問内容をHTML（JS）内に直接定義
+    const questions = [
+        {
+            question: "今のお客様の所感はどうでしたか",
+            options: ["☆☆☆☆☆", "☆☆☆☆★", "☆☆☆★★", "☆☆★★★", "☆★★★★"]
+        },
+        {
+            question: "連絡が欲しいようでしたか",
+            options: ["☆☆☆☆☆", "☆☆☆☆★", "☆☆☆★★", "☆☆★★★", "☆★★★★"]
+        },
+        {
+            question: "商談が必要そうでしたか",
+            options: ["☆☆☆☆☆", "☆☆☆☆★", "☆☆☆★★", "☆☆★★★", "☆★★★★"]
+        }
+    ];
 
-    let fetchedQuestions = [];
+    let appData = { barcode1: '', barcode2: '', q1: '', q2: '', q3: '', memo: '' };
     let html5QrCode1 = null;
     let html5QrCode2 = null;
 
-    // 初期化：GASから質問データを取得
-    window.addEventListener('DOMContentLoaded', async () => {
-        try {
-            const res = await fetch(GAS_URL);
-            const json = await res.json();
-            if(json.status === 'success') {
-                fetchedQuestions = json.questions;
-                setupQuestions();
-                goToScreen('screen-scan1');
-                startScanner1();
-            } else {
-                alert('質問データの取得に失敗しました: ' + json.message);
-            }
-        } catch (e) {
-            alert('GAS通信エラー: ' + e);
-        }
+    // 起動時に即座に質問をセットしてカメラ起動
+    window.addEventListener('DOMContentLoaded', () => {
+        setupQuestions();
+        startScanner1();
     });
 
     function goToScreen(screenId) {
@@ -251,16 +211,12 @@
     }
 
     function goToStep(screenId) {
-        // カメラ停止のクリーンアップ
         stopScanner2();
         goToScreen(screenId);
     }
 
-    // --- スキャナー1 ---
     function startScanner1() {
-        if (!html5QrCode1) {
-            html5QrCode1 = new Html5Qrcode("reader-1");
-        }
+        if (!html5QrCode1) html5QrCode1 = new Html5Qrcode("reader-1");
         html5QrCode1.start(
             { facingMode: "environment" },
             { fps: 10, qrbox: { width: 250, height: 150 } },
@@ -270,19 +226,14 @@
                     document.getElementById('display-b1').innerText = decodedText;
                     goToScreen('screen-scan2');
                     startScanner2();
-                }).catch(err => console.log(err));
+                }).catch(err => {});
             },
-            (errorMessage) => {}
-        ).catch(err => {
-            alert("カメラの起動に失敗しました（権限を確認してください）: " + err);
-        });
+            (err) => {}
+        ).catch(err => alert("カメラ起動エラー: " + err));
     }
 
-    // --- スキャナー2 ---
     function startScanner2() {
-        if (!html5QrCode2) {
-            html5QrCode2 = new Html5Qrcode("reader-2");
-        }
+        if (!html5QrCode2) html5QrCode2 = new Html5Qrcode("reader-2");
         html5QrCode2.start(
             { facingMode: "environment" },
             { fps: 10, qrbox: { width: 250, height: 150 } },
@@ -291,12 +242,10 @@
                 html5QrCode2.stop().then(() => {
                     prepareQuestionScreens();
                     goToScreen('screen-q1');
-                }).catch(err => console.log(err));
+                }).catch(err => {});
             },
-            (errorMessage) => {}
-        ).catch(err => {
-            console.log(err);
-        });
+            (err) => {}
+        ).catch(err => {});
     }
 
     function stopScanner2() {
@@ -313,24 +262,14 @@
         startScanner1();
     }
 
-    // --- 質問画面の動的構築 ---
     function setupQuestions() {
-        // デフォルトのフォールバック
-        const defaultQ = [
-            { question: "質問1", options: ["選択肢1", "選択肢2", "選択肢3", "選択肢4", "選択肢5"] },
-            { question: "質問2", options: ["選択肢1", "選択肢2", "選択肢3", "選択肢4", "選択肢5"] },
-            { question: "質問3", options: ["選択肢1", "選択肢2", "選択肢3", "選択肢4", "選択肢5"] }
-        ];
-
-        const qs = fetchedQuestions.length >= 3 ? fetchedQuestions : defaultQ;
-
         for(let i = 0; i < 3; i++) {
             let qNum = i + 1;
-            document.getElementById(`q${qNum}-text`).innerText = qs[i].question;
+            document.getElementById(`q${qNum}-text`).innerText = questions[i].question;
             
             let container = document.getElementById(`q${qNum}-options`);
             container.innerHTML = '';
-            qs[i].options.forEach(opt => {
+            questions[i].options.forEach(opt => {
                 let btn = document.createElement('button');
                 btn.className = 'option-btn';
                 btn.innerText = opt;
@@ -354,32 +293,22 @@
         }
     }
 
-    // --- プレビュー ---
     function goToPreview() {
         appData.memo = document.getElementById('memo-input').value;
-        
         document.getElementById('prev-b1').innerText = appData.barcode1;
         document.getElementById('prev-b2').innerText = appData.barcode2;
         
-        const qs = fetchedQuestions.length >= 3 ? fetchedQuestions : [
-            {question: "質問1"}, {question: "質問2"}, {question: "質問3"}
-        ];
-
-        document.getElementById('prev-q1-title').innerText = qs[0].question + ":";
+        document.getElementById('prev-q1-title').innerText = questions[0].question + ":";
         document.getElementById('prev-q1-ans').innerText = appData.q1 || "(未回答)";
-
-        document.getElementById('prev-q2-title').innerText = qs[1].question + ":";
+        document.getElementById('prev-q2-title').innerText = questions[1].question + ":";
         document.getElementById('prev-q2-ans').innerText = appData.q2 || "(未回答)";
-
-        document.getElementById('prev-q3-title').innerText = qs[2].question + ":";
+        document.getElementById('prev-q3-title').innerText = questions[2].question + ":";
         document.getElementById('prev-q3-ans').innerText = appData.q3 || "(未回答)";
-
         document.getElementById('prev-memo').innerText = appData.memo || "(なし)";
 
         goToScreen('screen-preview');
     }
 
-    // --- データ送信 ---
     async function submitData() {
         const btn = event.target;
         btn.disabled = true;
@@ -393,7 +322,6 @@
             const result = await response.json();
             if(result.status === 'success') {
                 alert('データを登録しました！');
-                // 登録後：最初のバーコード(barcode1)は保持し、2つ目のスキャンモードへ戻る
                 appData.barcode2 = '';
                 appData.q1 = '';
                 appData.q2 = '';
@@ -405,10 +333,10 @@
                 goToScreen('screen-scan2');
                 startScanner2();
             } else {
-                alert('登録に失敗しました: ' + result.message);
+                alert('登録失敗: ' + result.message);
             }
         } catch (err) {
-            alert('通信エラーが発生しました: ' + err);
+            alert('通信エラー: ' + err);
         } finally {
             btn.disabled = false;
             btn.innerText = "登録する";
