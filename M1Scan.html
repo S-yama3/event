@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>バーコード読取所感登録</title>
+    <title>所感登録</title>
     <!-- ライブカメラ読取用ライブラリ (html5-qrcode) -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
@@ -220,7 +220,7 @@
 
 <script>
     // ★ デプロイしたGASのウェブアプリURLを設定
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzTj5HziIz80lieq0fNg2PIwtmaYEHOWx4Lj8zfABpnYrC515NTPgwPr8ir4GyPMGlGdA/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyRBFjBoiVPqB2g0FtgQtO8uPWe-zo9HR1fG7M8ECeZ-cn-fTwkl1e3LUdhXDREnZHDZQ/exec';
 
     // 質問内容の定義（Qシートの内容に対応）
     const questions = [
@@ -229,7 +229,7 @@
             options: ["☆☆☆☆☆", "☆☆☆☆★", "☆☆☆★★", "☆☆★★★", "☆★★★★"]
         },
         {
-            question: "商談が必要そうでしたか",
+            question: "後日商談が必要そうでしたか",
             options: ["☆☆☆☆☆", "☆☆☆☆★", "☆☆☆★★", "☆☆★★★", "☆★★★★"]
         },
         {
