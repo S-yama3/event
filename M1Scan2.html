@@ -295,15 +295,15 @@
         ]
     };
 
-    // --- 2回目用設定（細かい1次元バーコード用：Code39 / Code128） ---
+// --- 2回目用設定（細かい1次元バーコード用：Code39 / Code128） ---
     const barcodeScannerConfig = {
         fps: 15,
-        qrbox: { width: 350, height: 120 }, // 幅4cmのラベルに合わせた横長枠
+        qrbox: { width: 380, height: 140 }, // 枠を少し大きくして捉えやすくする
         videoConstraints: {
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
             facingMode: "environment",
-            focusMode: "continuous"
+            advanced: [{ focusMode: "continuous" }] // 連続オートフォーカスの強制指定
         },
         formatsToSupport: [
             Html5QrcodeSupportedFormats.CODE_39,
