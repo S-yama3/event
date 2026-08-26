@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>所感登録（文字切り出し撮影対応版）</title>
+    <title>所感登録（文字切り出し・範囲指定対応版）</title>
     <!-- ライブカメラ読取用ライブラリ (html5-qrcode) -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
@@ -114,6 +114,26 @@
         .preview-item { margin-bottom: 8px; }
         .preview-item strong { display: inline-block; width: 110px; color: #475569; }
 
+        /* 撮影用フレームガイド */
+        .camera-guide-box {
+            background: #f8fafc;
+            border: 2px dashed var(--primary-color);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .guide-frame {
+            border: 2px solid #ef4444;
+            background: rgba(239, 68, 68, 0.05);
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #b91c1c;
+            font-size: 0.9rem;
+        }
+
         /* 登録中オーバーレイ */
         #loading-overlay {
             display: none;
@@ -162,23 +182,23 @@
         <button id="btn-start-scanner1" onclick="startScanner1()">カメラ起動してスキャン</button>
     </div>
 
-    <!-- スキャン2：上部文字列の撮影＆文字認識 (OCR) -->
+    <!-- スキャン2：文字の範囲指定撮影 (OCR) -->
     <div id="screen-scan2" class="step-screen">
-        <h2>2. 顧客コード読取 (上部文字)</h2>
+        <h2>2. 顧客コード読取</h2>
         <div class="info-badge">1つ目(出展者): <span id="display-b1"></span></div>
-        <p style="font-size: 0.9rem; color: #475569;">用紙上部の「AS3110003」などの文字列を枠内に収めて撮影してください。</p>
+        <p style="font-size: 0.9rem; color: #475569;">用紙上部のコード部分を狙って撮影してください。</p>
         
-        <!-- 写真撮影ボタン（スマホのカメラが起動し、枠を意識して撮影できる） -->
-        <div style="background: #f8fafc; border: 2px dashed var(--primary-color); padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 16px;">
-            <label style="cursor: pointer; display: block;">
-                <span style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">📷 文字を狙って撮影する</span>
+        <div class="camera-guide-box">
+            <div class="guide-frame">
+                📌 【赤枠のエリア】に文字を収めて撮影
+            </div>
+            <label style="cursor: pointer; display: block; margin-top: 12px;">
+                <span style="background-color: var(--primary-color); color: white; padding: 10px 16px; border-radius: 6px; display: inline-block; font-weight: bold;">📷 範囲を合わせて撮影する</span>
                 <input type="file" accept="image/*" capture="environment" id="ocr-camera-input" style="display: none;" onchange="handleImageOcr(event)">
             </label>
-            <p style="font-size: 0.8rem; color: #64748b; margin: 6px 0 0 0;">※撮影後、自動で文字を抽出します</p>
         </div>
 
         <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">抽出・入力コード (修正可能):</label>
-        <!-- ご要望の参考例としてのプレースホルダー -->
         <input type="text" id="manual-code2" placeholder="例: xx1234567" value="">
 
         <button onclick="confirmCode2()">このコードで進む</button>
@@ -322,7 +342,7 @@
         });
     }
 
-    // --- 2回目：上部文字列（AS3110003など）の文字認識（OCR）処理 ---
+    // --- 2回目：文字の範囲指定撮影＆OCR処理 ---
     async function handleImageOcr(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -337,7 +357,6 @@
 
                 for (let res of results) {
                     const cleaned = res.rawValue.replace(/\s+/g, '');
-                    // 英字2文字＋数字7桁のパターンを抽出 (例: AS3110003 など)
                     const match = cleaned.match(/[A-Z]{2}[0-9]{7}/);
                     if (match) {
                         extractedCode = match[0];
