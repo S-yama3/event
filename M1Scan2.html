@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>所感登録（OCR対応版）</title>
+    <title>所感登録（文字自動抽出対応版）</title>
     <!-- ライブカメラ読取用ライブラリ (html5-qrcode) -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
@@ -162,23 +162,24 @@
         <button id="btn-start-scanner1" onclick="startScanner1()">カメラ起動してスキャン</button>
     </div>
 
-    <!-- スキャン2：文字列（OCR / カメラ撮影または入力） -->
+    <!-- スキャン2：文字自動抽出 (OCR) -->
     <div id="screen-scan2" class="step-screen">
         <h2>2. 顧客コード読取 (上部文字列)</h2>
         <div class="info-badge">1つ目(出展者): <span id="display-b1"></span></div>
-        <p style="font-size: 0.9rem; color: #475569;">A4用紙一番上の見本市コードをカメラで撮影するか、直接入力してください。</p>
+        <p style="font-size: 0.9rem; color: #475569;">用紙一番上の文字列を撮影すると、自動で英数9文字を抽出します。</p>
         
         <!-- カメラ撮影ボタン -->
         <div style="background: #f8fafc; border: 2px dashed var(--border-color); padding: 16px; border-radius: 8px; text-align: center; margin-bottom: 12px;">
             <label style="cursor: pointer; display: block;">
-                <span style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">📷 文字を撮影する</span>
+                <span style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">📷 一番上の文字を撮影する</span>
                 <input type="file" accept="image/*" capture="environment" id="ocr-camera-input" style="display: none;" onchange="handleImageOcr(event)">
             </label>
-            <p style="font-size: 0.8rem; color: #64748b; margin: 4px 0 0 0;">※撮影すると入力欄に反映されます</p>
+            <p style="font-size: 0.8rem; color: #64748b; margin: 4px 0 0 0;">※自動で英数9文字を抽出します</p>
         </div>
 
-        <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">顧客コード (編集可能):</label>
-        <input type="text" id="manual-code2" placeholder="見本市コード" value="">
+        <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">抽出されたコード (修正可能):</label>
+        <!-- 参考として「xx1234567」をプレースホルダー（入力例）として表示するように変更 -->
+        <input type="text" id="manual-code2" placeholder="例: xx1234567" value="">
 
         <button onclick="confirmCode2()">このコードで進む</button>
         <button class="secondary" onclick="resetBarcode1()">最初からやり直す</button>
@@ -318,34 +319,38 @@
         });
     }
 
-    // --- 2回目：撮影後の処理とメッセージ表示 ---
+    // --- 2回目：文字認識（OCR）による自動抽出処理 ---
     async function handleImageOcr(event) {
         const file = event.target.files[0];
         if (!file) return;
 
-        let detectedValue = "";
+        let extractedCode = "";
 
-        // ブラウザのBarcodeDetectorが使える環境の場合の自動認識
-        if ('BarcodeDetector' in window) {
+        if ('TextDetector' in window) {
             try {
-                const barcodeDetector = new BarcodeDetector({ formats: ['code_128', 'code_39', 'qr_code', 'data_matrix'] });
+                const textDetector = new TextDetector();
                 const imageBitmap = await createImageBitmap(file);
-                const results = await barcodeDetector.detect(imageBitmap);
-                if (results.length > 0) {
-                    detectedValue = results[0].rawValue;
+                const results = await textDetector.detect(imageBitmap);
+
+                const regex = /^[A-Z]{2}[0-9]{7}$/;
+                for (let res of results) {
+                    const cleaned = res.rawValue.replace(/\s+/g, '');
+                    const match = cleaned.match(/[A-Z]{2}[0-9]{7}/);
+                    if (match) {
+                        extractedCode = match[0];
+                        break;
+                    }
                 }
             } catch (e) {
-                console.log("BarcodeDetector fallback:", e);
+                console.log("TextDetector error:", e);
             }
         }
 
-        // 認識結果があればテキストボックスにセットし、メッセージを表示
-        if (detectedValue) {
-            document.getElementById('manual-code2').value = detectedValue;
-            alert("コードを自動読み取りしました: " + detectedValue);
+        if (extractedCode) {
+            document.getElementById('manual-code2').value = extractedCode;
+            alert("【自動抽出成功】\nコード「" + extractedCode + "」をセットしました！");
         } else {
-            // 自動認識できない環境や文字の場合の案内
-            alert("写真を撮影しました。必要に応じてコードを確認・修正し、「このコードで進む」を押してください。");
+            alert("写真からコードを自動検出できませんでした。\nお手数ですが、一番上の文字列を目視で入力してください。");
         }
         
         document.getElementById('manual-code2').focus();
@@ -354,7 +359,7 @@
     function confirmCode2() {
         const val = document.getElementById('manual-code2').value.trim();
         if (!val) {
-            alert('コードが入力されていません。直接入力するか撮影してください。');
+            alert('コードが入力されていません。');
             return;
         }
         appData.barcode2 = val;
