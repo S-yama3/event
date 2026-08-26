@@ -286,25 +286,32 @@
         goToScreen(screenId);
     }
 
-    // --- 1次元バーコードを高精度で読み取るための設定 ---
-    const barcodeScannerConfig = {
-        fps: 15, // フレームレートを少し上げて検知しやすくする
-        qrbox: { width: 320, height: 120 }, // 幅4cmの細長いバーコードに合わせた枠サイズ
-        // カメラの解像度を強制的に高くし、オートフォーカスを有効にする設定
-        videoConstraints: {
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            facingMode: "environment",
-            focusMode: "continuous" 
-        },
+    // --- 1回目用設定（QRコード専用） ---
+    const qrScannerConfig = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
         formatsToSupport: [
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39,
             Html5QrcodeSupportedFormats.QR_CODE
         ]
     };
 
-    // --- スキャナー1 ---
+    // --- 2回目用設定（細かい1次元バーコード用：Code39 / Code128） ---
+    const barcodeScannerConfig = {
+        fps: 15,
+        qrbox: { width: 350, height: 120 }, // 幅4cmのラベルに合わせた横長枠
+        videoConstraints: {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            facingMode: "environment",
+            focusMode: "continuous"
+        },
+        formatsToSupport: [
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.CODE_128
+        ]
+    };
+
+    // --- スキャナー1（QRコード） ---
     function startScanner1() {
         const btn = document.getElementById('btn-start-scanner1');
         btn.style.display = 'none';
@@ -312,7 +319,7 @@
         if (!html5QrCode1) html5QrCode1 = new Html5Qrcode("reader-1");
         html5QrCode1.start(
             { facingMode: "environment" },
-            barcodeScannerConfig,
+            qrScannerConfig,
             (decodedText) => {
                 appData.barcode1 = decodedText;
                 html5QrCode1.stop().then(() => {
@@ -328,7 +335,7 @@
         });
     }
 
-    // --- スキャン2 ---
+    // --- スキャン2（Code39 / 128） ---
     function startScanner2() {
         const btn = document.getElementById('btn-start-scanner2');
         btn.style.display = 'none';
@@ -451,7 +458,6 @@
                 appData.q2 = '';
                 appData.q3 = '';
                 appData.memo = '';
-                document.getElementById('memo-input-value'] = '';
                 document.getElementById('memo-input').value = '';
                 
                 document.getElementById('display-b1').innerText = appData.barcode1;
