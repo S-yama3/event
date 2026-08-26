@@ -249,23 +249,19 @@
     window.addEventListener('DOMContentLoaded', () => {
         setupQuestions();
 
-        // sessionStorageから前回の状態を復元を試みる
         const savedScreen = sessionStorage.getItem('currentScreen');
         const savedData = sessionStorage.getItem('appData');
 
         if (savedScreen && savedData) {
-            // タスクキル等ではなく、ブラウザが保持している（またはログが残っている）場合
             appData = JSON.parse(savedData);
             currentScreen = savedScreen;
             
-            // もし復元先がスキャン画面だった場合は、安全のためボタン操作ができるように画面反映
             if (currentScreen === 'screen-scan1') {
                 document.getElementById('display-b1').innerText = appData.barcode1 || '';
             } else if (currentScreen === 'screen-scan2') {
                 document.getElementById('display-b1').innerText = appData.barcode1 || '';
             }
         } else {
-            // 新規接続（タスクキル後など）の場合は最初に戻す
             currentScreen = 'screen-scan1';
             saveState();
         }
@@ -290,20 +286,33 @@
         goToScreen(screenId);
     }
 
+    // --- 共通スキャン設定（1次元バーコード対応） ---
+    const barcodeScannerConfig = {
+        fps: 10,
+        qrbox: { width: 300, height: 100 }, // 横長にして1次元バーコードを捉えやすくする
+        formatsToSupport: [
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.ITF
+        ]
+    };
+
     // --- スキャナー1 ---
     function startScanner1() {
         const btn = document.getElementById('btn-start-scanner1');
-        btn.style.display = 'none'; // 起動ボタンを隠す
+        btn.style.display = 'none';
 
         if (!html5QrCode1) html5QrCode1 = new Html5Qrcode("reader-1");
         html5QrCode1.start(
             { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 250, height: 150 } },
+            barcodeScannerConfig,
             (decodedText) => {
                 appData.barcode1 = decodedText;
                 html5QrCode1.stop().then(() => {
                     document.getElementById('display-b1').innerText = decodedText;
-                    btn.style.display = 'block'; // ボタンを戻しておく
+                    btn.style.display = 'block';
                     goToScreen('screen-scan2');
                 }).catch(err => { btn.style.display = 'block'; });
             },
@@ -314,15 +323,15 @@
         });
     }
 
-    // --- スキャナー2 ---
+    // --- スキャン2 ---
     function startScanner2() {
         const btn = document.getElementById('btn-start-scanner2');
-        btn.style.display = 'none'; // 起動ボタンを隠す
+        btn.style.display = 'none';
 
         if (!html5QrCode2) html5QrCode2 = new Html5Qrcode("reader-2");
         html5QrCode2.start(
             { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 250, height: 150 } },
+            barcodeScannerConfig,
             (decodedText) => {
                 appData.barcode2 = decodedText;
                 html5QrCode2.stop().then(() => {
@@ -389,7 +398,6 @@
     function goToPreview() {
         appData.memo = document.getElementById('memo-input').value;
         
-        // バリデーション：もし1回目の情報（barcode1）が無くなっていた場合は情報不足として最初に戻る
         if (!appData.barcode1) {
             alert('1回目の情報が確認できません。再度出展者バーコードを読み取ってください。');
             goToScreen('screen-scan1');
@@ -412,7 +420,6 @@
 
     // --- データ送信（ローディングオーバーレイ付き） ---
     async function submitData() {
-        // 送信直前にも再確認
         if (!appData.barcode1) {
             alert('情報不足です。1回目のバーコード読取からやり直してください。');
             goToScreen('screen-scan1');
@@ -433,7 +440,6 @@
 
             if(result.status === 'success') {
                 alert('データを登録しました！');
-                // 登録後：1つ目のバーコードは保持したまま、2つ目の読取モードへ戻る
                 appData.barcode2 = '';
                 appData.q1 = '';
                 appData.q2 = '';
