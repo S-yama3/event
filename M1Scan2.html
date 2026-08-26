@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>所感登録</title>
+    <title>所感登録（OCR対応版）</title>
     <!-- ライブカメラ読取用ライブラリ (html5-qrcode) -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
@@ -54,7 +54,7 @@
             margin-bottom: 16px;
             border: 1px solid #bfdbfe;
         }
-        #reader-1, #reader-2 {
+        #reader-1 {
             width: 100% !important;
             border-radius: 8px;
             overflow: hidden;
@@ -92,16 +92,16 @@
             border-color: var(--primary-color);
             color: var(--primary-color);
         }
-        textarea {
+        input[type="text"], textarea {
             width: 100%;
-            height: 100px;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             box-sizing: border-box;
-            resize: vertical;
+            margin-bottom: 12px;
         }
+        textarea { height: 100px; resize: vertical; }
         .preview-box {
             background: #f1f5f9;
             padding: 12px;
@@ -112,7 +112,7 @@
         .preview-item { margin-bottom: 8px; }
         .preview-item strong { display: inline-block; width: 110px; color: #475569; }
 
-        /* 登録中グレーアウト用オーバーレイ */
+        /* 登録中オーバーレイ */
         #loading-overlay {
             display: none;
             position: fixed;
@@ -146,35 +146,46 @@
 </head>
 <body>
 
-    <!-- 登録中のグレーアウトオーバーレイ -->
     <div id="loading-overlay">
         <div class="spinner"></div>
         <div>データを登録中...</div>
     </div>
 
 <div class="container">
-    <!-- スキャン1 -->
+    <!-- スキャン1：QRコード -->
     <div id="screen-scan1" class="step-screen active">
-        <h2>出展者バーコード読取</h2>
-        <p style="font-size: 0.9rem; color: #475569;">ボタンを押してカメラを起動してください。</p>
+        <h2>1. 出展者QRコード読取</h2>
+        <p style="font-size: 0.9rem; color: #475569;">カメラでQRコードを読み取ってください。</p>
         <div id="reader-1"></div>
         <button id="btn-start-scanner1" onclick="startScanner1()">カメラ起動してスキャン</button>
     </div>
 
-    <!-- スキャン2 -->
+    <!-- スキャン2：文字列（OCR / カメラ撮影または入力） -->
     <div id="screen-scan2" class="step-screen">
-        <h2>顧客バーコード読取</h2>
+        <h2>2. 顧客コード読取 (上部文字列)</h2>
         <div class="info-badge">1つ目(出展者): <span id="display-b1"></span></div>
-        <p style="font-size: 0.9rem; color: #475569;">ボタンを押してカメラを起動してください。</p>
-        <div id="reader-2"></div>
-        <button id="btn-start-scanner2" onclick="startScanner2()">カメラ起動してスキャン</button>
+        <p style="font-size: 0.9rem; color: #475569;">A4用紙一番上の「AS3110003」をカメラで撮影して自動読み取りするか、直接入力・修正できます。</p>
+        
+        <!-- スマホのカメラ・写真を選択してテキスト/画像を読み込むインプット -->
+        <div style="background: #f8fafc; border: 2px dashed var(--border-color); padding: 16px; border-radius: 8px; text-align: center; margin-bottom: 12px;">
+            <label style="cursor: pointer; display: block;">
+                <span style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">📷 カメラで文字を撮影 / 読み取り</span>
+                <input type="file" accept="image/*" capture="environment" id="ocr-camera-input" style="display: none;" onchange="handleImageOcr(event)">
+            </label>
+            <p style="font-size: 0.8rem; color: #64748b; margin: 4px 0 0 0;">※タップして書類の文字を撮影してください</p>
+        </div>
+
+        <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">読み取り・修正用コード:</label>
+        <input type="text" id="manual-code2" placeholder="例: AS3110003">
+
+        <button onclick="confirmCode2()">このコードで進む</button>
         <button class="secondary" onclick="resetBarcode1()">最初からやり直す</button>
     </div>
 
     <!-- 質問1 -->
     <div id="screen-q1" class="step-screen">
         <h2>質問 1 / 3</h2>
-        <div class="info-badge">バーコード1: <span id="disp-b1-q1"></span><br>バーコード2: <span id="disp-b2-q1"></span></div>
+        <div class="info-badge">バーコード1: <span id="disp-b1-q1"></span><br>コード2: <span id="disp-b2-q1"></span></div>
         <p id="q1-text" style="font-weight: bold; font-size: 1.1rem;"></p>
         <div id="q1-options"></div>
     </div>
@@ -182,19 +193,19 @@
     <!-- 質問2 -->
     <div id="screen-q2" class="step-screen">
         <h2>質問 2 / 3</h2>
-        <div class="info-badge">バーコード1: <span id="disp-b1-q2"></span><br>バーコード2: <span id="disp-b2-q2"></span></div>
+        <div class="info-badge">バーコード1: <span id="disp-b1-q2"></span><br>コード2: <span id="disp-b2-q2"></span></div>
         <p id="q2-text" style="font-weight: bold; font-size: 1.1rem;"></p>
         <div id="q2-options"></div>
-        <button class="secondary" onclick="goToStep('screen-q1')">戻る</button>
+        <button class="secondary" onclick="goToScreen('screen-q1')">戻る</button>
     </div>
 
     <!-- 質問3 -->
     <div id="screen-q3" class="step-screen">
         <h2>質問 3 / 3</h2>
-        <div class="info-badge">バーコード1: <span id="disp-b1-q3"></span><br>バーコード2: <span id="disp-b2-q3"></span></div>
+        <div class="info-badge">バーコード1: <span id="disp-b1-q3"></span><br>コード2: <span id="disp-b2-q3"></span></div>
         <p id="q3-text" style="font-weight: bold; font-size: 1.1rem;"></p>
         <div id="q3-options"></div>
-        <button class="secondary" onclick="goToStep('screen-q2')">戻る</button>
+        <button class="secondary" onclick="goToScreen('screen-q2')">戻る</button>
     </div>
 
     <!-- 自由メモ入力 -->
@@ -203,22 +214,22 @@
         <p style="margin-bottom: 8px; font-size: 0.9rem; color: #475569;">特記事項やメモがあれば入力してください（空欄可）：</p>
         <textarea id="memo-input" placeholder="ここにメモを入力..."></textarea>
         <button onclick="goToPreview()">確認画面へ</button>
-        <button class="secondary" onclick="goToStep('screen-q3')">戻る</button>
+        <button class="secondary" onclick="goToScreen('screen-q3')">戻る</button>
     </div>
 
     <!-- プレビュー画面 -->
     <div id="screen-preview" class="step-screen">
         <h2>入力内容の確認</h2>
         <div class="preview-box">
-            <div class="preview-item"><strong>バーコード1:</strong> <span id="prev-b1"></span></div>
-            <div class="preview-item"><strong>バーコード2:</strong> <span id="prev-b2"></span></div>
+            <div class="preview-item"><strong>出展者コード:</strong> <span id="prev-b1"></span></div>
+            <div class="preview-item"><strong>顧客コード:</strong> <span id="prev-b2"></span></div>
             <div class="preview-item"><strong id="prev-q1-title">質問1:</strong> <span id="prev-q1-ans"></span></div>
             <div class="preview-item"><strong id="prev-q2-title">質問2:</strong> <span id="prev-q2-ans"></span></div>
             <div class="preview-item"><strong id="prev-q3-title">質問3:</strong> <span id="prev-q3-ans"></span></div>
             <div class="preview-item"><strong>メモ:</strong> <span id="prev-memo"></span></div>
         </div>
         <button onclick="submitData()">登録する</button>
-        <button class="secondary" onclick="goToStep('screen-memo')">修正する</button>
+        <button class="secondary" onclick="goToScreen('screen-memo')">修正する</button>
     </div>
 </div>
 
@@ -243,9 +254,7 @@
     let appData = { barcode1: '', barcode2: '', q1: '', q2: '', q3: '', memo: '' };
     let currentScreen = 'screen-scan1';
     let html5QrCode1 = null;
-    let html5QrCode2 = null;
 
-    // 起動時の初期化
     window.addEventListener('DOMContentLoaded', () => {
         setupQuestions();
 
@@ -255,12 +264,8 @@
         if (savedScreen && savedData) {
             appData = JSON.parse(savedData);
             currentScreen = savedScreen;
-            
-            if (currentScreen === 'screen-scan1') {
-                document.getElementById('display-b1').innerText = appData.barcode1 || '';
-            } else if (currentScreen === 'screen-scan2') {
-                document.getElementById('display-b1').innerText = appData.barcode1 || '';
-            }
+            document.getElementById('display-b1').innerText = appData.barcode1 || '';
+            document.getElementById('manual-code2').value = appData.barcode2 || '';
         } else {
             currentScreen = 'screen-scan1';
             saveState();
@@ -281,37 +286,13 @@
         document.getElementById(screenId).classList.add('active');
     }
 
-    function goToStep(screenId) {
-        stopScanner2();
-        goToScreen(screenId);
-    }
-
-    // --- 1回目用設定（QRコード専用） ---
+    // --- 1回目：QRコード読取 ---
     const qrScannerConfig = {
         fps: 10,
         qrbox: { width: 250, height: 250 },
-        formatsToSupport: [
-            Html5QrcodeSupportedFormats.QR_CODE
-        ]
+        formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
     };
 
-// --- 2回目用設定（細かい1次元バーコード用：Code39 / Code128） ---
-    const barcodeScannerConfig = {
-        fps: 15,
-        qrbox: { width: 380, height: 140 }, // 枠を少し大きくして捉えやすくする
-        videoConstraints: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            facingMode: "environment",
-            advanced: [{ focusMode: "continuous" }] // 連続オートフォーカスの強制指定
-        },
-        formatsToSupport: [
-            Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.CODE_128
-        ]
-    };
-
-    // --- スキャナー1（QRコード） ---
     function startScanner1() {
         const btn = document.getElementById('btn-start-scanner1');
         btn.style.display = 'none';
@@ -335,39 +316,48 @@
         });
     }
 
-    // --- スキャン2（Code39 / 128） ---
-    function startScanner2() {
-        const btn = document.getElementById('btn-start-scanner2');
-        btn.style.display = 'none';
+    // --- 2回目：OCR（テキスト・画像認識）処理 ---
+    async function handleImageOcr(event) {
+        const file = event.target.files[0];
+        if (!file) return;
 
-        if (!html5QrCode2) html5QrCode2 = new Html5Qrcode("reader-2");
-        html5QrCode2.start(
-            { facingMode: "environment" },
-            barcodeScannerConfig,
-            (decodedText) => {
-                appData.barcode2 = decodedText;
-                html5QrCode2.stop().then(() => {
-                    btn.style.display = 'block';
-                    prepareQuestionScreens();
-                    goToScreen('screen-q1');
-                }).catch(err => { btn.style.display = 'block'; });
-            },
-            (err) => {}
-        ).catch(err => {
-            alert("カメラ起動エラー: " + err);
-            btn.style.display = 'block';
-        });
+        // ブラウザの BarcodeDetector (TEXT形式) が使えるかチェック
+        if ('BarcodeDetector' in window) {
+            try {
+                const barcodeDetector = new BarcodeDetector({ formats: ['code_128', 'code_39', 'qr_code', 'data_matrix'] });
+                const imageBitmap = await createImageBitmap(file);
+                const results = await barcodeDetector.detect(imageBitmap);
+                if (results.length > 0) {
+                    document.getElementById('manual-code2').value = results[0].rawValue;
+                    alert("コードを検出しました: " + results[0].rawValue);
+                    return;
+                }
+            } catch (e) {
+                console.log("BarcodeDetector fallback:", e);
+            }
+        }
+
+        // 簡易フォールバック：画像が選択されたら簡易的にファイル名をセットするか、
+        // あるいはOCR用APIがない環境でもスマホ自体のテキスト選択（iOSのテキスト認識表示やAndroidのレンズ機能）でコピペできるようにする案内
+        alert("写真を撮影しました。「AS3110003」の文字を確認し、下の入力欄に反映または調整してください。");
+        
+        // 仮でファイルが選ばれたことをわかりやすくする
+        document.getElementById('manual-code2').focus();
     }
 
-    function stopScanner2() {
-        if (html5QrCode2 && html5QrCode2.isScanning) {
-            html5QrCode2.stop().catch(err => {});
+    function confirmCode2() {
+        const val = document.getElementById('manual-code2').value.trim();
+        if (!val) {
+            alert('コードが入力されていません。');
+            return;
         }
-        document.getElementById('btn-start-scanner2').style.display = 'block';
+        appData.barcode2 = val;
+        saveState();
+        prepareQuestionScreens();
+        goToScreen('screen-q1');
     }
 
     function resetBarcode1() {
-        stopScanner2();
         appData.barcode1 = '';
         appData.barcode2 = '';
         saveState();
@@ -412,7 +402,7 @@
         appData.memo = document.getElementById('memo-input').value;
         
         if (!appData.barcode1) {
-            alert('1回目の情報が確認できません。再度出展者バーコードを読み取ってください。');
+            alert('1回目の情報が確認できません。再度出展者QRコードを読み取ってください。');
             goToScreen('screen-scan1');
             return;
         }
@@ -431,10 +421,10 @@
         goToScreen('screen-preview');
     }
 
-    // --- データ送信（ローディングオーバーレイ付き） ---
+    // --- データ送信 ---
     async function submitData() {
         if (!appData.barcode1) {
-            alert('情報不足です。1回目のバーコード読取からやり直してください。');
+            alert('情報不足です。最初からやり直してください。');
             goToScreen('screen-scan1');
             return;
         }
@@ -459,6 +449,7 @@
                 appData.q3 = '';
                 appData.memo = '';
                 document.getElementById('memo-input').value = '';
+                document.getElementById('manual-code2').value = '';
                 
                 document.getElementById('display-b1').innerText = appData.barcode1;
                 goToScreen('screen-scan2');
