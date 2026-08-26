@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>所感登録（バーコード対応版）</title>
+    <title>所感登録（バーコード・写真読取対応版）</title>
     <!-- ライブカメラ読取用ライブラリ (html5-qrcode) -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
@@ -59,7 +59,7 @@
             border-radius: 8px;
             overflow: hidden;
             border: 1px solid var(--border-color);
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         button {
             width: 100%;
@@ -71,7 +71,7 @@
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 12px;
+            margin-top: 10px;
             transition: background 0.2s;
         }
         button:active { background-color: var(--primary-hover); }
@@ -162,15 +162,23 @@
         <button id="btn-start-scanner1" onclick="startScanner1()">カメラ起動してスキャン</button>
     </div>
 
-    <!-- スキャン2：バーコード読取 (Code 39 / 128対応) -->
+    <!-- スキャン2：バーコード読取 (ライブ＆写真撮影対応) -->
     <div id="screen-scan2" class="step-screen">
         <h2>2. 顧客コード読取 (バーコード)</h2>
         <div class="info-badge">1つ目(出展者): <span id="display-b1"></span></div>
-        <p style="font-size: 0.9rem; color: #475569;">用紙下部のバーコードをカメラでスキャンしてください。</p>
+        <p style="font-size: 0.9rem; color: #475569;">ライブ読取が難しい場合は、下の「写真を撮影して読取」をお使いください。</p>
         
-        <!-- バーコードリーダー用カメラ映像エリア -->
+        <!-- バーコードリーダー用ライブカメラ映像エリア -->
         <div id="reader-2"></div>
-        <button id="btn-start-scanner2" onclick="startScanner2()">バーコードカメラ起動</button>
+        <button id="btn-start-scanner2" onclick="startScanner2()">ライブカメラ起動</button>
+
+        <!-- ★追加：写真撮影してファイルからバーコードを読み取る機能 -->
+        <div style="background: #f8fafc; border: 2px dashed var(--border-color); padding: 12px; border-radius: 8px; text-align: center; margin-top: 12px;">
+            <label style="cursor: pointer; display: block;">
+                <span style="font-size: 1rem; font-weight: bold; color: var(--primary-color);">📸 写真を撮影してバーコード読取</span>
+                <input type="file" accept="image/*" capture="environment" id="barcode-file-input" style="display: none;" onchange="handleBarcodeFile(event)">
+            </label>
+        </div>
 
         <label style="font-size: 0.85rem; font-weight: bold; color: #475569; margin-top: 12px; display: block;">抽出・入力コード (修正可能):</label>
         <input type="text" id="manual-code2" placeholder="例: xx1234567" value="">
@@ -278,7 +286,6 @@
     }
 
     function goToScreen(screenId) {
-        // 画面切り替え時にカメラが動いていれば停止する
         if (html5QrCode1 && html5QrCode1.isScanning) {
             html5QrCode1.stop().catch(e => {});
         }
@@ -326,7 +333,6 @@
     // --- 2回目：横長バーコード（Code 39 / 128）読取設定 ---
     const barcodeConfig = {
         fps: 10,
-        // バーコードの形状に合わせて横長の枠に設定
         qrbox: { width: 300, height: 100 },
         formatsToSupport: [
             Html5QrcodeSupportedFormats.CODE_128,
@@ -354,6 +360,28 @@
             alert("カメラ起動エラー: " + err);
             btn.style.display = 'block';
         });
+    }
+
+    // ★追加：撮影した写真ファイルからバーコードを解析する処理
+    async function handleBarcodeFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // ライブスキャンが動いていた場合は止める
+        if (html5QrCode2 && html5QrCode2.isScanning) {
+            await html5QrCode2.stop().catch(e => {});
+            document.getElementById('btn-start-scanner2').style.display = 'block';
+        }
+
+        // 一時的なインスタンスを作成して画像ファイルをスキャン
+        const html5QrCodeFile = new Html5Qrcode("reader-2");
+        try {
+            const decodedText = await html5QrCodeFile.scanFile(file, true);
+            document.getElementById('manual-code2').value = decodedText;
+            alert("【写真読取成功】\nコード「" + decodedText + "」をセットしました！");
+        } catch (err) {
+            alert("写真からバーコードを検出できませんでした。\nバーコードの下にある数字（例: 02-3110003-001 など）を手動で入力して進んでください。");
+        }
     }
 
     function confirmCode2() {
@@ -430,7 +458,7 @@
         document.getElementById('prev-q3-ans').innerText = appData.q3 || "(未回答)";
         document.getElementById('prev-memo').innerText = appData.memo || "(なし)";
 
-    goToScreen('screen-preview');
+        goToScreen('screen-preview');
     }
 
     // --- データ送信 ---
