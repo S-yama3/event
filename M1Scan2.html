@@ -161,23 +161,23 @@
 <div class="container">
     <!-- スキャン1：QRコード ＆ 手動入力 -->
     <div id="screen-scan1" class="step-screen active">
-        <h2>1. 出展者QRコード読取</h2>
+        <h2>1. 出展社QRコード読取</h2>
         <p style="font-size: 0.9rem; color: #475569;">カメラでQRコードを読み取るか、直接コードを入力してください。</p>
         <div id="reader-1"></div>
         <button id="btn-start-scanner1" onclick="startScanner1()">📷 QRカメラを起動する</button>
 
         <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
-            <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">出展者情報 (小間番号・名称):</label>
+            <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">出展社情報 (小間番号・名称など):</label>
             <input type="text" id="manual-code1" placeholder="例: EX12345" value="">
-            <button onclick="confirmCode1()">このコードで進む</button>
+            <button onclick="confirmCode1()">この内容で進む</button>
         </div>
     </div>
 
     <!-- スキャン2：ブラウザ内ライブカメラ＋OCR枠 -->
     <div id="screen-scan2" class="step-screen">
         <h2>2. 顧客コード読取</h2>
-        <div class="info-badge">1つ目(出展者): <span id="display-b1"></span></div>
-        <p style="font-size: 0.9rem; color: #475569;">ボタンを押してカメラを起動し、枠内に「英字2文字＋数字7桁」を合わせてください。</p>
+        <div class="info-badge">1つ目(出展社): <span id="display-b1"></span></div>
+        <p style="font-size: 0.9rem; color: #475569;">ボタンを押してカメラを起動し、枠内に見本市システムを合わせてください。</p>
         
         <div id="reader-2"></div>
         
@@ -189,8 +189,8 @@
 
         <button onclick="confirmCode2()">このコードで進む</button>
         <!-- 認識後でもいつでもカメラを再起動できるように配置 -->
-        <button class="warning" onclick="restartScanner2ForRetry()">🔄 もう一度カメラで撮り直す</button>
-        <button class="secondary" onclick="resetBarcode1()">最初からやり直す</button>
+        <button class="warning" onclick="restartScanner2ForRetry()">🔄もう一度カメラで撮り直す</button>
+        <button class="secondary" onclick="resetBarcode1()">最初からやり直す（出展社選択に戻る）</button>
     </div>
 
     <!-- 質問1 -->
@@ -232,7 +232,7 @@
     <div id="screen-preview" class="step-screen">
         <h2>入力内容の確認</h2>
         <div class="preview-box">
-            <div class="preview-item"><strong>出展者コード:</strong> <span id="prev-b1"></span></div>
+            <div class="preview-item"><strong>出展社コード:</strong> <span id="prev-b1"></span></div>
             <div class="preview-item"><strong>顧客コード:</strong> <span id="prev-b2"></span></div>
             <div class="preview-item"><strong id="prev-q1-title">質問1:</strong> <span id="prev-q1-ans"></span></div>
             <div class="preview-item"><strong id="prev-q2-title">質問2:</strong> <span id="prev-q2-ans"></span></div>
@@ -344,7 +344,7 @@
     function confirmCode1() {
         const val = document.getElementById('manual-code1').value.trim();
         if (!val) {
-            alert('出展者コードが入力されていません。');
+            alert('出展社コードが入力されていません。');
             return;
         }
         appData.barcode1 = val;
