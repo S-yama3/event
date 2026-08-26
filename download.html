@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>データ管理・ダウンロード</title>
-    <!-- Excel出力用ライブラリ (SheetJS / xlsx.full.min.js) -->
+
+    <!-- Excel出力用ライブラリ -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
     <style>
         :root {
             --primary-color: #2563eb;
@@ -17,6 +19,7 @@
             --text-color: #1e293b;
             --border-color: #cbd5e1;
         }
+
         body {
             font-family: system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
@@ -29,6 +32,7 @@
             min-height: 100vh;
             box-sizing: border-box;
         }
+
         .container {
             width: 100%;
             max-width: 500px;
@@ -38,6 +42,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             box-sizing: border-box;
         }
+
         h2 {
             font-size: 1.25rem;
             margin-top: 0;
@@ -45,18 +50,22 @@
             border-bottom: 2px solid var(--primary-color);
             padding-bottom: 8px;
         }
+
         p {
             font-size: 0.95rem;
             color: #475569;
             line-height: 1.5;
         }
+
         .section {
             margin-bottom: 24px;
         }
+
         .section.danger-zone {
             border-top: 1px dashed var(--border-color);
             padding-top: 20px;
         }
+
         button {
             width: 100%;
             padding: 14px;
@@ -69,13 +78,23 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        button:active { background-color: var(--primary-hover); }
-        button:disabled { background-color: #94a3b8; cursor: not-allowed; }
+
+        button:active {
+            background-color: var(--primary-hover);
+        }
+
+        button:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
 
         .danger-btn {
             background-color: var(--danger-color);
         }
-        .danger-btn:active { background-color: var(--danger-hover); }
+
+        .danger-btn:active {
+            background-color: var(--danger-hover);
+        }
 
         input[type="password"] {
             width: 100%;
@@ -105,6 +124,7 @@
             flex-direction: column;
             gap: 12px;
         }
+
         .spinner {
             width: 40px;
             height: 40px;
@@ -113,12 +133,19 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
+
 <body>
 
     <!-- 読込中オーバーレイ -->
@@ -127,120 +154,487 @@
         <div id="loading-text">処理中...</div>
     </div>
 
-<div class="container">
-    <h2>データ管理・ダウンロード</h2>
-    
-    <!-- ダウンロードセクション -->
-    <div class="section">
-        <p>蓄積されたすべてのデータをExcelファイル（.xlsx）としてダウンロードします。</p>
-        <button id="download-btn" onclick="downloadExcel()">Excelファイルをダウンロード</button>
-    </div>
+    <div class="container">
 
-    <!-- 履歴削除セクション -->
-    <div class="section danger-zone">
-        <h2 style="border-bottom-color: var(--danger-color); color: var(--danger-color);">履歴の削除（初期化）</h2>
-        <p>スプレッドシートのデータをすべて削除します。実行するにはパスワードを入力してください。</p>
-        <input type="password" id="delete-password" placeholder="パスワードを入力">
-        <button id="delete-btn" class="danger-btn" onclick="clearData()">データをすべて削除する</button>
+        <h2>データ管理・ダウンロード</h2>
+
+        <!-- ダウンロードセクション -->
+        <div class="section">
+
+            <p>
+                蓄積されたすべてのデータをExcelファイル（.xlsx）としてダウンロードします。
+            </p>
+
+            <button id="download-btn" onclick="downloadExcel()">
+                Excelファイルをダウンロード
+            </button>
+
+        </div>
+
+        <!-- 履歴削除セクション -->
+        <div class="section danger-zone">
+
+            <h2 style="border-bottom-color: var(--danger-color); color: var(--danger-color);">
+                履歴の削除（初期化）
+            </h2>
+
+            <p>
+                スプレッドシートのデータをすべて削除します。
+                実行するにはパスワードを入力してください。
+            </p>
+
+            <input
+                type="password"
+                id="delete-password"
+                placeholder="パスワードを入力"
+            >
+
+            <button
+                id="delete-btn"
+                class="danger-btn"
+                onclick="clearData()"
+            >
+                データをすべて削除する
+            </button>
+
+        </div>
+
     </div>
-</div>
 
 <script>
-    // ★ 設定済みのGASウェブアプリURL
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyRBFjBoiVPqB2g0FtgQtO8uPWe-zo9HR1fG7M8ECeZ-cn-fTwkl1e3LUdhXDREnZHDZQ/exec';
-    
-    // 設定するパスワード（後日変更可能）
+
+    // =========================================================
+    // GASウェブアプリURL
+    // =========================================================
+
+    const GAS_URL =
+        'https://script.google.com/macros/s/AKfycbyRBFjBoiVPqB2g0FtgQtO8uPWe-zo9HR1fG7M8ECeZ-cn-fTwkl1e3LUdhXDREnZHDZQ/exec';
+
+
+    // =========================================================
+    // 削除用パスワード
+    // =========================================================
+
     const CORRECT_PASSWORD = "1234";
 
-    // --- Excelダウンロード処理 ---
+
+    // =========================================================
+    // Excelのヘッダ
+    // =========================================================
+
+    const EXCEL_HEADERS = [
+        "タイムスタンプ",
+        "出展者",
+        "見本市コード",
+        "質問１",
+        "質問２",
+        "質問３",
+        "メモ（特記事項）"
+    ];
+
+
+    // =========================================================
+    // Excelダウンロード処理
+    // =========================================================
+
     async function downloadExcel() {
-        const overlay = document.getElementById('loading-overlay');
-        const loadingText = document.getElementById('loading-text');
-        const btn = document.getElementById('download-btn');
+
+        const overlay =
+            document.getElementById('loading-overlay');
+
+        const loadingText =
+            document.getElementById('loading-text');
+
+        const btn =
+            document.getElementById('download-btn');
+
 
         overlay.style.display = 'flex';
-        loadingText.innerText = "スプレッドシートからデータを取得中...";
+
+        loadingText.innerText =
+            "スプレッドシートからデータを取得中...";
+
         btn.disabled = true;
 
+
         try {
+
+            // -------------------------------------------------
+            // GASからデータ取得
+            // -------------------------------------------------
+
             const response = await fetch(GAS_URL);
+
             const result = await response.json();
 
+
             if (result.status === 'success') {
+
                 const data = result.data;
 
+
+                // -------------------------------------------------
+                // データがない場合
+                // -------------------------------------------------
+
                 if (!data || data.length === 0) {
-                    alert('ダウンロードするデータが存在しません。');
+
+                    alert(
+                        'ダウンロードするデータが存在しません。'
+                    );
+
                     return;
                 }
 
-                loadingText.innerText = "Excelファイルを生成中...";
 
-                const worksheet = XLSX.utils.aoa_to_sheet(data);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "DATA");
+                loadingText.innerText =
+                    "Excelファイルを生成中...";
+
+
+                // -------------------------------------------------
+                // Excel用データを作成
+                // -------------------------------------------------
+
+                const excelData = [];
+
+
+                // 1行目：指定したヘッダ
+                excelData.push(EXCEL_HEADERS);
+
+
+                // -------------------------------------------------
+                // GASから取得したデータ
+                //
+                // GAS側にヘッダ行が含まれている場合は、
+                // その1行目を飛ばしてデータだけを取得
+                // -------------------------------------------------
+
+                let startIndex = 0;
+
+
+                if (data.length > 0) {
+
+                    const firstRow = data[0];
+
+
+                    if (
+                        Array.isArray(firstRow) &&
+                        (
+                            String(firstRow[0]).includes("タイムスタンプ") ||
+                            String(firstRow[1]).includes("出展者") ||
+                            String(firstRow[2]).includes("見本市コード")
+                        )
+                    ) {
+
+                        startIndex = 1;
+                    }
+                }
+
+
+                // -------------------------------------------------
+                // データを追加
+                // -------------------------------------------------
+
+                for (
+                    let i = startIndex;
+                    i < data.length;
+                    i++
+                ) {
+
+                    const row = data[i];
+
+                    const newRow = [];
+
+
+                    // 7項目に統一
+                    for (let j = 0; j < 7; j++) {
+
+                        if (
+                            row &&
+                            row[j] !== undefined &&
+                            row[j] !== null
+                        ) {
+
+                            newRow.push(row[j]);
+
+                        } else {
+
+                            newRow.push("");
+                        }
+                    }
+
+
+                    excelData.push(newRow);
+                }
+
+
+                // -------------------------------------------------
+                // Excelワークシート作成
+                // -------------------------------------------------
+
+                const worksheet =
+                    XLSX.utils.aoa_to_sheet(excelData);
+
+
+                // -------------------------------------------------
+                // 列幅設定
+                // -------------------------------------------------
+
+                worksheet["!cols"] = [
+                    { wch: 22 }, // タイムスタンプ
+                    { wch: 25 }, // 出展者
+                    { wch: 18 }, // 見本市コード
+                    { wch: 30 }, // 質問１
+                    { wch: 30 }, // 質問２
+                    { wch: 30 }, // 質問３
+                    { wch: 40 }  // メモ
+                ];
+
+
+                // -------------------------------------------------
+                // ヘッダ行を太字にする
+                // -------------------------------------------------
+
+                EXCEL_HEADERS.forEach((header, index) => {
+
+                    const cellAddress =
+                        XLSX.utils.encode_cell({
+                            r: 0,
+                            c: index
+                        });
+
+                    if (worksheet[cellAddress]) {
+
+                        worksheet[cellAddress].s = {
+                            font: {
+                                bold: true
+                            }
+                        };
+                    }
+                });
+
+
+                // -------------------------------------------------
+                // Workbook作成
+                // -------------------------------------------------
+
+                const workbook =
+                    XLSX.utils.book_new();
+
+
+                XLSX.utils.book_append_sheet(
+                    workbook,
+                    worksheet,
+                    "DATA"
+                );
+
+
+                // -------------------------------------------------
+                // ファイル名作成
+                //
+                // 登録一覧_yyyymmddhhmm.xlsx
+                // -------------------------------------------------
 
                 const now = new Date();
-                const dateStr = now.toISOString().slice(0, 10);
-                const fileName = `survey_data_${dateStr}.xlsx`;
 
-                XLSX.writeFile(workbook, fileName);
 
-            } else {
-                alert('データ取得失敗: ' + result.message);
+                const yyyy =
+                    now.getFullYear().toString();
+
+
+                const mm =
+                    String(now.getMonth() + 1)
+                        .padStart(2, '0');
+
+
+                const dd =
+                    String(now.getDate())
+                        .padStart(2, '0');
+
+
+                const hh =
+                    String(now.getHours())
+                        .padStart(2, '0');
+
+
+                const min =
+                    String(now.getMinutes())
+                        .padStart(2, '0');
+
+
+                const fileName =
+                    `登録一覧_${yyyy}${mm}${dd}${hh}${min}.xlsx`;
+
+
+                // -------------------------------------------------
+                // Excelファイル保存
+                // -------------------------------------------------
+
+                XLSX.writeFile(
+                    workbook,
+                    fileName
+                );
+
             }
-        } catch (err) {
-            alert('通信エラーが発生しました: ' + err);
-        } finally {
+            else {
+
+                alert(
+                    'データ取得失敗: ' +
+                    result.message
+                );
+            }
+
+        }
+        catch (err) {
+
+            alert(
+                '通信エラーが発生しました: ' +
+                err
+            );
+
+        }
+        finally {
+
             overlay.style.display = 'none';
+
             btn.disabled = false;
         }
     }
 
-    // --- 履歴削除処理 ---
+
+    // =========================================================
+    // 履歴削除処理
+    // =========================================================
+
     async function clearData() {
-        const inputPass = document.getElementById('delete-password').value;
+
+        const inputPass =
+            document.getElementById(
+                'delete-password'
+            ).value;
+
+
+        // -------------------------------------------------
+        // パスワード確認
+        // -------------------------------------------------
 
         if (inputPass !== CORRECT_PASSWORD) {
-            alert('パスワードが間違っています。');
+
+            alert(
+                'パスワードが間違っています。'
+            );
+
             return;
         }
 
-        if (!confirm('本当にスプレッドシートのデータをすべて削除しますか？\nこの操作は元に戻せません。')) {
+
+        // -------------------------------------------------
+        // 最終確認
+        // -------------------------------------------------
+
+        if (
+            !confirm(
+                '本当にスプレッドシートのデータをすべて削除しますか？\n' +
+                'この操作は元に戻せません。'
+            )
+        ) {
+
             return;
         }
 
-        const overlay = document.getElementById('loading-overlay');
-        const loadingText = document.getElementById('loading-text');
-        const btn = document.getElementById('delete-btn');
+
+        const overlay =
+            document.getElementById(
+                'loading-overlay'
+            );
+
+        const loadingText =
+            document.getElementById(
+                'loading-text'
+            );
+
+        const btn =
+            document.getElementById(
+                'delete-btn'
+            );
+
 
         overlay.style.display = 'flex';
-        loadingText.innerText = "データを削除中...";
+
+        loadingText.innerText =
+            "データを削除中...";
+
         btn.disabled = true;
 
+
         try {
-            // パスワードを含めて削除用のPOSTリクエストを送信
-            const response = await fetch(GAS_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'clear', password: inputPass })
-            });
-            const result = await response.json();
+
+            // -------------------------------------------------
+            // 削除用POST
+            // -------------------------------------------------
+
+            const response =
+                await fetch(
+                    GAS_URL,
+                    {
+                        method: 'POST',
+
+                        body: JSON.stringify({
+                            action: 'clear',
+                            password: inputPass
+                        })
+                    }
+                );
+
+
+            const result =
+                await response.json();
+
 
             overlay.style.display = 'none';
+
+
+            // -------------------------------------------------
+            // 削除成功
+            // -------------------------------------------------
 
             if (result.status === 'success') {
-                alert('データをすべて削除しました。');
-                document.getElementById('delete-password').value = '';
-            } else {
-                alert('削除失敗: ' + result.message);
+
+                alert(
+                    'データをすべて削除しました。'
+                );
+
+
+                document.getElementById(
+                    'delete-password'
+                ).value = '';
+
             }
-        } catch (err) {
+            else {
+
+                alert(
+                    '削除失敗: ' +
+                    result.message
+                );
+            }
+
+        }
+        catch (err) {
+
             overlay.style.display = 'none';
-            alert('通信エラーが発生しました: ' + err);
-        } finally {
+
+            alert(
+                '通信エラーが発生しました: ' +
+                err
+            );
+
+        }
+        finally {
+
             btn.disabled = false;
         }
     }
+
 </script>
 
 </body>
