@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>所感登録（出展社QR最後まわし版）</title>
+    <title>所感登録（出展者QR最後まわし版）</title>
     <!-- QRコード読取用ライブラリ -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <!-- 文字認識(OCR)用ライブラリ (Tesseract.js) -->
@@ -209,20 +209,20 @@
         <div class="info-badge">顧客コード2: <span id="disp-b2-memo"></span></div>
         <p style="margin-bottom: 8px; font-size: 0.9rem; color: #475569;">特記事項やメモがあれば入力してください（空欄可）：</p>
         <textarea id="memo-input" placeholder="ここにメモを入力..."></textarea>
-        <button onclick="goToFinalScan()">出展社コード読取へ進む</button>
+        <button onclick="goToFinalScan()">出展者コード読取へ進む</button>
         <button class="secondary" onclick="goToScreen('screen-q3')">戻る</button>
     </div>
 
-    <!-- スキャン2（旧1）：最後の出展社QRコード読取 ＆ 登録 -->
+    <!-- スキャン2（旧1）：最後の出展者QRコード読取 ＆ 登録 -->
     <div id="screen-scan1" class="step-screen">
-        <h2>2. 出展社QRコード読取（最後）</h2>
+        <h2>2. 出展者QRコード読取（最後）</h2>
         <div class="info-badge">顧客コード: <span id="display-b2-final"></span></div>
-        <p style="font-size: 0.9rem; color: #475569;">カメラで出展社QRコードを読み取るか、コードを入力して登録を完了してください。</p>
+        <p style="font-size: 0.9rem; color: #475569;">カメラで出展者QRコードを読み取るか、コードを入力して登録を完了してください。</p>
         <div id="reader-1"></div>
         <button id="btn-start-scanner1" onclick="startScanner1()">📷 QRカメラを起動する</button>
 
         <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
-            <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">出展社コード (手動入力・確認):</label>
+            <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">出展者コード (手動入力・確認):</label>
             <input type="text" id="manual-code1" placeholder="例: EX12345" value="">
             <button onclick="confirmAndSubmit1()" style="background-color: #059669;">このコードで最終登録する</button>
         </div>
@@ -453,7 +453,7 @@
         goToScreen('screen-scan1');
     }
 
-    // --- 最後のステップ：出展社QRコードカメラ起動 ---
+    // --- 最後のステップ：出展者QRコードカメラ起動 ---
     function startScanner1() {
         const btn = document.getElementById('btn-start-scanner1');
         btn.style.display = 'none';
@@ -483,11 +483,11 @@
         });
     }
 
-    // 出展社コードを手動入力して最終登録するボタン
+    // 出展者コードを手動入力して最終登録するボタン
     function confirmAndSubmit1() {
         const val = document.getElementById('manual-code1').value.trim();
         if (!val) {
-            alert('出展社コードが入力されていません。');
+            alert('出展者コードが入力されていません。');
             return;
         }
         appData.barcode1 = val;
@@ -498,7 +498,7 @@
     // --- データ送信処理 ---
     async function submitData() {
         if (!appData.barcode1 || !appData.barcode2) {
-            alert('顧客コードまたは出展社コードが不足しています。');
+            alert('顧客コードまたは出展者コードが不足しています。');
             return;
         }
         const overlay = document.getElementById('loading-overlay');
