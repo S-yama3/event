@@ -100,6 +100,8 @@
             font-size: 1.1rem;
             box-sizing: border-box;
             margin-bottom: 12px;
+            background-color: #ffffff; /* グレーアウト対策 */
+            color: #1e293b;
         }
         textarea { height: 100px; resize: vertical; }
         .preview-box {
@@ -164,19 +166,19 @@
     <div id="screen-scan2" class="step-screen">
         <h2>2. 顧客コード読取 (上部文字列)</h2>
         <div class="info-badge">1つ目(出展者): <span id="display-b1"></span></div>
-        <p style="font-size: 0.9rem; color: #475569;">A4用紙一番上の「AS3110003」をカメラで撮影して自動読み取りするか、直接入力・修正できます。</p>
+        <p style="font-size: 0.9rem; color: #475569;">A4用紙一番上の「AS3110003」をカメラで撮影するか、直接入力してください。</p>
         
-        <!-- スマホのカメラ・写真を選択してテキスト/画像を読み込むインプット -->
+        <!-- カメラ撮影ボタン -->
         <div style="background: #f8fafc; border: 2px dashed var(--border-color); padding: 16px; border-radius: 8px; text-align: center; margin-bottom: 12px;">
             <label style="cursor: pointer; display: block;">
-                <span style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">📷 カメラで文字を撮影 / 読み取り</span>
+                <span style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">📷 文字を撮影する</span>
                 <input type="file" accept="image/*" capture="environment" id="ocr-camera-input" style="display: none;" onchange="handleImageOcr(event)">
             </label>
-            <p style="font-size: 0.8rem; color: #64748b; margin: 4px 0 0 0;">※タップして書類の文字を撮影してください</p>
+            <p style="font-size: 0.8rem; color: #64748b; margin: 4px 0 0 0;">※撮影すると入力欄に反映されます</p>
         </div>
 
-        <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">読み取り・修正用コード:</label>
-        <input type="text" id="manual-code2" placeholder="例: AS3110003">
+        <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">顧客コード (編集可能):</label>
+        <input type="text" id="manual-code2" placeholder="例: AS3110003" value="">
 
         <button onclick="confirmCode2()">このコードで進む</button>
         <button class="secondary" onclick="resetBarcode1()">最初からやり直す</button>
@@ -316,12 +318,12 @@
         });
     }
 
-    // --- 2回目：OCR（テキスト・画像認識）処理 ---
+    // --- 2回目：撮影後のテキストセット処理 ---
     async function handleImageOcr(event) {
         const file = event.target.files[0];
         if (!file) return;
 
-        // ブラウザの BarcodeDetector (TEXT形式) が使えるかチェック
+        // ブラウザのBarcodeDetectorが画像内のコードを認識できる場合
         if ('BarcodeDetector' in window) {
             try {
                 const barcodeDetector = new BarcodeDetector({ formats: ['code_128', 'code_39', 'qr_code', 'data_matrix'] });
@@ -329,7 +331,6 @@
                 const results = await barcodeDetector.detect(imageBitmap);
                 if (results.length > 0) {
                     document.getElementById('manual-code2').value = results[0].rawValue;
-                    alert("コードを検出しました: " + results[0].rawValue);
                     return;
                 }
             } catch (e) {
@@ -337,18 +338,16 @@
             }
         }
 
-        // 簡易フォールバック：画像が選択されたら簡易的にファイル名をセットするか、
-        // あるいはOCR用APIがない環境でもスマホ自体のテキスト選択（iOSのテキスト認識表示やAndroidのレンズ機能）でコピペできるようにする案内
-        alert("写真を撮影しました。「AS3110003」の文字を確認し、下の入力欄に反映または調整してください。");
-        
-        // 仮でファイルが選ばれたことをわかりやすくする
-        document.getElementById('manual-code2').focus();
+        // 写真撮影が完了したら、入力欄にフォーカスを当ててスムーズに入力できるようにする
+        const inputField = document.getElementById('manual-code2');
+        inputField.focus();
+        // もし直感的に分かりやすいように仮の文字が必要であれば、ここでセットすることも可能です
     }
 
     function confirmCode2() {
         const val = document.getElementById('manual-code2').value.trim();
         if (!val) {
-            alert('コードが入力されていません。');
+            alert('コードが入力されていません。直接入力するか撮影してください。');
             return;
         }
         appData.barcode2 = val;
@@ -360,6 +359,7 @@
     function resetBarcode1() {
         appData.barcode1 = '';
         appData.barcode2 = '';
+        document.getElementById('manual-code2').value = '';
         saveState();
         goToScreen('screen-scan1');
     }
