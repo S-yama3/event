@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>所感登録（安定版）</title>
+    <title>所感登録（ボタン起動・ライブOCR対応版）</title>
     <!-- QRコード読取用ライブラリ -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <!-- 文字認識(OCR)用ライブラリ (Tesseract.js) -->
@@ -56,12 +56,13 @@
             margin-bottom: 16px;
             border: 1px solid #bfdbfe;
         }
-        #reader-1 {
+        #reader-1, #reader-2 {
             width: 100% !important;
             border-radius: 8px;
             overflow: hidden;
             border: 1px solid var(--border-color);
-            margin-bottom: 16px;
+            margin-bottom: 12px;
+            background: #000;
         }
         button {
             width: 100%;
@@ -159,26 +160,23 @@
     <!-- スキャン1：QRコード -->
     <div id="screen-scan1" class="step-screen active">
         <h2>1. 出展者QRコード読取</h2>
-        <p style="font-size: 0.9rem; color: #475569;">カメラでQRコードを読み取ってください。</p>
+        <p style="font-size: 0.9rem; color: #475569;">ボタンを押してカメラを起動し、QRコードを読み取ってください。</p>
         <div id="reader-1"></div>
-        <button id="btn-start-scanner1" onclick="startScanner1()">カメラ起動してスキャン</button>
+        <button id="btn-start-scanner1" onclick="startScanner1()">📷 QRカメラを起動する</button>
     </div>
 
-    <!-- スキャン2：文字撮影＆OCR（標準カメラファイル選択式で確実に動作） -->
+    <!-- スキャン2：ブラウザ内ライブカメラ＋OCR枠 -->
     <div id="screen-scan2" class="step-screen">
-        <h2>2. 顧客コード読取 (文字認識)</h2>
+        <h2>2. 顧客コード読取</h2>
         <div class="info-badge">1つ目(出展者): <span id="display-b1"></span></div>
-        <p style="font-size: 0.9rem; color: #475569;">用紙上部の「英字2文字＋数字7桁」を撮影してください。</p>
+        <p style="font-size: 0.9rem; color: #475569;">ボタンを押してカメラを起動し、枠内に「英字2文字＋数字7桁」を合わせてください。</p>
         
-        <div style="background: #f8fafc; border: 2px dashed var(--primary-color); padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 16px;">
-            <label style="cursor: pointer; display: block;">
-                <span style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">📷 コード部分を撮影する</span>
-                <input type="file" accept="image/*" capture="environment" id="ocr-camera-input" style="display: none;" onchange="handleImageOcr(event)">
-            </label>
-            <p style="font-size: 0.8rem; color: #64748b; margin: 6px 0 0 0;">※撮影後、自動で文字を抽出します</p>
-        </div>
+        <div id="reader-2"></div>
+        
+        <button id="btn-start-scanner2" onclick="startScanner2()" style="background-color: #059669;">📷 OCRカメラを起動する</button>
+        <button id="btn-capture-ocr" onclick="captureAndOcr()" style="display: none; background-color: #d97706;">🔍 この枠内の文字を読み取る</button>
 
-        <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">抽出・入力コード (修正可能):</label>
+        <label style="font-size: 0.85rem; font-weight: bold; color: #475569; margin-top: 16px; display: block;">抽出・入力コード (修正可能):</label>
         <input type="text" id="manual-code2" placeholder="例: AS3110003" value="">
 
         <button onclick="confirmCode2()">このコードで進む</button>
@@ -248,6 +246,7 @@
     let appData = { barcode1: '', barcode2: '', q1: '', q2: '', q3: '', memo: '' };
     let currentScreen = 'screen-scan1';
     let html5QrCode1 = null;
+    let html5QrCode2 = null;
 
     window.addEventListener('DOMContentLoaded', () => {
         setupQuestions();
@@ -271,20 +270,27 @@
         sessionStorage.setItem('appData', JSON.stringify(appData));
     }
 
-    function goToScreen(screenId) {
-        // 画面切り替え時にQRリーダーが動いていれば確実に停止する
+    // すべてのカメラを安全に停止
+    function stopAllCameras() {
         if (html5QrCode1 && html5QrCode1.isScanning) {
             html5QrCode1.stop().catch(e => {});
         }
+        if (html5QrCode2 && html5QrCode2.isScanning) {
+            html5QrCode2.stop().catch(e => {});
+            document.getElementById('btn-start-scanner2').style.display = 'block';
+            document.getElementById('btn-capture-ocr').style.display = 'none';
+        }
+    }
+
+    function goToScreen(screenId) {
+        stopAllCameras();
         currentScreen = screenId;
         saveState();
         document.querySelectorAll('.step-screen').forEach(el => el.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
-
-        // 画面1に戻ったときは自動でスキャナーを再初期化しない（ボタンで手動起動）
     }
 
-    // --- 1回目：QRコード読取設定 ---
+    // --- 1回目：QRコードカメラ起動 ---
     function startScanner1() {
         const btn = document.getElementById('btn-start-scanner1');
         btn.style.display = 'none';
@@ -297,18 +303,11 @@
             { facingMode: "environment" },
             { fps: 10, qrbox: { width: 250, height: 250 }, formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] },
             (decodedText) => {
-                // 読み取り成功時の処理
                 appData.barcode1 = decodedText;
-                
-                // 安全にスキャナーを停止してから画面遷移
-                html5QrCode1.stop().then(() => {
-                    document.getElementById('display-b1').innerText = decodedText;
-                    btn.style.display = 'block';
-                    goToScreen('screen-scan2');
-                }).catch(err => {
-                    btn.style.display = 'block';
-                    goToScreen('screen-scan2');
-                });
+                stopAllCameras();
+                document.getElementById('display-b1').innerText = decodedText;
+                btn.style.display = 'block';
+                goToScreen('screen-scan2');
             },
             (err) => {}
         ).catch(err => {
@@ -317,26 +316,58 @@
         });
     }
 
-    // --- 2回目：撮影＆Tesseract.jsによる高精度OCR処理 ---
-    async function handleImageOcr(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+    // --- 2回目：OCR用ライブカメラ起動（枠表示） ---
+    function startScanner2() {
+        const btnStart = document.getElementById('btn-start-scanner2');
+        const btnCapture = document.getElementById('btn-capture-ocr');
+        btnStart.style.display = 'none';
+
+        if (!html5QrCode2) {
+            html5QrCode2 = new Html5Qrcode("reader-2");
+        }
+
+        html5QrCode2.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 260, height: 90 } }, // 英字+数字の横長文字を狙う枠
+            (decodedText) => {},
+            (err) => {}
+        ).then(() => {
+            // カメラ起動成功時に「読み取りボタン」を表示する
+            btnCapture.style.display = 'block';
+        }).catch(err => {
+            alert("カメラ起動エラー: " + err);
+            btnStart.style.display = 'block';
+        });
+    }
+
+    // --- 2回目：枠内を切り取ってTesseract.jsで文字認識 ---
+    async function captureAndOcr() {
+        const videoElem = document.querySelector('#reader-2 video');
+        if (!videoElem) {
+            alert('カメラが起動していません。');
+            return;
+        }
 
         const overlay = document.getElementById('loading-overlay');
         document.getElementById('loading-text').innerText = '文字を解析中...';
         overlay.style.display = 'flex';
 
         try {
-            // Tesseract.jsで画像から文字を読み取る
+            const canvas = document.createElement('canvas');
+            canvas.width = videoElem.videoWidth;
+            canvas.height = videoElem.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
+
             const { data: { text } } = await Tesseract.recognize(
-                file,
+                canvas,
                 'eng',
                 { logger: m => {} }
             );
 
             overlay.style.display = 'none';
 
-            // 「英字2文字 ＋ 数字7桁」のパターンを抽出
+            // 「英字2文字 ＋ 数字7桁」のパターン抽出
             const cleaned = text.replace(/\s+/g, '');
             const match = cleaned.match(/[A-Z]{2}[0-9]{7}/);
 
@@ -345,7 +376,7 @@
                 document.getElementById('manual-code2').value = foundCode;
                 alert("【自動検出成功】\nコード「" + foundCode + "」を読み取りました！");
             } else {
-                alert("指定された形式（英字2文字＋数字7桁）が見つかりませんでした。手動で修正・入力してください。\n\n[検出テキスト: " + cleaned.substring(0, 30) + "]");
+                alert("指定された形式（英字2文字＋数字7桁）が見つかりませんでした。枠内に文字を合わせて再度押すか、手動で修正してください。\n\n[検出テキスト: " + cleaned.substring(0, 30) + "]");
             }
             document.getElementById('manual-code2').focus();
 
