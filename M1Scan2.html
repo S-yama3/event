@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>所感登録（1回目QR修正版）</title>
+    <title>所感登録（1回目手動入力・2回目カメラ再利用対応版）</title>
     <!-- QRコード読取用ライブラリ -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <!-- 文字認識(OCR)用ライブラリ (Tesseract.js) -->
@@ -157,12 +157,18 @@
     </div>
 
 <div class="container">
-    <!-- スキャン1：QRコード -->
+    <!-- スキャン1：QRコード ＆ 手動入力 -->
     <div id="screen-scan1" class="step-screen active">
         <h2>1. 出展者QRコード読取</h2>
-        <p style="font-size: 0.9rem; color: #475569;">ボタンを押してカメラを起動し、QRコードを読み取ってください。</p>
+        <p style="font-size: 0.9rem; color: #475569;">カメラでQRコードを読み取るか、直接コードを入力してください。</p>
         <div id="reader-1"></div>
         <button id="btn-start-scanner1" onclick="startScanner1()">📷 QRカメラを起動する</button>
+
+        <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+            <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">出展者コード (手動入力・修正):</label>
+            <input type="text" id="manual-code1" placeholder="例: EX12345" value="">
+            <button onclick="confirmCode1()">このコードで進む</button>
+        </div>
     </div>
 
     <!-- スキャン2：ブラウザ内ライブカメラ＋OCR枠 -->
@@ -256,8 +262,9 @@
         if (savedScreen && savedData) {
             appData = JSON.parse(savedData);
             currentScreen = savedScreen;
-            document.getElementById('display-b1').innerText = appData.barcode1 || '';
+            document.getElementById('manual-code1').value = appData.barcode1 || '';
             document.getElementById('manual-code2').value = appData.barcode2 || '';
+            document.getElementById('display-b1').innerText = appData.barcode1 || '';
         } else {
             currentScreen = 'screen-scan1';
             saveState();
@@ -283,10 +290,10 @@
             try {
                 if (html5QrCode2.isScanning) {
                     html5QrCode2.stop().catch(e => {});
-                    document.getElementById('btn-start-scanner2').style.display = 'block';
-                    document.getElementById('btn-capture-ocr').style.display = 'none';
                 }
             } catch(e) {}
+            document.getElementById('btn-start-scanner2').style.display = 'block';
+            document.getElementById('btn-capture-ocr').style.display = 'none';
         }
     }
 
@@ -312,9 +319,9 @@
             { fps: 10, qrbox: { width: 250, height: 250 }, formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] },
             (decodedText) => {
                 appData.barcode1 = decodedText;
+                document.getElementById('manual-code1').value = decodedText;
                 document.getElementById('display-b1').innerText = decodedText;
                 
-                // 停止処理の完了を待たずに強制停止＆画面遷移してフリーズを防ぐ
                 try {
                     html5QrCode1.stop().catch(e => {});
                 } catch(e) {}
@@ -327,6 +334,19 @@
             alert("カメラ起動エラー: " + err);
             btn.style.display = 'block';
         });
+    }
+
+    // 1回目の手動入力確定
+    function confirmCode1() {
+        const val = document.getElementById('manual-code1').value.trim();
+        if (!val) {
+            alert('出展者コードが入力されていません。');
+            return;
+        }
+        appData.barcode1 = val;
+        document.getElementById('display-b1').innerText = val;
+        saveState();
+        goToScreen('screen-scan2');
     }
 
     // --- 2回目：OCR用ライブカメラ起動（枠表示） ---
@@ -356,7 +376,9 @@
     async function captureAndOcr() {
         const videoElem = document.querySelector('#reader-2 video');
         if (!videoElem) {
-            alert('カメラが起動していません。');
+            alert('カメラが起動していません。「OCRカメラを起動する」を再度押してください。');
+            document.getElementById('btn-start-scanner2').style.display = 'block';
+            document.getElementById('btn-capture-ocr').style.display = 'none';
             return;
         }
 
@@ -386,14 +408,26 @@
                 const foundCode = match[0];
                 document.getElementById('manual-code2').value = foundCode;
                 alert("【自動検出成功】\nコード「" + foundCode + "」を読み取りました！");
+                document.getElementById('manual-code2').focus();
             } else {
-                alert("指定された形式（英字2文字＋数字7桁）が見つかりませんでした。枠内に文字を合わせて再度押すか、手動で修正してください。\n\n[検出テキスト: " + cleaned.substring(0, 30) + "]");
+                // 読取失敗時：カメラを停止して、再起動ボタンを再表示し、もう一度撮影できるようにする
+                if (html5QrCode2 && html5QrCode2.isScanning) {
+                    await html5QrCode2.stop().catch(e => {});
+                }
+                document.getElementById('btn-start-scanner2').style.display = 'block';
+                document.getElementById('btn-capture-ocr').style.display = 'none';
+
+                alert("指定された形式（英字2文字＋数字7桁）が見つかりませんでした。\n「OCRカメラを起動する」を再度押して、枠内に文字を合わせてもう一度撮影してください。\n\n[検出テキスト: " + cleaned.substring(0, 30) + "]");
             }
-            document.getElementById('manual-code2').focus();
 
         } catch (err) {
             overlay.style.display = 'none';
-            alert('文字解析エラー: ' + err);
+            if (html5QrCode2 && html5QrCode2.isScanning) {
+                await html5QrCode2.stop().catch(e => {});
+            }
+            document.getElementById('btn-start-scanner2').style.display = 'block';
+            document.getElementById('btn-capture-ocr').style.display = 'none';
+            alert('文字解析エラーが発生しました。カメラを再起動してもう一度お試しください。');
         }
     }
 
@@ -412,6 +446,7 @@
     function resetBarcode1() {
         appData.barcode1 = '';
         appData.barcode2 = '';
+        document.getElementById('manual-code1').value = '';
         document.getElementById('manual-code2').value = '';
         saveState();
         goToScreen('screen-scan1');
