@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>所感登録（バーコード・写真読取対応版）</title>
+    <title>所感登録（文字切り出し撮影対応版）</title>
     <!-- ライブカメラ読取用ライブラリ (html5-qrcode) -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
@@ -54,12 +54,12 @@
             margin-bottom: 16px;
             border: 1px solid #bfdbfe;
         }
-        #reader-1, #reader-2 {
+        #reader-1 {
             width: 100% !important;
             border-radius: 8px;
             overflow: hidden;
             border: 1px solid var(--border-color);
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
         button {
             width: 100%;
@@ -71,7 +71,7 @@
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 12px;
             transition: background 0.2s;
         }
         button:active { background-color: var(--primary-hover); }
@@ -162,25 +162,23 @@
         <button id="btn-start-scanner1" onclick="startScanner1()">カメラ起動してスキャン</button>
     </div>
 
-    <!-- スキャン2：バーコード読取 (ライブ＆写真撮影対応) -->
+    <!-- スキャン2：上部文字列の撮影＆文字認識 (OCR) -->
     <div id="screen-scan2" class="step-screen">
-        <h2>2. 顧客コード読取 (バーコード)</h2>
+        <h2>2. 顧客コード読取 (上部文字)</h2>
         <div class="info-badge">1つ目(出展者): <span id="display-b1"></span></div>
-        <p style="font-size: 0.9rem; color: #475569;">ライブ読取が難しい場合は、下の「写真を撮影して読取」をお使いください。</p>
+        <p style="font-size: 0.9rem; color: #475569;">用紙上部の「AS3110003」などの文字列を枠内に収めて撮影してください。</p>
         
-        <!-- バーコードリーダー用ライブカメラ映像エリア -->
-        <div id="reader-2"></div>
-        <button id="btn-start-scanner2" onclick="startScanner2()">ライブカメラ起動</button>
-
-        <!-- ★追加：写真撮影してファイルからバーコードを読み取る機能 -->
-        <div style="background: #f8fafc; border: 2px dashed var(--border-color); padding: 12px; border-radius: 8px; text-align: center; margin-top: 12px;">
+        <!-- 写真撮影ボタン（スマホのカメラが起動し、枠を意識して撮影できる） -->
+        <div style="background: #f8fafc; border: 2px dashed var(--primary-color); padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 16px;">
             <label style="cursor: pointer; display: block;">
-                <span style="font-size: 1rem; font-weight: bold; color: var(--primary-color);">📸 写真を撮影してバーコード読取</span>
-                <input type="file" accept="image/*" capture="environment" id="barcode-file-input" style="display: none;" onchange="handleBarcodeFile(event)">
+                <span style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">📷 文字を狙って撮影する</span>
+                <input type="file" accept="image/*" capture="environment" id="ocr-camera-input" style="display: none;" onchange="handleImageOcr(event)">
             </label>
+            <p style="font-size: 0.8rem; color: #64748b; margin: 6px 0 0 0;">※撮影後、自動で文字を抽出します</p>
         </div>
 
-        <label style="font-size: 0.85rem; font-weight: bold; color: #475569; margin-top: 12px; display: block;">抽出・入力コード (修正可能):</label>
+        <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">抽出・入力コード (修正可能):</label>
+        <!-- ご要望の参考例としてのプレースホルダー -->
         <input type="text" id="manual-code2" placeholder="例: xx1234567" value="">
 
         <button onclick="confirmCode2()">このコードで進む</button>
@@ -259,7 +257,6 @@
     let appData = { barcode1: '', barcode2: '', q1: '', q2: '', q3: '', memo: '' };
     let currentScreen = 'screen-scan1';
     let html5QrCode1 = null;
-    let html5QrCode2 = null;
 
     window.addEventListener('DOMContentLoaded', () => {
         setupQuestions();
@@ -289,11 +286,6 @@
         if (html5QrCode1 && html5QrCode1.isScanning) {
             html5QrCode1.stop().catch(e => {});
         }
-        if (html5QrCode2 && html5QrCode2.isScanning) {
-            html5QrCode2.stop().catch(e => {});
-            document.getElementById('btn-start-scanner2').style.display = 'block';
-        }
-
         currentScreen = screenId;
         saveState();
         document.querySelectorAll('.step-screen').forEach(el => el.classList.remove('active'));
@@ -330,58 +322,41 @@
         });
     }
 
-    // --- 2回目：横長バーコード（Code 39 / 128）読取設定 ---
-    const barcodeConfig = {
-        fps: 10,
-        qrbox: { width: 300, height: 100 },
-        formatsToSupport: [
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39
-        ]
-    };
-
-    function startScanner2() {
-        const btn = document.getElementById('btn-start-scanner2');
-        btn.style.display = 'none';
-
-        if (!html5QrCode2) html5QrCode2 = new Html5Qrcode("reader-2");
-        html5QrCode2.start(
-            { facingMode: "environment" },
-            barcodeConfig,
-            (decodedText) => {
-                html5QrCode2.stop().then(() => {
-                    document.getElementById('manual-code2').value = decodedText;
-                    btn.style.display = 'block';
-                    alert("【バーコード読取成功】\nコード「" + decodedText + "」をセットしました！");
-                }).catch(err => { btn.style.display = 'block'; });
-            },
-            (err) => {}
-        ).catch(err => {
-            alert("カメラ起動エラー: " + err);
-            btn.style.display = 'block';
-        });
-    }
-
-    // ★追加：撮影した写真ファイルからバーコードを解析する処理
-    async function handleBarcodeFile(event) {
+    // --- 2回目：上部文字列（AS3110003など）の文字認識（OCR）処理 ---
+    async function handleImageOcr(event) {
         const file = event.target.files[0];
         if (!file) return;
 
-        // ライブスキャンが動いていた場合は止める
-        if (html5QrCode2 && html5QrCode2.isScanning) {
-            await html5QrCode2.stop().catch(e => {});
-            document.getElementById('btn-start-scanner2').style.display = 'block';
+        let extractedCode = "";
+
+        if ('TextDetector' in window) {
+            try {
+                const textDetector = new TextDetector();
+                const imageBitmap = await createImageBitmap(file);
+                const results = await textDetector.detect(imageBitmap);
+
+                for (let res of results) {
+                    const cleaned = res.rawValue.replace(/\s+/g, '');
+                    // 英字2文字＋数字7桁のパターンを抽出 (例: AS3110003 など)
+                    const match = cleaned.match(/[A-Z]{2}[0-9]{7}/);
+                    if (match) {
+                        extractedCode = match[0];
+                        break;
+                    }
+                }
+            } catch (e) {
+                console.log("TextDetector error:", e);
+            }
         }
 
-        // 一時的なインスタンスを作成して画像ファイルをスキャン
-        const html5QrCodeFile = new Html5Qrcode("reader-2");
-        try {
-            const decodedText = await html5QrCodeFile.scanFile(file, true);
-            document.getElementById('manual-code2').value = decodedText;
-            alert("【写真読取成功】\nコード「" + decodedText + "」をセットしました！");
-        } catch (err) {
-            alert("写真からバーコードを検出できませんでした。\nバーコードの下にある数字（例: 02-3110003-001 など）を手動で入力して進んでください。");
+        if (extractedCode) {
+            document.getElementById('manual-code2').value = extractedCode;
+            alert("【自動抽出成功】\nコード「" + extractedCode + "」をセットしました！");
+        } else {
+            alert("文字を自動検出しませんでした。\nお手数ですが、枠内の文字列を確認して直接修正・入力してください。");
         }
+        
+        document.getElementById('manual-code2').focus();
     }
 
     function confirmCode2() {
