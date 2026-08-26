@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>所感登録（1回目手動入力・2回目カメラ再利用対応版）</title>
+    <title>所感登録（OCR再撮影対応版）</title>
     <!-- QRコード読取用ライブラリ -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <!-- 文字認識(OCR)用ライブラリ (Tesseract.js) -->
@@ -80,6 +80,8 @@
         button:active { background-color: var(--primary-hover); }
         button.secondary { background-color: #64748b; }
         button.secondary:active { background-color: #475569; }
+        button.warning { background-color: #d97706; }
+        button.warning:active { background-color: #b45309; }
         .option-btn {
             background-color: #ffffff;
             color: var(--text-color);
@@ -180,12 +182,14 @@
         <div id="reader-2"></div>
         
         <button id="btn-start-scanner2" onclick="startScanner2()" style="background-color: #059669;">📷 OCRカメラを起動する</button>
-        <button id="btn-capture-ocr" onclick="captureAndOcr()" style="display: none; background-color: #d97706;">🔍 この枠内の文字を読み取る</button>
+        <button id="btn-capture-ocr" onclick="captureAndOcr()" style="display: none;" class="warning">🔍 この枠内の文字を読み取る</button>
 
         <label style="font-size: 0.85rem; font-weight: bold; color: #475569; margin-top: 16px; display: block;">抽出・入力コード (修正可能):</label>
         <input type="text" id="manual-code2" placeholder="例: AS3110003" value="">
 
         <button onclick="confirmCode2()">このコードで進む</button>
+        <!-- 認識後でもいつでもカメラを再起動できるように配置 -->
+        <button class="warning" onclick="restartScanner2ForRetry()">🔄 もう一度カメラで撮り直す</button>
         <button class="secondary" onclick="resetBarcode1()">最初からやり直す</button>
     </div>
 
@@ -372,11 +376,23 @@
         });
     }
 
+    // 認識後や失敗時に手動でカメラを再起動して再撮影するための関数
+    async function restartScanner2ForRetry() {
+        if (html5QrCode2 && html5QrCode2.isScanning) {
+            try {
+                await html5QrCode2.stop().catch(e => {});
+            } catch(e) {}
+        }
+        document.getElementById('btn-start-scanner2').style.display = 'block';
+        document.getElementById('btn-capture-ocr').style.display = 'none';
+        startScanner2();
+    }
+
     // --- 2回目：枠内を切り取ってTesseract.jsで文字認識 ---
     async function captureAndOcr() {
         const videoElem = document.querySelector('#reader-2 video');
         if (!videoElem) {
-            alert('カメラが起動していません。「OCRカメラを起動する」を再度押してください。');
+            alert('カメラが起動していません。「OCRカメラを起動する」を押してください。');
             document.getElementById('btn-start-scanner2').style.display = 'block';
             document.getElementById('btn-capture-ocr').style.display = 'none';
             return;
@@ -407,17 +423,24 @@
             if (match) {
                 const foundCode = match[0];
                 document.getElementById('manual-code2').value = foundCode;
-                alert("【自動検出成功】\nコード「" + foundCode + "」を読み取りました！");
-                document.getElementById('manual-code2').focus();
-            } else {
-                // 読取失敗時：カメラを停止して、再起動ボタンを再表示し、もう一度撮影できるようにする
+                
+                // 成功時もカメラを安全に停止させておく（再撮影しやすくする）
                 if (html5QrCode2 && html5QrCode2.isScanning) {
                     await html5QrCode2.stop().catch(e => {});
                 }
                 document.getElementById('btn-start-scanner2').style.display = 'block';
                 document.getElementById('btn-capture-ocr').style.display = 'none';
 
-                alert("指定された形式（英字2文字＋数字7桁）が見つかりませんでした。\n「OCRカメラを起動する」を再度押して、枠内に文字を合わせてもう一度撮影してください。\n\n[検出テキスト: " + cleaned.substring(0, 30) + "]");
+                alert("【自動検出成功】\nコード「" + foundCode + "」を読み取りました！\nもし違う場合は「もう一度カメラで撮り直す」を押してください。");
+                document.getElementById('manual-code2').focus();
+            } else {
+                if (html5QrCode2 && html5QrCode2.isScanning) {
+                    await html5QrCode2.stop().catch(e => {});
+                }
+                document.getElementById('btn-start-scanner2').style.display = 'block';
+                document.getElementById('btn-capture-ocr').style.display = 'none';
+
+                alert("指定された形式（英字2文字＋数字7桁）が見つかりませんでした。\n「OCRカメラを起動する」を再度押して、もう一度撮影してください。\n\n[検出テキスト: " + cleaned.substring(0, 30) + "]");
             }
 
         } catch (err) {
