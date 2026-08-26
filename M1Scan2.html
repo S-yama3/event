@@ -177,7 +177,7 @@
     <div id="screen-scan2" class="step-screen">
         <h2>2. 顧客コード読取</h2>
         <div class="info-badge">1つ目(出展社): <span id="display-b1"></span></div>
-        <p style="font-size: 0.9rem; color: #475569;">ボタンを押してカメラを起動し、枠内に見本市システムを合わせてください。</p>
+        <p style="font-size: 0.9rem; color: #475569;">ボタンを押してカメラを起動し、枠内に見本市コードを合わせてください。</p>
         
         <div id="reader-2"></div>
         
@@ -185,7 +185,7 @@
         <button id="btn-capture-ocr" onclick="captureAndOcr()" style="display: none;" class="warning">🔍 この枠内の文字を読み取る</button>
 
         <label style="font-size: 0.85rem; font-weight: bold; color: #475569; margin-top: 16px; display: block;">抽出・入力コード (修正可能):</label>
-        <input type="text" id="manual-code2" placeholder="例: AS3110003" value="">
+        <input type="text" id="manual-code2" placeholder="見本市コード：XX9999999" value="">
 
         <button onclick="confirmCode2()">このコードで進む</button>
         <!-- 認識後でもいつでもカメラを再起動できるように配置 -->
