@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>所感登録（ボタン起動・ライブOCR対応版）</title>
+    <title>所感登録（1回目QR修正版）</title>
     <!-- QRコード読取用ライブラリ -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <!-- 文字認識(OCR)用ライブラリ (Tesseract.js) -->
@@ -272,13 +272,21 @@
 
     // すべてのカメラを安全に停止
     function stopAllCameras() {
-        if (html5QrCode1 && html5QrCode1.isScanning) {
-            html5QrCode1.stop().catch(e => {});
+        if (html5QrCode1) {
+            try {
+                if (html5QrCode1.isScanning) {
+                    html5QrCode1.stop().catch(e => {});
+                }
+            } catch(e) {}
         }
-        if (html5QrCode2 && html5QrCode2.isScanning) {
-            html5QrCode2.stop().catch(e => {});
-            document.getElementById('btn-start-scanner2').style.display = 'block';
-            document.getElementById('btn-capture-ocr').style.display = 'none';
+        if (html5QrCode2) {
+            try {
+                if (html5QrCode2.isScanning) {
+                    html5QrCode2.stop().catch(e => {});
+                    document.getElementById('btn-start-scanner2').style.display = 'block';
+                    document.getElementById('btn-capture-ocr').style.display = 'none';
+                }
+            } catch(e) {}
         }
     }
 
@@ -304,8 +312,13 @@
             { fps: 10, qrbox: { width: 250, height: 250 }, formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] },
             (decodedText) => {
                 appData.barcode1 = decodedText;
-                stopAllCameras();
                 document.getElementById('display-b1').innerText = decodedText;
+                
+                // 停止処理の完了を待たずに強制停止＆画面遷移してフリーズを防ぐ
+                try {
+                    html5QrCode1.stop().catch(e => {});
+                } catch(e) {}
+
                 btn.style.display = 'block';
                 goToScreen('screen-scan2');
             },
@@ -328,11 +341,10 @@
 
         html5QrCode2.start(
             { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 260, height: 90 } }, // 英字+数字の横長文字を狙う枠
+            { fps: 10, qrbox: { width: 260, height: 90 } }, 
             (decodedText) => {},
             (err) => {}
         ).then(() => {
-            // カメラ起動成功時に「読み取りボタン」を表示する
             btnCapture.style.display = 'block';
         }).catch(err => {
             alert("カメラ起動エラー: " + err);
@@ -367,7 +379,6 @@
 
             overlay.style.display = 'none';
 
-            // 「英字2文字 ＋ 数字7桁」のパターン抽出
             const cleaned = text.replace(/\s+/g, '');
             const match = cleaned.match(/[A-Z]{2}[0-9]{7}/);
 
