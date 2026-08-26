@@ -100,7 +100,7 @@
             font-size: 1.1rem;
             box-sizing: border-box;
             margin-bottom: 12px;
-            background-color: #ffffff; /* グレーアウト対策 */
+            background-color: #ffffff;
             color: #1e293b;
         }
         textarea { height: 100px; resize: vertical; }
@@ -166,7 +166,7 @@
     <div id="screen-scan2" class="step-screen">
         <h2>2. 顧客コード読取 (上部文字列)</h2>
         <div class="info-badge">1つ目(出展者): <span id="display-b1"></span></div>
-        <p style="font-size: 0.9rem; color: #475569;">A4用紙一番上の「見本市コード」をカメラで撮影するか、直接入力してください。</p>
+        <p style="font-size: 0.9rem; color: #475569;">A4用紙一番上の見本市コードをカメラで撮影するか、直接入力してください。</p>
         
         <!-- カメラ撮影ボタン -->
         <div style="background: #f8fafc; border: 2px dashed var(--border-color); padding: 16px; border-radius: 8px; text-align: center; margin-bottom: 12px;">
@@ -178,7 +178,7 @@
         </div>
 
         <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">顧客コード (編集可能):</label>
-        <input type="text" id="manual-code2" placeholder="例: XX9999999" value="">
+        <input type="text" id="manual-code2" placeholder="見本市コード" value="">
 
         <button onclick="confirmCode2()">このコードで進む</button>
         <button class="secondary" onclick="resetBarcode1()">最初からやり直す</button>
@@ -318,30 +318,37 @@
         });
     }
 
-    // --- 2回目：撮影後のテキストセット処理 ---
+    // --- 2回目：撮影後の処理とメッセージ表示 ---
     async function handleImageOcr(event) {
         const file = event.target.files[0];
         if (!file) return;
 
-        // ブラウザのBarcodeDetectorが画像内のコードを認識できる場合
+        let detectedValue = "";
+
+        // ブラウザのBarcodeDetectorが使える環境の場合の自動認識
         if ('BarcodeDetector' in window) {
             try {
                 const barcodeDetector = new BarcodeDetector({ formats: ['code_128', 'code_39', 'qr_code', 'data_matrix'] });
                 const imageBitmap = await createImageBitmap(file);
                 const results = await barcodeDetector.detect(imageBitmap);
                 if (results.length > 0) {
-                    document.getElementById('manual-code2').value = results[0].rawValue;
-                    return;
+                    detectedValue = results[0].rawValue;
                 }
             } catch (e) {
                 console.log("BarcodeDetector fallback:", e);
             }
         }
 
-        // 写真撮影が完了したら、入力欄にフォーカスを当ててスムーズに入力できるようにする
-        const inputField = document.getElementById('manual-code2');
-        inputField.focus();
-        // もし直感的に分かりやすいように仮の文字が必要であれば、ここでセットすることも可能です
+        // 認識結果があればテキストボックスにセットし、メッセージを表示
+        if (detectedValue) {
+            document.getElementById('manual-code2').value = detectedValue;
+            alert("コードを自動読み取りしました: " + detectedValue);
+        } else {
+            // 自動認識できない環境や文字の場合の案内
+            alert("写真を撮影しました。必要に応じてコードを確認・修正し、「このコードで進む」を押してください。");
+        }
+        
+        document.getElementById('manual-code2').focus();
     }
 
     function confirmCode2() {
