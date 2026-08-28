@@ -135,7 +135,7 @@
     <form id="multiStepForm" onsubmit="handleSubmit(event)">
         
         <div class="step active" id="step-1">
-            <h2>① 関心度を選択してください</h2>
+            <h2>① 商品への関心度を選択</h2>
             <div class="star-rating" id="starContainer">
                 <span class="star" data-value="1">★</span>
                 <span class="star" data-value="2">★</span>
@@ -150,7 +150,7 @@
         </div>
 
         <div class="step" id="step-2">
-            <h2>② ご希望の項目を選択してください（複数可）</h2>
+            <h2>② 次回アクション（複数選択可）</h2>
             <div class="checkbox-group">
                 <label class="checkbox-label"><input type="checkbox" name="options" value="資料"> 資料</label>
                 <label class="checkbox-label"><input type="checkbox" name="options" value="デモ"> デモ</label>
@@ -165,14 +165,14 @@
         </div>
 
         <div class="step" id="step-3">
-            <h2>③ 詳細情報を入力してください</h2>
+            <h2>③ 聞いた内容、注意点、担当者への伝達事項など必要に応じて入力してください</h2>
             <div class="input-group">
                 <label for="productName">商品名</label>
                 <input type="text" id="productName" name="productName" placeholder="例：クラウドサービスA">
             </div>
             <div class="input-group">
                 <label for="notes">特記事項・申し送り</label>
-                <textarea id="notes" name="notes" placeholder="具体的な要望や申し送り事項を入力してください"></textarea>
+                <textarea id="notes" name="notes" placeholder="営業担当へ向けて具体的な要望や申し送り事項を入力してください"></textarea>
             </div>
             <div class="button-group">
                 <button type="button" class="btn-prev" onclick="prevStep(3)">戻る</button>
