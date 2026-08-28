@@ -31,9 +31,26 @@
             display: block;
         }
         h2 {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: #333;
             margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        /* 選択内容のサマリー表示エリア */
+        .summary-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .summary-box div {
+            margin-bottom: 4px;
+        }
+        .summary-box div:last-child {
+            margin-bottom: 0;
         }
         /* ① 星評価のスタイル */
         .star-rating {
@@ -144,12 +161,11 @@
                 <span class="star" data-value="5">★</span>
             </div>
             <input type="hidden" id="interestLevel" name="interestLevel" value="0">
-            <div class="button-group">
-                <button type="button" class="btn-next" onclick="nextStep(1)">次へ</button>
-            </div>
         </div>
 
         <div class="step" id="step-2">
+            <div class="summary-box" id="summary-1"></div>
+
             <h2>② 来場されたご販売店様からのご要望を選択してください。（複数選択可）</h2>
             <div class="checkbox-group">
                 <label class="checkbox-label"><input type="checkbox" name="options" value="資料"> 資料</label>
@@ -165,6 +181,8 @@
         </div>
 
         <div class="step" id="step-3">
+            <div class="summary-box" id="summary-2"></div>
+
             <h2>③ 聞いた内容、注意点、担当者への伝達事項など必要に応じて入力してください</h2>
             <div class="input-group">
                 <label for="productName">商品名</label>
@@ -184,16 +202,16 @@
 </div>
 
 <script>
-    // ① 星評価のロジック
     const stars = document.querySelectorAll('.star');
     const interestInput = document.getElementById('interestLevel');
 
+    // ① 星をタップした瞬間に選択を保存し、すぐステップ②へ進む
     stars.forEach((star, index) => {
         star.addEventListener('click', () => {
             const value = index + 1;
             interestInput.value = value;
             
-            // 選択された位置まで黄色星、それ以外をグレーにする
+            // 星の見た目を更新
             stars.forEach((s, i) => {
                 if (i < value) {
                     s.classList.add('active');
@@ -201,32 +219,53 @@
                     s.classList.remove('active');
                 }
             });
+
+            // ステップ2へ進む処理を実行
+            goToStep(2);
         });
     });
 
-    // 画面遷移ロジック（次へ）
+    // ステップ②の「次へ」ボタン
     function nextStep(currentStepNum) {
-        // ステップ1のバリデーション（星が未選択の場合のチェック）
-        if (currentStepNum === 1 && interestInput.value === "0") {
-            alert("関心度（星）を1つ以上選択してください。");
-            return;
-        }
-
-        document.getElementById(`step-${currentStepNum}`).classList.remove('active');
-        document.getElementById(`step-${currentStepNum + 1}`).classList.add('active');
+        goToStep(currentStepNum + 1);
     }
 
-    // 画面遷移ロジック（戻る）
+    // ステップの「戻る」ボタン
     function prevStep(currentStepNum) {
-        document.getElementById(`step-${currentStepNum}`).classList.remove('active');
-        document.getElementById(`step-${currentStepNum - 1}`).classList.add('active');
+        goToStep(currentStepNum - 1);
+    }
+
+    // 画面を切り替えてサマリー（選択内容）を更新する共通関数
+    function goToStep(targetStepNum) {
+        // ステップ3へ行く際（またはステップ2を表示する際）にサマリーを更新
+        if (targetStepNum >= 2) {
+            const starsCount = "★".repeat(interestInput.value) + "☆".repeat(5 - interestInput.value);
+            document.getElementById('summary-1').innerHTML = `<strong>関心度：</strong> ${starsCount} (${interestInput.value}/5)`;
+        }
+
+        if (targetStepNum === 3) {
+            const starsCount = "★".repeat(interestInput.value) + "☆".repeat(5 - interestInput.value);
+            const checkedOptions = Array.from(document.querySelectorAll('input[name="options"]:checked')).map(el => el.value);
+            const optionsText = checkedOptions.length > 0 ? checkedOptions.join(', ') : '未選択';
+
+            document.getElementById('summary-2').innerHTML = `
+                <div><strong>関心度：</strong> ${starsCount} (${interestInput.value}/5)</div>
+                <div><strong>ご要望：</strong> ${optionsText}</div>
+            `;
+        }
+
+        // 表示の切り替え
+        document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+        document.getElementById(`step-${targetStepNum}`).classList.add('active');
+        
+        // 画面トップへスクロール位置を戻す（スマホでの視認性向上のため）
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // 送信時の処理
     function handleSubmit(event) {
         event.preventDefault();
         
-        // 入力データの収集
         const data = {
             interestLevel: interestInput.value,
             options: Array.from(document.querySelectorAll('input[name="options"]:checked')).map(el => el.value),
