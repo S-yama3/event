@@ -84,7 +84,6 @@
         button.warning { background-color: #d97706; }
         button.warning:active { background-color: #b45309; }
         
-        /* アンケート特有のスタイル */
         .summary-box {
             background-color: #f8f9fa;
             border-left: 4px solid var(--primary-color);
@@ -159,7 +158,6 @@
             margin-top: 0;
         }
 
-        /* 登録中・解析中オーバーレイ */
         #loading-overlay {
             display: none;
             position: fixed;
@@ -216,7 +214,7 @@
     <!-- スキャン2：ブラウザ内ライブカメラ＋OCR枠 -->
     <div id="screen-scan2" class="step-screen">
         <h2>2. 顧客コード読取</h2>
-        <div class="info-badge">1つ目(出展社): <span id="display-b1"></span></div>
+        <div class="info-badge">出展社: <span id="display-b1"></span></div>
         <p style="font-size: 0.9rem; color: #475569;">ボタンを押してカメラを起動し、枠内に見本市コードを合わせてください。</p>
         
         <div id="reader-2"></div>
@@ -234,7 +232,7 @@
 
     <!-- アンケート ステップ1 (商品への関心度) -->
     <div id="screen-q1" class="step-screen">
-        <div class="info-badge">出展社: <span id="disp-b1-q1"></span><br>顧客コード: <span id="disp-b2-q1"></span></div>
+        <div class="info-badge">出展社: <span class="disp-b1"></span><br>顧客コード: <span class="disp-b2"></span></div>
         <h2>① 商品への関心度を選択</h2>
         <div class="star-rating" id="starContainer">
             <span class="star" data-value="1">★</span>
@@ -249,6 +247,7 @@
 
     <!-- アンケート ステップ2 (ご要望) -->
     <div id="screen-q2" class="step-screen">
+        <div class="info-badge">出展社: <span class="disp-b1"></span><br>顧客コード: <span class="disp-b2"></span></div>
         <div class="summary-box" id="summary-1"></div>
         <h2>② 来場されたご販売店様からのご要望を選択してください。（複数選択可）</h2>
         <div class="checkbox-group">
@@ -266,6 +265,7 @@
 
     <!-- アンケート ステップ3 (商品名・特記事項) -->
     <div id="screen-q3" class="step-screen">
+        <div class="info-badge">出展社: <span class="disp-b1"></span><br>顧客コード: <span class="disp-b2"></span></div>
         <div class="summary-box" id="summary-2"></div>
         <h2>③ 聞いた内容、注意点、担当者への伝達事項など必要に応じて入力してください</h2>
         <div class="input-group">
@@ -284,10 +284,9 @@
 
     <!-- プレビュー画面 -->
     <div id="screen-preview" class="step-screen">
+        <div class="info-badge">出展社: <span class="disp-b1"></span><br>顧客コード: <span class="disp-b2"></span></div>
         <h2>入力内容の確認</h2>
         <div class="summary-box" style="border-left-color: #059669;">
-            <div style="margin-bottom: 6px;"><strong>出展社コード:</strong> <span id="prev-b1"></span></div>
-            <div style="margin-bottom: 6px;"><strong>顧客コード:</strong> <span id="prev-b2"></span></div>
             <div style="margin-bottom: 6px;"><strong>関心度:</strong> <span id="prev-q1"></span></div>
             <div style="margin-bottom: 6px;"><strong>ご要望:</strong> <span id="prev-q2"></span></div>
             <div style="margin-bottom: 6px;"><strong>商品名:</strong> <span id="prev-product"></span></div>
@@ -301,7 +300,6 @@
 <script>
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbyRBFjBoiVPqB2g0FtgQtO8uPWe-zo9HR1fG7M8ECeZ-cn-fTwkl1e3LUdhXDREnZHDZQ/exec';
 
-    // 保存用データ構造（GASへ送信するキーに合わせる）
     let appData = { 
         barcode1: '', 
         barcode2: '', 
@@ -329,23 +327,21 @@
             document.getElementById('productName').value = appData.productName || '';
             document.getElementById('notes').value = appData.memo || '';
             
-            // チェックボックスの復元
             if (appData.options && Array.isArray(appData.options)) {
                 document.querySelectorAll('input[name="options"]').forEach(chk => {
                     chk.checked = appData.options.includes(chk.value);
                 });
             }
-            // 星の見た目復元
             updateStarDisplay(parseInt(appData.interestLevel || '0', 10));
         } else {
             currentScreen = 'screen-scan1';
             saveState();
         }
+        updateHeaderBadges();
         goToScreen(currentScreen);
     });
 
     function saveState() {
-        // 入力途中の内容を随時 appData に同期して保存
         appData.productName = document.getElementById('productName').value;
         appData.memo = document.getElementById('notes').value;
         appData.options = Array.from(document.querySelectorAll('input[name="options"]:checked')).map(el => el.value);
@@ -354,21 +350,17 @@
         sessionStorage.setItem('appData', JSON.stringify(appData));
     }
 
-    // すべてのカメラを安全に停止
+    function updateHeaderBadges() {
+        document.querySelectorAll('.disp-b1').forEach(el => el.innerText = appData.barcode1 || '(未取得)');
+        document.querySelectorAll('.disp-b2').forEach(el => el.innerText = appData.barcode2 || '(未取得)');
+    }
+
     function stopAllCameras() {
         if (html5QrCode1) {
-            try {
-                if (html5QrCode1.isScanning) {
-                    html5QrCode1.stop().catch(e => {});
-                }
-            } catch(e) {}
+            try { if (html5QrCode1.isScanning) html5QrCode1.stop().catch(e => {}); } catch(e) {}
         }
         if (html5QrCode2) {
-            try {
-                if (html5QrCode2.isScanning) {
-                    html5QrCode2.stop().catch(e => {});
-                }
-            } catch(e) {}
+            try { if (html5QrCode2.isScanning) html5QrCode2.stop().catch(e => {}); } catch(e) {}
             document.getElementById('btn-start-scanner2').style.display = 'block';
             document.getElementById('btn-capture-ocr').style.display = 'none';
         }
@@ -378,12 +370,12 @@
         stopAllCameras();
         currentScreen = screenId;
         saveState();
+        updateHeaderBadges();
         document.querySelectorAll('.step-screen').forEach(el => el.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // --- 1回目：QRコードカメラ起動 ---
     function startScanner1() {
         const btn = document.getElementById('btn-start-scanner1');
         btn.style.display = 'none';
@@ -399,6 +391,7 @@
                 appData.barcode1 = decodedText;
                 document.getElementById('manual-code1').value = decodedText;
                 document.getElementById('display-b1').innerText = decodedText;
+                updateHeaderBadges();
                 
                 try { html5QrCode1.stop().catch(e => {}); } catch(e) {}
 
@@ -420,11 +413,11 @@
         }
         appData.barcode1 = val;
         document.getElementById('display-b1').innerText = val;
+        updateHeaderBadges();
         saveState();
         goToScreen('screen-scan2');
     }
 
-    // --- 2回目：OCR用ライブカメラ起動 ---
     function startScanner2() {
         const btnStart = document.getElementById('btn-start-scanner2');
         const btnCapture = document.getElementById('btn-capture-ocr');
@@ -494,7 +487,7 @@
                 alert("【自動検出成功】\nコード「" + foundCode + "」を読み取りました！");
                 document.getElementById('manual-code2').focus();
             } else {
-                alert("指定形式（英字2文字＋数字7桁）が見つかりませんでした。再撮影してください。\n[検出テキスト: " + cleaned.substring(0, 30) + "]");
+                alert("指定形式（英字2文字＋数字7桁）が見つかりませんでした。\n[検出テキスト: " + cleaned.substring(0, 30) + "]");
             }
         } catch (err) {
             overlay.style.display = 'none';
@@ -515,10 +508,7 @@
         }
         appData.barcode2 = val;
         saveState();
-        
-        // 質問画面へ進む前にバーコード表示をセット
-        document.getElementById('disp-b1-q1').innerText = appData.barcode1;
-        document.getElementById('disp-b2-q1').innerText = appData.barcode2;
+        updateHeaderBadges();
         goToScreen('screen-q1');
     }
 
@@ -531,7 +521,6 @@
         goToScreen('screen-scan1');
     }
 
-    // --- 星評価の処理 ---
     const stars = document.querySelectorAll('.star');
     const interestInput = document.getElementById('interestLevel');
 
@@ -542,32 +531,24 @@
             appData.interestLevel = String(value);
             updateStarDisplay(value);
             saveState();
-            
-            // 星を選択した瞬間に自動で次のステップ2へ進む
             goToScreen('screen-q2');
         });
     });
 
     function updateStarDisplay(value) {
         stars.forEach((s, i) => {
-            if (i < value) {
-                s.classList.add('active');
-            } else {
-                s.classList.remove('active');
-            }
+            if (i < value) s.classList.add('active');
+            else s.classList.remove('active');
         });
     }
 
-    // --- ステップ2からステップ3へ ---
     function goToStep3() {
         saveState();
-        // サマリー1の更新
         const starsCount = "★".repeat(Number(appData.interestLevel)) + "☆".repeat(5 - Number(appData.interestLevel));
         document.getElementById('summary-1').innerHTML = `<strong>関心度：</strong> ${starsCount} (${appData.interestLevel}/5)`;
         goToScreen('screen-q3');
     }
 
-    // --- プレビュー画面へ ---
     function goToPreview() {
         saveState();
         if (!appData.barcode1) {
@@ -579,8 +560,6 @@
         const starsCount = "★".repeat(Number(appData.interestLevel)) + "☆".repeat(5 - Number(appData.interestLevel));
         const optionsText = appData.options.length > 0 ? appData.options.join(', ') : '未選択';
 
-        document.getElementById('prev-b1').innerText = appData.barcode1;
-        document.getElementById('prev-b2').innerText = appData.barcode2;
         document.getElementById('prev-q1').innerText = `${starsCount} (${appData.interestLevel}/5)`;
         document.getElementById('prev-q2').innerText = optionsText;
         document.getElementById('prev-product').innerText = appData.productName || '(なし)';
@@ -589,7 +568,6 @@
         goToScreen('screen-preview');
     }
 
-    // --- GASへデータ送信 ---
     async function submitData() {
         if (!appData.barcode1) {
             alert('情報不足です。最初からやり直してください。');
@@ -610,7 +588,6 @@
 
             if(result.status === 'success') {
                 alert('データを登録しました！');
-                // セッションをクリアし、顧客コードスキャン画面へリセット
                 sessionStorage.clear();
                 appData = { barcode1: appData.barcode1, barcode2: '', interestLevel: '0', options: [], productName: '', memo: '' };
                 document.getElementById('manual-code2').value = '';
@@ -619,8 +596,8 @@
                 document.querySelectorAll('input[name="options"]').forEach(chk => chk.checked = false);
                 updateStarDisplay(0);
                 
-                // 出展社コードは保持したまま次の顧客スキャンへ
                 document.getElementById('display-b1').innerText = appData.barcode1;
+                updateHeaderBadges();
                 goToScreen('screen-scan2');
             } else {
                 alert('登録失敗: ' + result.message);
