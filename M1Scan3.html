@@ -371,6 +371,23 @@
         currentScreen = screenId;
         saveState();
         updateHeaderBadges();
+
+        // 画面が切り替わるタイミングで、サマリーボックスの内容を自動更新
+        if (screenId === 'screen-q3' || screenId === 'screen-preview') {
+            const starsCount = "★".repeat(Number(appData.interestLevel)) + "☆".repeat(5 - Number(appData.interestLevel));
+            const optionsText = appData.options.length > 0 ? appData.options.join(', ') : '未選択';
+
+            if (screenId === 'screen-q3') {
+                document.getElementById('summary-2').innerHTML = `<strong>関心度：</strong> ${starsCount} (${appData.interestLevel}/5)<br><strong>ご要望：</strong> ${optionsText}`;
+            }
+            if (screenId === 'screen-preview') {
+                document.getElementById('prev-q1').innerText = `${starsCount} (${appData.interestLevel}/5)`;
+                document.getElementById('prev-q2').innerText = optionsText;
+                document.getElementById('prev-product').innerText = appData.productName || '(なし)';
+                document.getElementById('prev-notes').innerText = appData.memo || '(なし)';
+            }
+        }
+
         document.querySelectorAll('.step-screen').forEach(el => el.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -544,8 +561,6 @@
 
     function goToStep3() {
         saveState();
-        const starsCount = "★".repeat(Number(appData.interestLevel)) + "☆".repeat(5 - Number(appData.interestLevel));
-        document.getElementById('summary-1').innerHTML = `<strong>関心度：</strong> ${starsCount} (${appData.interestLevel}/5)`;
         goToScreen('screen-q3');
     }
 
@@ -556,15 +571,6 @@
             goToScreen('screen-scan1');
             return;
         }
-
-        const starsCount = "★".repeat(Number(appData.interestLevel)) + "☆".repeat(5 - Number(appData.interestLevel));
-        const optionsText = appData.options.length > 0 ? appData.options.join(', ') : '未選択';
-
-        document.getElementById('prev-q1').innerText = `${starsCount} (${appData.interestLevel}/5)`;
-        document.getElementById('prev-q2').innerText = optionsText;
-        document.getElementById('prev-product').innerText = appData.productName || '(なし)';
-        document.getElementById('prev-notes').innerText = appData.memo || '(なし)';
-
         goToScreen('screen-preview');
     }
 
