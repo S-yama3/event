@@ -205,8 +205,8 @@
         <button id="btn-start-scanner1" onclick="startScanner1()">📷 QRカメラを起動する</button>
 
         <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
-            <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">出展社情報 (小間番号・名称など):</label>
-            <input type="text" id="manual-code1" placeholder="例: EX12345" value="">
+            <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">出展社情報 (ＱＲコードが読めない時は手入力可):</label>
+            <input type="text" id="manual-code1" placeholder="例: XX9999999" value="">
             <button onclick="confirmCode1()">この内容で進む</button>
         </div>
     </div>
@@ -222,7 +222,7 @@
         <button id="btn-start-scanner2" onclick="startScanner2()" style="background-color: #059669;">📷 OCRカメラを起動する</button>
         <button id="btn-capture-ocr" onclick="captureAndOcr()" style="display: none;" class="warning">🔍 この枠内の文字を読み取る</button>
 
-        <label style="font-size: 0.85rem; font-weight: bold; color: #475569; margin-top: 16px; display: block;">抽出・入力コード (修正可能):</label>
+        <label style="font-size: 0.85rem; font-weight: bold; color: #475569; margin-top: 16px; display: block;">抽出コード (読み取れない場合は手入力可):</label>
         <input type="text" id="manual-code2" placeholder="見本市コード：XX9999999" value="">
 
         <button onclick="confirmCode2()">このコードで進む</button>
@@ -233,7 +233,7 @@
     <!-- アンケート ステップ1 (商品への関心度) -->
     <div id="screen-q1" class="step-screen">
         <div class="info-badge">出展社: <span class="disp-b1"></span><br>顧客コード: <span class="disp-b2"></span></div>
-        <h2>① 商品への関心度を選択</h2>
+        <h2>① 商談内容から商品への関心度を選択してください</h2>
         <div class="star-rating" id="starContainer">
             <span class="star" data-value="1">★</span>
             <span class="star" data-value="2">★</span>
