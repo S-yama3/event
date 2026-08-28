@@ -303,9 +303,9 @@
     let appData = { 
         barcode1: '', 
         barcode2: '', 
-        interestLevel: '0', 
-        options: [], 
-        productName: '', 
+        q1: '0', 
+        q2: '', 
+        q3: '', 
         memo: '' 
     };
 
@@ -323,16 +323,17 @@
             document.getElementById('manual-code1').value = appData.barcode1 || '';
             document.getElementById('manual-code2').value = appData.barcode2 || '';
             document.getElementById('display-b1').innerText = appData.barcode1 || '';
-            document.getElementById('interestLevel').value = appData.interestLevel || '0';
-            document.getElementById('productName').value = appData.productName || '';
+            document.getElementById('interestLevel').value = appData.q1 || '0';
+            document.getElementById('productName').value = appData.q3 || '';
             document.getElementById('notes').value = appData.memo || '';
             
-            if (appData.options && Array.isArray(appData.options)) {
+            if (appData.q2) {
+                const optArray = appData.q2.split(', ');
                 document.querySelectorAll('input[name="options"]').forEach(chk => {
-                    chk.checked = appData.options.includes(chk.value);
+                    chk.checked = optArray.includes(chk.value);
                 });
             }
-            updateStarDisplay(parseInt(appData.interestLevel || '0', 10));
+            updateStarDisplay(parseInt(appData.q1 || '0', 10));
         } else {
             currentScreen = 'screen-scan1';
             saveState();
@@ -342,9 +343,10 @@
     });
 
     function saveState() {
-        appData.productName = document.getElementById('productName').value;
+        appData.q3 = document.getElementById('productName').value;
         appData.memo = document.getElementById('notes').value;
-        appData.options = Array.from(document.querySelectorAll('input[name="options"]:checked')).map(el => el.value);
+        const selectedOptions = Array.from(document.querySelectorAll('input[name="options"]:checked')).map(el => el.value);
+        appData.q2 = selectedOptions.join(', ');
         
         sessionStorage.setItem('currentScreen', currentScreen);
         sessionStorage.setItem('appData', JSON.stringify(appData));
@@ -372,20 +374,19 @@
         saveState();
         updateHeaderBadges();
 
-        // 各ステップに切り替わる際にサマリーを自動更新
-        const starsCount = "★".repeat(Number(appData.interestLevel)) + "☆".repeat(5 - Number(appData.interestLevel));
-        const optionsText = appData.options.length > 0 ? appData.options.join(', ') : '未選択';
+        const starsCount = "★".repeat(Number(appData.q1)) + "☆".repeat(5 - Number(appData.q1));
+        const optionsText = appData.q2 ? appData.q2 : '未選択';
 
         if (screenId === 'screen-q2') {
-            document.getElementById('summary-1').innerHTML = `<strong>関心度：</strong> ${starsCount} (${appData.interestLevel}/5)`;
+            document.getElementById('summary-1').innerHTML = `<strong>関心度：</strong> ${starsCount} (${appData.q1}/5)`;
         }
         if (screenId === 'screen-q3') {
-            document.getElementById('summary-2').innerHTML = `<strong>関心度：</strong> ${starsCount} (${appData.interestLevel}/5)<br><strong>ご要望：</strong> ${optionsText}`;
+            document.getElementById('summary-2').innerHTML = `<strong>関心度：</strong> ${starsCount} (${appData.q1}/5)<br><strong>ご要望：</strong> ${optionsText}`;
         }
         if (screenId === 'screen-preview') {
-            document.getElementById('prev-q1').innerText = `${starsCount} (${appData.interestLevel}/5)`;
+            document.getElementById('prev-q1').innerText = `${starsCount} (${appData.q1}/5)`;
             document.getElementById('prev-q2').innerText = optionsText;
-            document.getElementById('prev-product').innerText = appData.productName || '(なし)';
+            document.getElementById('prev-product').innerText = appData.q3 || '(なし)';
             document.getElementById('prev-notes').innerText = appData.memo || '(なし)';
         }
 
@@ -546,7 +547,7 @@
         star.addEventListener('click', () => {
             const value = index + 1;
             interestInput.value = value;
-            appData.interestLevel = String(value);
+            appData.q1 = String(value);
             updateStarDisplay(value);
             saveState();
             goToScreen('screen-q2');
@@ -596,7 +597,7 @@
             if(result.status === 'success') {
                 alert('データを登録しました！');
                 sessionStorage.clear();
-                appData = { barcode1: appData.barcode1, barcode2: '', interestLevel: '0', options: [], productName: '', memo: '' };
+                appData = { barcode1: appData.barcode1, barcode2: '', q1: '0', q2: '', q3: '', memo: '' };
                 document.getElementById('manual-code2').value = '';
                 document.getElementById('productName').value = '';
                 document.getElementById('notes').value = '';
