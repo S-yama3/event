@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>お知らせ | 取引先様向け情報</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================
+   基本設定
+========================================================= */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    font-family: "Noto Sans JP", "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif;
+    color: #334155;
+    background: #f8fafc;
+    line-height: 1.6;
+}
+
+/* =========================================================
+   ページ全体
+========================================================= */
+.page {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+}
+
+/* =========================================================
+   ページタイトル
+========================================================= */
+.page-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.heading-left {
+    position: relative;
+    padding-left: 16px;
+}
+
+.heading-left::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 4px;
+    height: 40px;
+    border-radius: 2px;
+    background: #2563eb;
+}
+
+.heading-en {
+    margin-bottom: 4px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #2563eb;
+    letter-spacing: 0.15em;
+}
+
+.heading-title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: 0.03em;
+}
+
+.heading-description {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+/* =========================================================
+   メインコンテンツ全体のレイアウト構成
+========================================================= */
+.content-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 32px;
+    align-items: start;
+}
+
+.main-column {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    min-width: 0;
+}
+
+.sub-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    /* スクロール追従（Sticky）の設定 */
+    position: sticky;
+    top: 32px;
+}
+
+/* =========================================================
+   情報カード共通
+========================================================= */
+.notice-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
+    transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+}
+
+.notice-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+}
+
+/* 各種カラーアクセント */
+.price-card { border-top: 4px solid #f97316; }
+.product-card { border-top: 4px solid #3b82f6; }
+.seasonal-card { border-top: 4px solid #10b981; }
+.useful-card { border-top: 4px solid #8b5cf6; }
+
+/* =========================================================
+   カードヘッダー
+========================================================= */
+.notice-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.price-card .notice-header { background: linear-gradient(to bottom, #fffaf5, #fff7ed); border-bottom-color: #fed7aa; }
+.product-card .notice-header { background: linear-gradient(to bottom, #f0f7ff, #eff6ff); border-bottom-color: #bfdbfe; }
+.seasonal-card .notice-header { background: linear-gradient(to bottom, #f0fdf4, #ecfdf5); border-bottom-color: #a7f3d0; }
+.useful-card .notice-header { background: linear-gradient(to bottom, #f5f3ff, #ede9fe); border-bottom-color: #ddd6fe; }
+
+.notice-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.notice-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.notice-icon {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.price-card .notice-icon { color: #c2410c; background: #ffedd5; }
+.product-card .notice-icon { color: #1d4ed8; background: #dbeafe; }
+.seasonal-card .notice-icon { color: #047857; background: #d1fae5; }
+.useful-card .notice-icon { color: #7c3aed; background: #ede9fe; }
+
+.notice-title {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.notice-subtitle {
+    margin: 2px 0 0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.12em;
+}
+
+.notice-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.price-card .notice-count { background: #ffedd5; color: #c2410c; }
+.product-card .notice-count { background: #dbeafe; color: #1d4ed8; }
+.seasonal-card .notice-count { background: #d1fae5; color: #047857; }
+.useful-card .notice-count { background: #ede9fe; color: #7c3aed; }
+
+/* アコーディオン開閉用アイコン */
+.toggle-arrow {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 700;
+    transition: transform 0.3s ease;
+}
+
+.price-card .toggle-arrow { color: #c2410c; }
+.product-card .toggle-arrow { color: #1d4ed8; }
+.seasonal-card .toggle-arrow { color: #047857; }
+.useful-card .toggle-arrow { color: #7c3aed; }
+
+.notice-card.is-open .toggle-arrow {
+    transform: rotate(180deg);
+}
+
+/* =========================================================
+   アコーディオン本体の開閉アニメーション設定
+========================================================= */
+.notice-body-wrapper {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease;
+}
+
+.notice-card.is-open .notice-body-wrapper {
+    grid-template-rows: 1fr;
+}
+
+.notice-body-inner {
+    overflow: hidden;
+}
+
+/* =========================================================
+   一覧リスト（各項目の文字サイズ・高さを拡大）
+========================================================= */
+.notice-list {
+    list-style: none;
+    margin: 0;
+    padding: 12px 18px 18px;
+}
+
+.notice-item {
+    display: grid;
+    grid-template-columns: 95px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 18px;
+    min-height: 76px; /* 高さ（余白）を拡大 */
+    padding: 14px 10px; /* 上下のパディングを広げる */
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.2s ease;
+}
+
+.notice-item:last-child {
+    border-bottom: none;
+}
+
+.notice-item:hover {
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.date-area {
+    display: flex;
+    flex-direction: column;
+}
+
+.date {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px; /* 掲載日の文字サイズを拡大 */
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.date-label {
+    font-size: 10px; /* 「掲載日」ラベルも少し拡大 */
+    color: #94a3b8;
+    letter-spacing: 0.05em;
+    margin-top: 1px;
+}
+
+.notice-content {
+    min-width: 0;
+}
+
+.manufacturer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.price-card .manufacturer::before { background: #f97316; content: ""; width: 6px; height: 6px; border-radius: 50%; }
+.product-card .manufacturer::before { background: #3b82f6; content: ""; width: 6px; height: 6px; border-radius: 50%; }
+.seasonal-card .manufacturer::before { background: #10b981; content: ""; width: 6px; height: 6px; border-radius: 50%; }
+.useful-card .manufacturer::before { background: #8b5cf6; content: ""; width: 6px; height: 6px; border-radius: 50%; }
+
+.manufacturer-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px; /* メーカー名などの文字サイズを拡大 */
+    color: #64748b;
+}
+
+.notice-item-title {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 15px; /* タイトルの文字サイズを拡大（13px → 15px） */
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.new-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 18px;
+    padding: 0 6px;
+    margin-left: 8px;
+    border-radius: 4px;
+    background: #ef4444;
+    color: #ffffff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    vertical-align: middle;
+}
+
+.view-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 90px;
+    height: 36px; /* ボタンの高さも拡大 */
+    padding: 0 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #475569;
+    text-decoration: none;
+    font-size: 12px; /* ボタンの文字サイズを拡大 */
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.view-link:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #94a3b8;
+}
+
+.arrow {
+    font-size: 12px;
+    transition: transform 0.2s ease;
+}
+
+.view-link:hover .arrow {
+    transform: translateX(2px);
+}
+
+/* =========================================================
+   サイドカラム：月間チラシ「compass」専用セクション
+========================================================= */
+.compass-widget {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+.compass-widget-header {
+    padding: 16px 20px;
+    background: #0f172a;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.compass-logo {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+
+.compass-logo span {
+    color: #38bdf8;
+}
+
+.compass-badge {
+    font-size: 10px;
+    font-weight: 600;
+    background: #1e293b;
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: #94a3b8;
+    letter-spacing: 0.05em;
+}
+
+.compass-body {
+    padding: 16px;
+}
+
+.compass-banner {
+    display: block;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.compass-banner:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 12px -3px rgba(15, 23, 42, 0.1);
+}
+
+.compass-banner img {
+    width: 100%;
+    height: auto;
+    display: block;
+    aspect-ratio: 1 / 1.3;
+    object-fit: cover;
+}
+
+.compass-desc {
+    margin: 12px 4px 4px;
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+/* =========================================================
+   重要情報エリア
+========================================================= */
+.info-note {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 32px;
+    padding: 14px 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.info-note-icon {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #475569;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.empty-message {
+    padding: 24px 10px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+/* =========================================================
+   レスポンシブデザイン（スマホ対応）
+========================================================= */
+@media (max-width: 900px) {
+    .content-layout {
+        grid-template-columns: 1fr;
+    }
+    .sub-column {
+        position: static;
+    }
+    .page {
+        padding: 32px 16px 60px;
+    }
+}
+
+@media (max-width: 650px) {
+    .page-heading {
+        display: block;
+        margin-bottom: 24px;
+    }
+    .heading-title {
+        font-size: 24px;
+    }
+    .notice-item {
+        grid-template-columns: 85px minmax(0, 1fr) auto;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .notice-item {
+        grid-template-columns: 1fr auto;
+        gap: 8px 12px;
+        padding: 12px 6px;
+    }
+    .date-area {
+        grid-column: 1;
+        grid-row: 2;
+    }
+    .notice-content {
+        grid-column: 1 / -1;
+        grid-row: 1;
+    }
+    .view-link {
+        grid-column: 2;
+        grid-row: 2;
+        min-width: 80px;
+    }
+    .notice-item-title {
+        white-space: normal;
+        line-height: 1.4;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<main class="page">
+    <header class="page-heading">
+        <div class="heading-left">
+            <div class="heading-en">INFORMATION</div>
+            <h1 class="heading-title">お知らせ</h1>
+            <p class="heading-description">取引先様向けの最新情報をご案内しています。</p>
+        </div>
+    </header>
+
+    <!-- 2カラム構成レイアウト -->
+    <div class="content-layout">
+        
+        <!-- メインカラム（お知らせカード群） -->
+        <div class="main-column">
+            <!-- 価格改定（初期状態：閉じている） -->
+            <article class="notice-card price-card">
+                <div class="notice-header" onclick="toggleCard(this)">
+                    <div class="notice-header-left">
+                        <div class="notice-icon">￥</div>
+                        <div>
+                            <h2 class="notice-title">価格改定情報</h2>
+                            <div class="notice-subtitle">PRICE REVISION</div>
+                        </div>
+                    </div>
+                    <div class="notice-header-right">
+                        <div id="priceCount" class="notice-count">0件</div>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                </div>
+                <div class="notice-body-wrapper">
+                    <div class="notice-body-inner">
+                        <ul id="priceRevisionList" class="notice-list"></ul>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 新商品（初期状態：閉じている） -->
+            <article class="notice-card product-card">
+                <div class="notice-header" onclick="toggleCard(this)">
+                    <div class="notice-header-left">
+                        <div class="notice-icon">＋</div>
+                        <div>
+                            <h2 class="notice-title">新商品情報</h2>
+                            <div class="notice-subtitle">NEW PRODUCTS</div>
+                        </div>
+                    </div>
+                    <div class="notice-header-right">
+                        <div id="productCount" class="notice-count">0件</div>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                </div>
+                <div class="notice-body-wrapper">
+                    <div class="notice-body-inner">
+                        <ul id="newProductList" class="notice-list"></ul>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 季節のご提案（初期状態：閉じている） -->
+            <article class="notice-card seasonal-card">
+                <div class="notice-header" onclick="toggleCard(this)">
+                    <div class="notice-header-left">
+                        <div class="notice-icon">季</div>
+                        <div>
+                            <h2 class="notice-title">季節のご提案</h2>
+                            <div class="notice-subtitle">SEASONAL PROPOSAL</div>
+                        </div>
+                    </div>
+                    <div class="notice-header-right">
+                        <div id="seasonalCount" class="notice-count">0件</div>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                </div>
+                <div class="notice-body-wrapper">
+                    <div class="notice-body-inner">
+                        <ul id="seasonalList" class="notice-list"></ul>
+                    </div>
+                </div>
+            </article>
+
+            <!-- お役立ち情報（初期状態：閉じている） -->
+            <article class="notice-card useful-card">
+                <div class="notice-header" onclick="toggleCard(this)">
+                    <div class="notice-header-left">
+                        <div class="notice-icon">役</div>
+                        <div>
+                            <h2 class="notice-title">お役立ち情報</h2>
+                            <div class="notice-subtitle">USEFUL INFORMATION</div>
+                        </div>
+                    </div>
+                    <div class="notice-header-right">
+                        <div id="usefulCount" class="notice-count">0件</div>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                </div>
+                <div class="notice-body-wrapper">
+                    <div class="notice-body-inner">
+                        <ul id="usefulList" class="notice-list"></ul>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <!-- サブカラム（スクロール追従するcompassエリア） -->
+        <aside class="sub-column">
+            <div class="compass-widget">
+                <div class="compass-widget-header">
+                    <div class="compass-logo">COMPASS<span>.</span></div>
+                    <div class="compass-badge">月間チラシ</div>
+                </div>
+                <div class="compass-body">
+                    <a href="https://example.com/compass-latest.pdf" class="compass-banner" target="_blank" rel="noopener noreferrer">
+                        <img src="images/compass-banner.jpg" alt="月間チラシ COMPASS 最新号を見る">
+                    </a>
+                    <p class="compass-desc">毎月のおすすめ商品や特選情報を掲載している自社発行の月間チラシ最新号です。</p>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <div class="info-note">
+        <div class="info-note-icon">i</div>
+        <div>掲載内容についてご不明な点がございましたら、担当営業までお問い合わせください。</div>
+    </div>
+</main>
+
+<script>
+// アコーディオンの開閉を切り替える関数
+function toggleCard(headerEl) {
+    const card = headerEl.closest('.notice-card');
+    card.classList.toggle('is-open');
+}
+
+const fetchAllData = async () => {
+    return {
+        priceRevisions: [
+            { title: "サンプルメーカーA", date: "2026-08-15", url: "https://example.com/priceA.pdf" },
+            { title: "サンプルメーカーB", date: "2026-06-10", url: "https://example.com/priceB.pdf" },
+            { title: "サンプルメーカーC", date: "2026-08-28", url: "https://example.com/priceC.pdf" }
+        ],
+        newProducts: [
+            { title: "新型スマートデバイス X1", date: "2026-08-20", url: "https://example.com/prod1.pdf" },
+            { title: "エコ省エネフィルター", date: "2026-07-01", url: "https://example.com/prod2.pdf" }
+        ],
+        seasonalProposals: [
+            { title: "秋季・年末商戦向け特設カタログ", date: "2026-08-25", url: "https://example.com/seasonal1.pdf" },
+            { title: "省エネ・寒暖差対策ソリューション特集", date: "2026-08-01", url: "https://example.com/seasonal2.pdf" }
+        ],
+        usefulInfo: [
+            { title: "インボイス制度の運用実務とよくある質問集", date: "2026-08-22", url: "https://example.com/useful1.pdf" },
+            { title: "受発注システム効率化ガイドブック", date: "2026-07-15", url: "https://example.com/useful2.pdf" }
+        ]
+    };
+};
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}/${month}/${day}`;
+}
+
+function isNew(dateString) {
+    const today = new Date();
+    const publishDate = new Date(dateString);
+    const oneMonthAgo = new Date(today);
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    return publishDate >= oneMonthAgo && publishDate <= today;
+}
+
+function renderList(containerId, dataArray, countId) {
+    const container = document.getElementById(containerId);
+    const count = document.getElementById(countId);
+    count.textContent = `${dataArray.length}件`;
+
+    if (!dataArray || dataArray.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "empty-message";
+        empty.textContent = "現在、お知らせはありません。";
+        container.appendChild(empty);
+        return;
+    }
+
+    const sortedData = [...dataArray].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    sortedData.forEach(item => {
+        const li = document.createElement("li");
+        li.className = "notice-item";
+
+        const dateArea = document.createElement("div");
+        dateArea.className = "date-area";
+        const date = document.createElement("div");
+        date.className = "date";
+        date.textContent = formatDate(item.date);
+        const dateLabel = document.createElement("div");
+        dateLabel.className = "date-label";
+        dateLabel.textContent = "掲載日";
+        dateArea.appendChild(date);
+        dateArea.appendChild(dateLabel);
+
+        const content = document.createElement("div");
+        content.className = "notice-content";
+        const manufacturer = document.createElement("div");
+        manufacturer.className = "manufacturer";
+        const manufacturerName = document.createElement("span");
+        manufacturerName.className = "manufacturer-name";
+        manufacturerName.textContent = item.title;
+        manufacturer.appendChild(manufacturerName);
+
+        const title = document.createElement("span");
+        title.className = "notice-item-title";
+        title.textContent = item.title;
+
+        if (isNew(item.date)) {
+            const newBadge = document.createElement("span");
+            newBadge.className = "new-badge";
+            newBadge.textContent = "NEW";
+            title.appendChild(newBadge);
+        }
+
+        content.appendChild(manufacturer);
+        content.appendChild(title);
+
+        const link = document.createElement("a");
+        link.className = "view-link";
+        link.href = item.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.innerHTML = `資料を見る <span class="arrow">→</span>`;
+
+        li.appendChild(dateArea);
+        li.appendChild(content);
+        li.appendChild(link);
+        container.appendChild(li);
+    });
+}
+
+async function init() {
+    try {
+        const data = await fetchAllData();
+        renderList("priceRevisionList", data.priceRevisions, "priceCount");
+        renderList("newProductList", data.newProducts, "productCount");
+        renderList("seasonalList", data.seasonalProposals, "seasonalCount");
+        renderList("usefulList", data.usefulInfo, "usefulCount");
+    } catch (error) {
+        console.error("お知らせ情報の取得に失敗しました。", error);
+    }
+}
+
+init();
+</script>
+</body>
+</html>
