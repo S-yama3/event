@@ -20,7 +20,6 @@
         body {
             font-family: system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
-            /* 単色背景に「グループ社員専用」の文字をまっすぐ等間隔に敷き詰める */
             background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='120' viewBox='0 0 280 120'><text x='140' y='70' fill='%23ffffff' font-size='20' font-family='sans-serif' font-weight='bold' opacity='0.08' text-anchor='middle'>グループ社員専用</text></svg>");
             color: var(--text-color);
             margin: 0;
@@ -536,10 +535,20 @@
         document.getElementById('loading-text').innerText = 'データを登録中...';
         overlay.style.display = 'flex';
 
+        // ★GAS側を変更せず、ここで送信するデータのプロパティ（列の割り当て）を入れ替え
+        const sendData = {
+            barcode1: appData.barcode2, // 従来のB列に割り当てたいデータ（出展社情報）
+            barcode2: appData.barcode1, // 従来のC列に割り当てたいデータ（顧客コード）
+            q1: appData.q1,
+            q2: appData.q2,
+            q3: appData.q3,
+            memo: appData.memo
+        };
+
         try {
             const response = await fetch(GAS_URL, {
                 method: 'POST',
-                body: JSON.stringify(appData)
+                body: JSON.stringify(sendData)
             });
             const result = await response.json();
             overlay.style.display = 'none';
