@@ -12,7 +12,7 @@
         :root {
             --primary-color: #2563eb;
             --primary-hover: #1d4ed8;
-            --bg-color: #f8fafc;
+            --bg-color: #0f172a;
             --card-bg: #ffffff;
             --text-color: #1e293b;
             --border-color: #cbd5e1;
@@ -20,6 +20,8 @@
         body {
             font-family: system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
+            /* 単色背景に「グループ社員専用」の文字をまっすぐ等間隔に敷き詰める */
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='120' viewBox='0 0 280 120'><text x='140' y='70' fill='%23ffffff' font-size='20' font-family='sans-serif' font-weight='bold' opacity='0.08' text-anchor='middle'>グループ社員専用</text></svg>");
             color: var(--text-color);
             margin: 0;
             padding: 16px;
@@ -35,8 +37,10 @@
             background: var(--card-bg);
             padding: 24px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             box-sizing: border-box;
+            position: relative;
+            z-index: 1;
         }
         .step-screen { display: none; }
         .step-screen.active { display: block; }
