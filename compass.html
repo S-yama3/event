@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Information | compass</title>
+<title>お知らせ | 取引先様向け情報</title>
 
 <!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -126,7 +126,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    /* ライトグレーの半透明背景に変更 */
+    /* ライトグレーの半透明背景 */
     background: rgba(241, 245, 249, 0.85);
     backdrop-filter: blur(2px);
     display: flex;
@@ -596,7 +596,7 @@ body.is-loading .global-loading-overlay {
         <header class="page-heading">
             <div class="heading-left">
                 <div class="heading-en">INFORMATION</div>
-                <h1 class="heading-title">仙台山三情報サイト★compass★</h1>
+                <h1 class="heading-title">お知らせ</h1>
                 <p class="heading-description">取引先様向けの最新情報をご案内しています。</p>
             </div>
         </header>
@@ -606,6 +606,28 @@ body.is-loading .global-loading-overlay {
             
             <!-- メインカラム -->
             <div class="main-column">
+                <!-- お役立ち情報（D） → 「新着情報」に変更・最上部に配置 -->
+                <article class="notice-card useful-card is-open">
+                    <div class="notice-header" onclick="toggleCard(this)">
+                        <div class="notice-header-left">
+                            <div class="notice-icon">新</div>
+                            <div>
+                                <h2 class="notice-title">新着情報</h2>
+                                <div class="notice-subtitle">WHAT'S NEW</div>
+                            </div>
+                        </div>
+                        <div class="notice-header-right">
+                            <div id="usefulCount" class="notice-count">0件</div>
+                            <span class="toggle-arrow">▼</span>
+                        </div>
+                    </div>
+                    <div class="notice-body-wrapper">
+                        <div class="notice-body-inner">
+                            <ul id="usefulList" class="notice-list"></ul>
+                        </div>
+                    </div>
+                </article>
+
                 <!-- 価格改定（A） -->
                 <article class="notice-card price-card is-open">
                     <div class="notice-header" onclick="toggleCard(this)">
@@ -668,28 +690,6 @@ body.is-loading .global-loading-overlay {
                     <div class="notice-body-wrapper">
                         <div class="notice-body-inner">
                             <ul id="seasonalList" class="notice-list"></ul>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- お役立ち情報（D） -->
-                <article class="notice-card useful-card is-open">
-                    <div class="notice-header" onclick="toggleCard(this)">
-                        <div class="notice-header-left">
-                            <div class="notice-icon">役</div>
-                            <div>
-                                <h2 class="notice-title">お役立ち情報</h2>
-                                <div class="notice-subtitle">USEFUL INFORMATION</div>
-                            </div>
-                        </div>
-                        <div class="notice-header-right">
-                            <div id="usefulCount" class="notice-count">0件</div>
-                            <span class="toggle-arrow">▼</span>
-                        </div>
-                    </div>
-                    <div class="notice-body-wrapper">
-                        <div class="notice-body-inner">
-                            <ul id="usefulList" class="notice-list"></ul>
                         </div>
                     </div>
                 </article>
