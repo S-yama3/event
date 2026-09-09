@@ -126,7 +126,6 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    /* ライトグレーの半透明背景 */
     background: rgba(241, 245, 249, 0.85);
     backdrop-filter: blur(2px);
     display: flex;
@@ -140,7 +139,6 @@ body {
     transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-/* bodyに .is-loading が付いている間だけ表示 */
 body.is-loading .global-loading-overlay {
     opacity: 1;
     visibility: visible;
@@ -183,7 +181,6 @@ body.is-loading .global-loading-overlay {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
 }
 
-/* 各種カラーアクセント */
 .price-card { border-top: 4px solid #f97316; }
 .product-card { border-top: 4px solid #3b82f6; }
 .seasonal-card { border-top: 4px solid #10b981; }
@@ -235,6 +232,13 @@ body.is-loading .global-loading-overlay {
 .product-card .notice-icon { color: #1d4ed8; background: #dbeafe; }
 .seasonal-card .notice-icon { color: #047857; background: #d1fae5; }
 .useful-card .notice-icon { color: #7c3aed; background: #ede9fe; }
+
+.notice-title-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
 
 .notice-title {
     margin: 0;
@@ -357,12 +361,11 @@ body.is-loading .global-loading-overlay {
 
 .notice-item-title {
     display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     font-size: 15px;
     font-weight: 600;
     color: #1e293b;
+    word-break: break-word;
+    line-height: 1.5;
 }
 
 .new-badge {
@@ -607,12 +610,15 @@ body.is-loading .global-loading-overlay {
             <!-- メインカラム -->
             <div class="main-column">
                 <!-- お役立ち情報（D） → 「新着情報」に変更・最上部に配置 -->
-                <article class="notice-card useful-card is-open">
+                <article id="usefulCard" class="notice-card useful-card">
                     <div class="notice-header" onclick="toggleCard(this)">
                         <div class="notice-header-left">
                             <div class="notice-icon">新</div>
                             <div>
-                                <h2 class="notice-title">新着情報</h2>
+                                <div class="notice-title-area">
+                                    <h2 class="notice-title">新着情報</h2>
+                                    <span id="usefulHeaderNew" class="new-badge" style="display: none;">NEW</span>
+                                </div>
                                 <div class="notice-subtitle">WHAT'S NEW</div>
                             </div>
                         </div>
@@ -629,12 +635,15 @@ body.is-loading .global-loading-overlay {
                 </article>
 
                 <!-- 価格改定（A） -->
-                <article class="notice-card price-card is-open">
+                <article id="priceCard" class="notice-card price-card">
                     <div class="notice-header" onclick="toggleCard(this)">
                         <div class="notice-header-left">
                             <div class="notice-icon">￥</div>
                             <div>
-                                <h2 class="notice-title">価格改定情報</h2>
+                                <div class="notice-title-area">
+                                    <h2 class="notice-title">価格改定情報</h2>
+                                    <span id="priceHeaderNew" class="new-badge" style="display: none;">NEW</span>
+                                </div>
                                 <div class="notice-subtitle">PRICE REVISION</div>
                             </div>
                         </div>
@@ -651,12 +660,15 @@ body.is-loading .global-loading-overlay {
                 </article>
 
                 <!-- 新商品（B） -->
-                <article class="notice-card product-card is-open">
+                <article id="productCard" class="notice-card product-card">
                     <div class="notice-header" onclick="toggleCard(this)">
                         <div class="notice-header-left">
                             <div class="notice-icon">＋</div>
                             <div>
-                                <h2 class="notice-title">新商品情報</h2>
+                                <div class="notice-title-area">
+                                    <h2 class="notice-title">新商品情報</h2>
+                                    <span id="productHeaderNew" class="new-badge" style="display: none;">NEW</span>
+                                </div>
                                 <div class="notice-subtitle">NEW PRODUCTS</div>
                             </div>
                         </div>
@@ -673,12 +685,15 @@ body.is-loading .global-loading-overlay {
                 </article>
 
                 <!-- 季節のご提案（C） -->
-                <article class="notice-card seasonal-card is-open">
+                <article id="seasonalCard" class="notice-card seasonal-card">
                     <div class="notice-header" onclick="toggleCard(this)">
                         <div class="notice-header-left">
                             <div class="notice-icon">季</div>
                             <div>
-                                <h2 class="notice-title">季節のご提案</h2>
+                                <div class="notice-title-area">
+                                    <h2 class="notice-title">季節のご提案</h2>
+                                    <span id="seasonalHeaderNew" class="new-badge" style="display: none;">NEW</span>
+                                </div>
                                 <div class="notice-subtitle">SEASONAL PROPOSAL</div>
                             </div>
                         </div>
@@ -727,7 +742,7 @@ function toggleCard(headerEl) {
 }
 
 // -----------------------------------------------------------------
-// GASウェブアプリからデータを取得して分類する関数
+// GASウェブアプリからデータを取得して分類・期間判定する関数
 // -----------------------------------------------------------------
 const fetchAllData = async () => {
     const webAppUrl = 'https://script.google.com/macros/s/AKfycbxuGLftu7HmjzCVXnLPQ5lqtyZegyzvhc1LoKh-WdNAUnPadTK-uV1oCpqTQRHFdPf9jQ/exec';
@@ -744,14 +759,32 @@ const fetchAllData = async () => {
         };
 
         const rows = Array.isArray(result) ? result : (result.rows || []);
+        
+        // 本日の日付（時刻を00:00:00に合わせる）
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
         rows.forEach(row => {
             const item = {
                 category: String(row.category || row[0] || '').trim().toUpperCase(),
                 date: String(row.date || row[1] || '').trim(),
                 title: String(row.title || row[2] || '').trim(),
-                url: String(row.url || row[3] || '').trim()
+                url: String(row.url || row[3] || '').trim(),
+                startDate: row.startDate || row[4] || '',
+                endDate: row.endDate || row[5] || ''
             };
+
+            // 期間判定（公開日・終了日が設定されている場合のみチェック）
+            if (item.startDate) {
+                const start = new Date(item.startDate);
+                start.setHours(0, 0, 0, 0);
+                if (today < start) return; // まだ公開前ならスキップ
+            }
+            if (item.endDate) {
+                const end = new Date(item.endDate);
+                end.setHours(23, 59, 59, 999);
+                if (today > end) return; // 既に終了していたらスキップ
+            }
 
             if (item.category === 'A') {
                 data.priceRevisions.push(item);
@@ -788,25 +821,44 @@ function isNew(dateString) {
     return publishDate >= oneMonthAgo && publishDate <= today;
 }
 
-function renderList(containerId, dataArray, countId) {
+function renderList(cardId, containerId, dataArray, countId, headerNewId) {
+    const card = document.getElementById(cardId);
     const container = document.getElementById(containerId);
     const count = document.getElementById(countId);
+    const headerNewBadge = document.getElementById(headerNewId);
+    
     container.innerHTML = "";
     count.textContent = `${dataArray.length}件`;
+
+    // セクション内にデータがある場合のみ開く（is-openクラスを付与）
+    if (dataArray && dataArray.length > 0) {
+        card.classList.add('is-open');
+    } else {
+        card.classList.remove('is-open');
+    }
 
     if (!dataArray || dataArray.length === 0) {
         const empty = document.createElement("li");
         empty.className = "empty-message";
         empty.textContent = "現在、お知らせはありません。";
         container.appendChild(empty);
+        if (headerNewBadge) headerNewBadge.style.display = "none";
         return;
     }
 
     const sortedData = [...dataArray].sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    // セクション内に「NEW」対象の記事が1つでもあるか判定
+    let hasNewItem = false;
 
     sortedData.forEach(item => {
         const li = document.createElement("li");
         li.className = "notice-item";
+
+        // URLがない場合はレイアウトを調整
+        if (!item.url) {
+            li.style.gridTemplateColumns = "95px minmax(0, 1fr)";
+        }
 
         // 日付エリア
         const dateArea = document.createElement("div");
@@ -828,6 +880,7 @@ function renderList(containerId, dataArray, countId) {
         title.textContent = item.title;
 
         if (isNew(item.date)) {
+            hasNewItem = true;
             const newBadge = document.createElement("span");
             newBadge.className = "new-badge";
             newBadge.textContent = "NEW";
@@ -835,33 +888,39 @@ function renderList(containerId, dataArray, countId) {
         }
         content.appendChild(title);
 
-        // 資料を見るリンクエリア
-        const link = document.createElement("a");
-        link.className = "view-link";
-        link.href = item.url;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.innerHTML = `資料を見る <span class="arrow">→</span>`;
-
         li.appendChild(dateArea);
         li.appendChild(content);
-        li.appendChild(link);
+
+        // D列のURLが存在する場合のみ「資料を見る」リンクを作成・追加
+        if (item.url) {
+            const link = document.createElement("a");
+            link.className = "view-link";
+            link.href = item.url;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.innerHTML = `資料を見る <span class="arrow">→</span>`;
+            li.appendChild(link);
+        }
+
         container.appendChild(li);
     });
+
+    // ヘッダーの題名横のNEWバッジの表示切り替え
+    if (headerNewBadge) {
+        headerNewBadge.style.display = hasNewItem ? "inline-flex" : "none";
+    }
 }
 
 async function init() {
     try {
-        // データ取得完了までローディング表示を維持
         const data = await fetchAllData();
-        renderList("priceRevisionList", data.priceRevisions, "priceCount");
-        renderList("newProductList", data.newProducts, "productCount");
-        renderList("seasonalList", data.seasonalProposals, "seasonalCount");
-        renderList("usefulList", data.usefulInfo, "usefulCount");
+        renderList("priceCard", "priceRevisionList", data.priceRevisions, "priceCount", "priceHeaderNew");
+        renderList("productCard", "newProductList", data.newProducts, "productCount", "productHeaderNew");
+        renderList("seasonalCard", "seasonalList", data.seasonalProposals, "seasonalCount", "seasonalHeaderNew");
+        renderList("usefulCard", "usefulList", data.usefulInfo, "usefulCount", "usefulHeaderNew");
     } catch (error) {
         console.error("お知らせ情報の初期化に失敗しました。", error);
     } finally {
-        // 成功・失敗に関わらず描画が完了したら画面全体のローディングを解除
         document.body.classList.remove("is-loading");
     }
 }
