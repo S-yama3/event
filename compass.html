@@ -494,6 +494,60 @@ body.is-loading .global-loading-overlay {
 }
 
 /* =========================================================
+   サイドカラム：月間カレンダーウィジェット
+========================================================= */
+.calendar-widget {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+.calendar-header {
+    padding: 14px 16px;
+    background: #1e293b;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.calendar-body {
+    padding: 16px;
+}
+
+.calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    font-size: 13px;
+}
+
+.calendar-table th {
+    padding: 6px 0;
+    font-weight: 600;
+    color: #334155;
+}
+
+.calendar-table td {
+    padding: 8px 0;
+    color: #334155; /* 基本は全て黒文字 */
+}
+
+/* 休日（スプレッドシートのsheet2の指定、またはJS側で祝日判定された日） */
+.calendar-table td.is-holiday {
+    color: #ef4444 !important; /* 赤文字 */
+    font-weight: 600;
+}
+
+.calendar-table td.other-month {
+    color: #cbd5e1;
+}
+
+/* =========================================================
    重要情報エリア
 ========================================================= */
 .info-note {
@@ -712,6 +766,7 @@ body.is-loading .global-loading-overlay {
 
             <!-- サブカラム -->
             <aside class="sub-column">
+                <!-- 月間チラシウィジェット -->
                 <div class="compass-widget">
                     <div class="compass-widget-header">
                         <div class="compass-logo">COMPASS<span>.</span></div>
@@ -722,6 +777,23 @@ body.is-loading .global-loading-overlay {
                             <img src="images/チラシ表紙サンプル.png" alt="月間チラシ COMPASS 最新号を見る">
                         </a>
                         <p class="compass-desc">最新チラシはコチラ！</p>
+                    </div>
+                </div>
+
+                <!-- 月間カレンダーウィジェット（右下に追加） -->
+                <div class="calendar-widget">
+                    <div class="calendar-header" id="calendarTitle">2026年 9月</div>
+                    <div class="calendar-body">
+                        <table class="calendar-table">
+                            <thead>
+                                <tr>
+                                    <th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th>
+                                </tr>
+                            </thead>
+                            <tbody id="calendarBody">
+                                <!-- JSで動的生成 -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </aside>
@@ -745,20 +817,23 @@ function toggleCard(headerEl) {
 // GASウェブアプリからデータを取得して分類・期間判定する関数
 // -----------------------------------------------------------------
 const fetchAllData = async () => {
-    const webAppUrl = 'https://script.google.com/macros/s/AKfycbz6vD6F2_d0UekbiQrzyQ4kjRmu-N_-gcDnQsAxNd3pN7rtAis-UGflbbjtvUOe6l27qw/exec';
+    const webAppUrl = 'https://script.google.com/macros/s/AKfycbyXpkJ7EgwBG_82yU3o2eEZ_GYxwIbju4fAeN-shO4JKWHpI7X7Mk0S2n_Jd-x6ohgUaw/exec';
 
     try {
         const response = await fetch(webAppUrl);
         const result = await response.json();
 
+        // 例として result.rows (お知らせ用) と result.holidays (sheet2の休日データ: ['20260901', '20260915', ...]) を想定
+        const rows = Array.isArray(result) ? result : (result.rows || []);
+        const holidays = Array.isArray(result.holidays) ? result.holidays : [];
+
         const data = {
             priceRevisions: [],
             newProducts: [],
             seasonalProposals: [],
-            usefulInfo: []
+            usefulInfo: [],
+            holidays: holidays
         };
-
-        const rows = Array.isArray(result) ? result : (result.rows || []);
         
         // 本日の日付（時刻を00:00:00に合わせる）
         const today = new Date();
@@ -800,7 +875,7 @@ const fetchAllData = async () => {
         return data;
     } catch (error) {
         console.error("GASからのデータ取得に失敗しました。", error);
-        return { priceRevisions: [], newProducts: [], seasonalProposals: [], usefulInfo: [] };
+        return { priceRevisions: [], newProducts: [], seasonalProposals: [], usefulInfo: [], holidays: [] };
     }
 };
 
@@ -819,6 +894,69 @@ function isNew(dateString) {
     const oneMonthAgo = new Date(today);
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
     return publishDate >= oneMonthAgo && publishDate <= today;
+}
+
+// -----------------------------------------------------------------
+// 月間カレンダーを描画し、sheet2から取得した休日(yyyymmdd)を赤文字にする関数
+// -----------------------------------------------------------------
+function renderCalendar(holidaysArray) {
+    const calendarTitle = document.getElementById("calendarTitle");
+    const calendarBody = document.getElementById("calendarBody");
+    calendarBody.innerHTML = "";
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-indexed
+
+    calendarTitle.textContent = `${year}年 ${month + 1}月`;
+
+    // 月の最初の日と最後の日を取得
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const lastDay = new Date(year, month + 1, 0).getDate();
+
+    let dateCounter = 1;
+    let row = document.createElement("tr");
+
+    // 最初の週の空白部分を埋める
+    for (let i = 0; i < firstDayIndex; i++) {
+        const td = document.createElement("td");
+        td.className = "other-month";
+        row.appendChild(td);
+    }
+
+    // 1日から月末までループ
+    while (dateCounter <= lastDay) {
+        if (row.children.length === 7) {
+            calendarBody.appendChild(row);
+            row = document.createElement("tr");
+        }
+
+        const td = document.createElement("td");
+        td.textContent = dateCounter;
+
+        // yyyymmdd形式にフォーマット
+        const mStr = String(month + 1).padStart(2, '0');
+        const dStr = String(dateCounter).padStart(2, '0');
+        const yyyymmdd = `${year}${mStr}${dStr}`;
+
+        // sheet2から渡された休日配列に含まれている場合はクラスを付与して赤文字にする
+        if (holidaysArray.includes(yyyymmdd)) {
+            td.classList.add("is-holiday");
+        }
+
+        row.appendChild(td);
+        dateCounter++;
+    }
+
+    // 最後の週の余った部分を埋める
+    while (row.children.length < 7 && row.children.length > 0) {
+        const td = document.createElement("td");
+        td.className = "other-month";
+        row.appendChild(td);
+    }
+    if (row.children.length > 0) {
+        calendarBody.appendChild(row);
+    }
 }
 
 function renderList(cardId, containerId, dataArray, countId, headerNewId) {
@@ -848,19 +986,16 @@ function renderList(cardId, containerId, dataArray, countId, headerNewId) {
 
     const sortedData = [...dataArray].sort((a, b) => new Date(b.date) - new Date(a.date));
     
-    // セクション内に「NEW」対象の記事が1つでもあるか判定
     let hasNewItem = false;
 
     sortedData.forEach(item => {
         const li = document.createElement("li");
         li.className = "notice-item";
 
-        // URLがない場合はレイアウトを調整
         if (!item.url) {
             li.style.gridTemplateColumns = "95px minmax(0, 1fr)";
         }
 
-        // 日付エリア
         const dateArea = document.createElement("div");
         dateArea.className = "date-area";
         const date = document.createElement("div");
@@ -872,7 +1007,6 @@ function renderList(cardId, containerId, dataArray, countId, headerNewId) {
         dateArea.appendChild(date);
         dateArea.appendChild(dateLabel);
 
-        // コンテンツ（題名）エリア
         const content = document.createElement("div");
         content.className = "notice-content";
         const title = document.createElement("span");
@@ -891,7 +1025,6 @@ function renderList(cardId, containerId, dataArray, countId, headerNewId) {
         li.appendChild(dateArea);
         li.appendChild(content);
 
-        // D列のURLが存在する場合のみ「資料を見る」リンクを作成・追加
         if (item.url) {
             const link = document.createElement("a");
             link.className = "view-link";
@@ -905,7 +1038,6 @@ function renderList(cardId, containerId, dataArray, countId, headerNewId) {
         container.appendChild(li);
     });
 
-    // ヘッダーの題名横のNEWバッジの表示切り替え
     if (headerNewBadge) {
         headerNewBadge.style.display = hasNewItem ? "inline-flex" : "none";
     }
@@ -918,6 +1050,9 @@ async function init() {
         renderList("productCard", "newProductList", data.newProducts, "productCount", "productHeaderNew");
         renderList("seasonalCard", "seasonalList", data.seasonalProposals, "seasonalCount", "seasonalHeaderNew");
         renderList("usefulCard", "usefulList", data.usefulInfo, "usefulCount", "usefulHeaderNew");
+        
+        // 休日データを反映してカレンダーを描画
+        renderCalendar(data.holidays);
     } catch (error) {
         console.error("お知らせ情報の初期化に失敗しました。", error);
     } finally {
