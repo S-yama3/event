@@ -494,7 +494,7 @@ body.is-loading .global-loading-overlay {
 }
 
 /* =========================================================
-   サイドカラム：月間カレンダーウィジェット
+   サイドカラム：月間カレンダーウィジェット（幅・高さ固定）
 ========================================================= */
 .calendar-widget {
     background: #ffffff;
@@ -538,40 +538,58 @@ body.is-loading .global-loading-overlay {
 .calendar-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
     text-align: center;
     font-size: 13px;
 }
 
+.calendar-table th, 
+.calendar-table td {
+    width: 14.28%;
+    height: 42px;
+    padding: 0;
+    vertical-align: middle;
+    position: relative;
+    box-sizing: border-box;
+}
+
 .calendar-table th {
-    padding: 6px 0;
     font-weight: 600;
     color: #334155;
 }
 
 .calendar-table td {
-    padding: 6px 0;
     color: #334155;
 }
 
-/* 休日（背景赤 ＆ 白文字） */
-.calendar-table td.is-holiday span.day-cell {
-    display: inline-block;
-    width: 28px;
-    height: 28px;
-    line-height: 28px;
-    background-color: #ef4444;
-    color: #ffffff;
-    border-radius: 50%;
+/* sheet2のA列：赤文字スタイル */
+.is-red-day {
+    color: #ef4444 !important;
     font-weight: 600;
 }
 
-/* スター（★）マークのスタイル */
-.calendar-table td.is-holiday .holiday-star {
+/* sheet2のB列：日付の下に表示する赤い星マーク */
+.calendar-table td .holiday-star {
     display: block;
     font-size: 9px;
     color: #ef4444;
     line-height: 1;
     margin-top: 2px;
+}
+/* カレンダー下の見本市説明 */
+.calendar-note {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
+    font-size: 11px;
+    color: #64748b;
+    text-align: left;
+}
+
+.calendar-note-star {
+    color: #ef4444;
+    font-size: 13px;
+    font-weight: 700;
 }
 
 .calendar-table td.other-month {
@@ -791,6 +809,9 @@ body.is-loading .global-loading-overlay {
                             </thead>
                             <tbody id="calendarBody"></tbody>
                         </table>
+    				<div class="calendar-note">
+    				    <span class="calendar-note-star">★</span>＝見本市
+    				</div>
                     </div>
                 </div>
             </aside>
@@ -809,6 +830,7 @@ function toggleCard(headerEl) {
 }
 
 let calendarDate = new Date();
+let cachedRedDays = [];
 let cachedHolidays = [];
 
 function changeMonth(direction) {
@@ -816,22 +838,22 @@ function changeMonth(direction) {
     const targetYear = targetDate.getFullYear();
     const targetMonth = targetDate.getMonth();
 
-    if (!hasHolidayInMonth(targetYear, targetMonth, cachedHolidays)) {
+    if (!hasHolidayInMonth(targetYear, targetMonth, cachedHolidays) && !hasHolidayInMonth(targetYear, targetMonth, cachedRedDays)) {
         return; 
     }
 
     calendarDate = targetDate;
-    renderCalendar(cachedHolidays);
+    renderCalendar(cachedRedDays, cachedHolidays);
 }
 
-function hasHolidayInMonth(year, month, holidaysArray) {
+function hasHolidayInMonth(year, month, daysArray) {
     const firstDay = 1;
     const lastDay = new Date(year, month + 1, 0).getDate();
     const mStr = String(month + 1).padStart(2, '0');
 
     for (let d = firstDay; d <= lastDay; d++) {
         const dStr = String(d).padStart(2, '0');
-        if (holidaysArray.includes(`${year}${mStr}${dStr}`)) {
+        if (daysArray.includes(`${year}${mStr}${dStr}`)) {
             return true;
         }
     }
@@ -839,13 +861,14 @@ function hasHolidayInMonth(year, month, holidaysArray) {
 }
 
 const fetchAllData = async () => {
-    const webAppUrl = 'https://script.google.com/macros/s/AKfycbzaA8TiUGbDY57Ahq8mYvJ8RW1b35VzpK7L_0aXMKIxJkEXfjLv4IcLZ4Wa7P5vQwjgrg/exec';
+    const webAppUrl = 'https://script.google.com/macros/s/AKfycbz42cNSUUKGNszl02UauIrkrUF5yE6S4XEp1L0E_eLl_isW4IPX7H5rRLTrTGDuJJqW6A/exec';
 
     try {
         const response = await fetch(webAppUrl);
         const result = await response.json();
 
         const rows = Array.isArray(result) ? result : (result.rows || []);
+        const redDays = Array.isArray(result.redDays) ? result.redDays : [];
         const holidays = Array.isArray(result.holidays) ? result.holidays : [];
 
         const data = {
@@ -853,6 +876,7 @@ const fetchAllData = async () => {
             newProducts: [],
             seasonalProposals: [],
             usefulInfo: [],
+            redDays: redDays,
             holidays: holidays
         };
         
@@ -894,7 +918,7 @@ const fetchAllData = async () => {
         return data;
     } catch (error) {
         console.error("GASからのデータ取得に失敗しました。", error);
-        return { priceRevisions: [], newProducts: [], seasonalProposals: [], usefulInfo: [], holidays: [] };
+        return { priceRevisions: [], newProducts: [], seasonalProposals: [], usefulInfo: [], redDays: [], holidays: [] };
     }
 };
 
@@ -915,8 +939,9 @@ function isNew(dateString) {
     return publishDate >= oneMonthAgo && publishDate <= today;
 }
 
-function renderCalendar(holidaysArray) {
-    cachedHolidays = holidaysArray;
+function renderCalendar(redDaysArray, holidaysArray) {
+    cachedRedDays = redDaysArray.map(d => String(d).trim());
+    cachedHolidays = holidaysArray.map(h => String(h).trim());
     
     const calendarTitle = document.getElementById("calendarTitle");
     const calendarBody = document.getElementById("calendarBody");
@@ -931,13 +956,13 @@ function renderCalendar(holidaysArray) {
     const nextBtn = document.getElementById("nextBtn");
 
     if (prevBtn) {
-        const hasPrev = hasHolidayInMonth(year, month - 1, cachedHolidays);
+        const hasPrev = hasHolidayInMonth(year, month - 1, cachedHolidays) || hasHolidayInMonth(year, month - 1, cachedRedDays);
         prevBtn.disabled = !hasPrev;
         prevBtn.style.opacity = hasPrev ? "1" : "0.3";
         prevBtn.style.cursor = hasPrev ? "pointer" : "not-allowed";
     }
     if (nextBtn) {
-        const hasNext = hasHolidayInMonth(year, month + 1, cachedHolidays);
+        const hasNext = hasHolidayInMonth(year, month + 1, cachedHolidays) || hasHolidayInMonth(year, month + 1, cachedRedDays);
         nextBtn.disabled = !hasNext;
         nextBtn.style.opacity = hasNext ? "1" : "0.3";
         nextBtn.style.cursor = hasNext ? "pointer" : "not-allowed";
@@ -966,12 +991,22 @@ function renderCalendar(holidaysArray) {
         const dStr = String(dateCounter).padStart(2, '0');
         const yyyymmdd = `${year}${mStr}${dStr}`;
 
-        if (holidaysArray.includes(yyyymmdd)) {
-            td.className = "is-holiday";
-            td.innerHTML = `<span class="day-cell">${dateCounter}</span><span class="holiday-star">★</span>`;
+        const isHoliday = cachedHolidays.includes(yyyymmdd);
+        const isRed = cachedRedDays.includes(yyyymmdd);
+
+        // A列（赤文字）と B列（星マーク）を個別に判定して組み立て
+        let htmlContent = '';
+        if (isRed) {
+            htmlContent += `<span class="is-red-day">${dateCounter}</span>`;
         } else {
-            td.textContent = dateCounter;
+            htmlContent += `<span>${dateCounter}</span>`;
         }
+
+        if (isHoliday) {
+            htmlContent += `<span class="holiday-star">★</span>`;
+        }
+
+        td.innerHTML = htmlContent;
 
         row.appendChild(td);
         dateCounter++;
@@ -1077,7 +1112,7 @@ async function init() {
         renderList("seasonalCard", "seasonalList", data.seasonalProposals, "seasonalCount", "seasonalHeaderNew");
         renderList("usefulCard", "usefulList", data.usefulInfo, "usefulCount", "usefulHeaderNew");
         
-        renderCalendar(data.holidays);
+        renderCalendar(data.redDays, data.holidays);
     } catch (error) {
         console.error("お知らせ情報の初期化に失敗しました。", error);
     } finally {
