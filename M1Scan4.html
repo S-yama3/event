@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>所感登録（マルチ読取対応版）</title>
+    <title>所感登録（バーコード・OCR高精度対応版）</title>
     <!-- QR・バーコード読取用ライブラリ -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <!-- 文字認識(OCR)用ライブラリ (Tesseract.js) -->
@@ -217,20 +217,20 @@
     <div id="screen-scan2" class="step-screen">
         <h2>2. 顧客コード読取</h2>
         <div class="info-badge">出展社: <span id="display-b1"></span></div>
-        <p style="font-size: 0.9rem; color: #475569;">読取方法を選んでください。</p>
+        <p style="font-size: 0.9rem; color: #475569;">小さなバーコードは10〜15cmほど離し、枠内に合わせてください。</p>
         
         <div id="reader-2"></div>
         
         <!-- 切り替えボタン群 -->
         <div id="scanner-controls">
-            <button id="btn-start-barcode" onclick="startBarcodeScanner()" class="success">条 バーコード読取（Code39/128）</button>
+            <button id="btn-start-barcode" onclick="startBarcodeScanner()" class="success">条 バーコード読取（Code128/39）</button>
             <button id="btn-start-ocr" onclick="startOcrMode()" class="warning">文 文字認識（OCR）で撮影</button>
             <button id="btn-capture-ocr" onclick="captureAndOcr()" class="warning" style="display: none;">🔍 この枠内の文字を読み取る</button>
         </div>
 
         <div class="input-group" style="margin-top: 16px;">
             <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">抽出コード (手入力も可能):</label>
-            <input type="text" id="manual-code2" placeholder="見本市コード：XX9999999" value="">
+            <input type="text" id="manual-code2" placeholder="見本市コード：02-3110003-001" value="">
         </div>
 
         <button onclick="confirmCode2()">このコードで進む</button>
@@ -372,7 +372,6 @@
         if (html5QrCode2) {
             try { if (html5QrCode2.isScanning) html5QrCode2.stop().catch(e => {}); } catch(e) {}
         }
-        // スキャン2のボタン表示を初期状態に戻す
         document.getElementById('btn-start-barcode').style.display = 'block';
         document.getElementById('btn-start-ocr').style.display = 'block';
         document.getElementById('btn-capture-ocr').style.display = 'none';
@@ -447,7 +446,7 @@
         goToScreen('screen-scan2');
     }
 
-    // --- 【機能追加】Step 2: バーコード読み取りモード（Code39 / Code128 / QR） ---
+    // --- Step 2: Code128 / Code39 高精度バーコード読み取り ---
     function startBarcodeScanner() {
         document.getElementById('btn-start-barcode').style.display = 'none';
         document.getElementById('btn-start-ocr').style.display = 'none';
@@ -456,14 +455,19 @@
             html5QrCode2 = new Html5Qrcode("reader-2");
         }
 
+        // 40×7mmの小さなバーコードに合わせて横長に設計 ＆ 高解像度・対象フォーマット限定
         const config = {
-            fps: 10, 
-            qrbox: { width: 280, height: 120 },
+            fps: 15, 
+            qrbox: { width: 340, height: 90 },
             formatsToSupport: [
-                Html5QrcodeSupportedFormats.CODE_39,
                 Html5QrcodeSupportedFormats.CODE_128,
-                Html5QrcodeSupportedFormats.QR_CODE
-            ]
+                Html5QrcodeSupportedFormats.CODE_39
+            ],
+            videoConstraints: {
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                facingMode: "environment"
+            }
         };
 
         html5QrCode2.start(
@@ -486,7 +490,7 @@
         });
     }
 
-    // --- 【機能追加】Step 2: OCR文字認識モード ---
+    // --- Step 2: OCR文字認識モード ---
     function startOcrMode() {
         document.getElementById('btn-start-barcode').style.display = 'none';
         document.getElementById('btn-start-ocr').style.display = 'none';
@@ -495,10 +499,13 @@
             html5QrCode2 = new Html5Qrcode("reader-2");
         }
 
-        // OCR用はバーコード判定を入れず、単なるプレビュー用カメラとして起動
         html5QrCode2.start(
             { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 280, height: 100 } },
+            { 
+                fps: 10, 
+                qrbox: { width: 340, height: 90 },
+                videoConstraints: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "environment" }
+            },
             (decodedText) => {},
             (err) => {}
         ).then(() => {
@@ -533,7 +540,8 @@
             overlay.style.display = 'none';
 
             const cleaned = text.replace(/\s+/g, '');
-            const match = cleaned.match(/[A-Z]{2}[0-9]{7}/);
+            // 02-3110003-001 のようなハイフン付き形式や英数字のパターンにマッチさせる
+            const match = cleaned.match(/[0-9]{2}-[0-9]{7}-[0-9]{3}/) || cleaned.match(/[A-Z0-9\-]{10,}/);
 
             if (html5QrCode2 && html5QrCode2.isScanning) {
                 await html5QrCode2.stop().catch(e => {});
@@ -548,7 +556,7 @@
                 alert("【OCR読取成功】\nコード「" + foundCode + "」を読み取りました！");
                 document.getElementById('manual-code2').focus();
             } else {
-                alert("指定形式（英字2文字＋数字7桁）が見つかりませんでした。\n[検出テキスト: " + cleaned.substring(0, 30) + "]");
+                alert("指定コードが見つかりませんでした。\n[検出テキスト: " + cleaned.substring(0, 30) + "]");
             }
         } catch (err) {
             overlay.style.display = 'none';
