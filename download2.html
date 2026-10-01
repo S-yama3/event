@@ -233,11 +233,11 @@
         <!-- 出展者別絞り込み・CSV/プレビューセクション（通常利用） -->
         <div class="section sub-section" style="margin-top: 16px;">
             <h2 style="font-size: 1.1rem; border-bottom-color: var(--secondary-color); color: var(--secondary-color);">
-                出展者別データ抽出
+                出展社別データ抽出
             </h2>
             <p>出展者を選択し、CSVダウンロードまたはブラウザ内プレビューを行います。</p>
             
-            <label for="exhibitor-select" style="font-size: 0.9rem; font-weight: bold; display: block; margin-bottom: 4px;">出展者選択:</label>
+            <label for="exhibitor-select" style="font-size: 0.9rem; font-weight: bold; display: block; margin-bottom: 4px;">出展社選択:</label>
             <select id="exhibitor-select" onchange="onExhibitorChange()">
                 <option value="">-- 読み込み中... --</option>
             </select>
@@ -259,12 +259,12 @@
             </div>
         </div>
 
-        <!-- 顧客コード（C列）頭文字2文字別絞り込みセクション -->
+        <!-- 顧客コード頭文字2文字別絞り込みセクション -->
         <div class="section sub-section" style="margin-top: 16px; background-color: #f3e8ff; border-color: #d8b4fe;">
             <h2 style="font-size: 1.1rem; border-bottom-color: var(--accent-color); color: var(--accent-color);">
-                顧客コード別データ抽出（頭文字2文字）
+                見本市コード別データ抽出（頭文字2文字）
             </h2>
-            <p>顧客コード（C列）の先頭2文字を選択し、CSVダウンロードまたはプレビューを行います。</p>
+            <p>見本市コードの先頭2文字を選択し、CSVダウンロードまたはプレビューを行います。</p>
             
             <label for="code-prefix-select" style="font-size: 0.9rem; font-weight: bold; display: block; margin-bottom: 4px;">コード頭文字2文字選択:</label>
             <select id="code-prefix-select" onchange="onCodePrefixChange()">
@@ -305,12 +305,12 @@
                 <!-- M_CDマスタ アップロードセクション -->
                 <div class="section" style="margin-top: 16px; background: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
                     <h2 style="font-size: 1.05rem; border-bottom-color: var(--accent-color); color: var(--accent-color);">
-                        M_CDマスタ アップロード
+                        見本市マスタ アップロード
                     </h2>
-                    <p>ExcelまたはCSVファイルを選択してください。1つ目のシートのA・B列（2行目以降）を読み込み、スプレッドシートのM_CDシート（2行目以降をクリアして）に上書きアップロードします。</p>
+                    <p>ExcelまたはCSVファイルを選択してください。ファイルレイアウトはＡ列に見本市コード、Ｂ列に得意先名です。</p>
                     <input type="file" id="master-file-input" accept=".xlsx, .xls, .csv">
                     <button class="accent-btn" onclick="uploadMasterFile()">
-                        M_CDデータをアップロード
+                        見本市コードリストをアップロード
                     </button>
                 </div>
 
@@ -359,10 +359,10 @@
         "タイムスタンプ",
         "出展者",
         "見本市コード",
-        "質問１",
-        "質問２",
-        "質問３",
-        "メモ（特記事項）"
+        "評価",
+        "必要事項",
+        "対象商品",
+        "メモ（申し送り）"
     ];
 
     let cachedAllData = [];
