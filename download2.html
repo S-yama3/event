@@ -39,12 +39,20 @@
 
         .container {
             width: 100%;
-            max-width: 600px;
+            max-width: 600px; /* スマホ時のデフォルト幅 */
             background: var(--card-bg);
             padding: 24px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             box-sizing: border-box;
+            transition: max-width 0.3s ease;
+        }
+
+        /* PC接続時（画面幅が768px以上の場合）はコンテナ幅を大きくする */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 1000px;
+            }
         }
 
         h2 {
@@ -140,19 +148,21 @@
             border-radius: 8px;
             background: white;
             padding: 12px;
-            max-height: 300px;
+            max-height: 350px;
             overflow-y: auto;
+            overflow-x: auto; /* 横スクロール対応 */
         }
 
         table.preview-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.85rem;
+            white-space: nowrap; /* 文字が勝手に縦に折れ曲がらないようにする */
         }
 
         table.preview-table th, table.preview-table td {
             border: 1px solid #e2e8f0;
-            padding: 6px 8px;
+            padding: 8px 12px;
             text-align: left;
         }
 
@@ -233,11 +243,11 @@
         <!-- 出展者別絞り込み・CSV/プレビューセクション（通常利用） -->
         <div class="section sub-section" style="margin-top: 16px;">
             <h2 style="font-size: 1.1rem; border-bottom-color: var(--secondary-color); color: var(--secondary-color);">
-                出展社別データ抽出
+                出展者別データ抽出
             </h2>
             <p>出展者を選択し、CSVダウンロードまたはブラウザ内プレビューを行います。</p>
             
-            <label for="exhibitor-select" style="font-size: 0.9rem; font-weight: bold; display: block; margin-bottom: 4px;">出展社選択:</label>
+            <label for="exhibitor-select" style="font-size: 0.9rem; font-weight: bold; display: block; margin-bottom: 4px;">出展者選択:</label>
             <select id="exhibitor-select" onchange="onExhibitorChange()">
                 <option value="">-- 読み込み中... --</option>
             </select>
@@ -259,12 +269,12 @@
             </div>
         </div>
 
-        <!-- 顧客コード頭文字2文字別絞り込みセクション -->
+        <!-- 顧客コード（C列）頭文字2文字別絞り込みセクション -->
         <div class="section sub-section" style="margin-top: 16px; background-color: #f3e8ff; border-color: #d8b4fe;">
             <h2 style="font-size: 1.1rem; border-bottom-color: var(--accent-color); color: var(--accent-color);">
-                見本市コード別データ抽出（頭文字2文字）
+                顧客コード別データ抽出（頭文字2文字）
             </h2>
-            <p>見本市コードの先頭2文字を選択し、CSVダウンロードまたはプレビューを行います。</p>
+            <p>顧客コード（C列）の先頭2文字を選択し、CSVダウンロードまたはプレビューを行います。</p>
             
             <label for="code-prefix-select" style="font-size: 0.9rem; font-weight: bold; display: block; margin-bottom: 4px;">コード頭文字2文字選択:</label>
             <select id="code-prefix-select" onchange="onCodePrefixChange()">
@@ -305,12 +315,12 @@
                 <!-- M_CDマスタ アップロードセクション -->
                 <div class="section" style="margin-top: 16px; background: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
                     <h2 style="font-size: 1.05rem; border-bottom-color: var(--accent-color); color: var(--accent-color);">
-                        見本市マスタ アップロード
+                        M_CDマスタ アップロード
                     </h2>
-                    <p>ExcelまたはCSVファイルを選択してください。ファイルレイアウトはＡ列に見本市コード、Ｂ列に得意先名です。</p>
+                    <p>ExcelまたはCSVファイルを選択してください。1つ目のシートのA・B列（2行目以降）を読み込み、スプレッドシートのM_CDシート（2行目以降をクリアして）に上書きアップロードします。</p>
                     <input type="file" id="master-file-input" accept=".xlsx, .xls, .csv">
                     <button class="accent-btn" onclick="uploadMasterFile()">
-                        見本市コードリストをアップロード
+                        M_CDデータをアップロード
                     </button>
                 </div>
 
@@ -343,7 +353,7 @@
 
 <script>
     // =========================================================
-    // GASウェブアプリURL（更新済み）
+    // GASウェブアプリURL
     // =========================================================
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbw43o52yFOp1e4N_gy9im95rg9XQxjrFfMMnmObkoxkoMnbP9OhGYQAWumHoJG23rnRVg/exec';
 
@@ -359,10 +369,10 @@
         "タイムスタンプ",
         "出展者",
         "見本市コード",
-        "評価",
-        "必要事項",
-        "対象商品",
-        "メモ（申し送り）"
+        "質問１",
+        "質問２",
+        "質問３",
+        "メモ（特記事項）"
     ];
 
     let cachedAllData = [];
@@ -421,7 +431,6 @@
         loadingText.innerText = "データをサーバーから取得中...";
 
         try {
-            // DATAシートと M_CDシートのデータを同時に取得
             const [dataRes, mcdRes] = await Promise.all([
                 fetch(GAS_URL),
                 fetch(GAS_URL + '?action=m_list')
@@ -438,7 +447,6 @@
             if (mcdResult.status === 'success' && mcdResult.data) {
                 const mcdRows = mcdResult.data;
                 if (mcdRows.length > 0) {
-                    // 1行目のB列をヘッダー名として取得（存在する場合）
                     if (mcdRows[0].length > 1 && mcdRows[0][1] !== undefined && String(mcdRows[0][1]).trim() !== "") {
                         mcdHeaderName = String(mcdRows[0][1]).trim();
                     }
@@ -466,6 +474,7 @@
 
                 const exhibitorSet = new Set();
                 const codePrefixSet = new Set();
+                let hasOtherPrefix = false;
 
                 for (let i = startIndex; i < cachedAllData.length; i++) {
                     const row = cachedAllData[i];
@@ -480,16 +489,20 @@
                     // C列: 顧客コード（先頭2文字抽出）
                     if (row[2] !== undefined && row[2] !== null) {
                         const codeVal = String(row[2]).trim();
-                        if (codeVal.length >= 2) {
+                        if (codeVal.length >= 2 && /^[A-Za-z]{2}/.test(codeVal)) {
                             const prefix = codeVal.substring(0, 2).toUpperCase();
                             codePrefixSet.add(prefix);
+                        } else {
+                            hasOtherPrefix = true;
                         }
+                    } else {
+                        hasOtherPrefix = true;
                     }
                 }
 
                 // 1. 出展者ドロップダウン構築
                 const exhibitorSelect = document.getElementById('exhibitor-select');
-                exhibitorSelect.innerHTML = '<option value="">-- 出展社を選択してください --</option>';
+                exhibitorSelect.innerHTML = '<option value="">-- 出展者を選択してください --</option>';
                 Array.from(exhibitorSet).sort().forEach(exhibitor => {
                     const option = document.createElement('option');
                     option.value = exhibitor;
@@ -499,13 +512,21 @@
 
                 // 2. 顧客コード頭文字ドロップダウン構築
                 const codeSelect = document.getElementById('code-prefix-select');
-                codeSelect.innerHTML = '<option value="">-- 見本市コード頭文字2文字を選択してください --</option>';
+                codeSelect.innerHTML = '<option value="">-- コード頭文字2文字を選択してください --</option>';
                 Array.from(codePrefixSet).sort().forEach(prefix => {
                     const option = document.createElement('option');
                     option.value = prefix;
                     option.textContent = prefix;
                     codeSelect.appendChild(option);
                 });
+
+                // 該当しないものがある場合は「その他」を追加
+                if (hasOtherPrefix) {
+                    const option = document.createElement('option');
+                    option.value = "OTHER";
+                    option.textContent = "その他（対象外・2文字未満）";
+                    codeSelect.appendChild(option);
+                }
 
             } else {
                 alert('データ読み込み失敗: ' + (dataResult.message || '不明なエラー'));
@@ -594,9 +615,9 @@
 
                 const result = await response.json();
                 if (result.status === 'success') {
-                    alert(`見本市得意先マスタのアップロードが完了しました。（登録件数: ${result.count}件）`);
+                    alert(`M_CDマスタのアップロードが完了しました。（登録件数: ${result.count}件）`);
                     fileInput.value = "";
-                    loadAllDataOnce(); // 再読込してマッピングを更新
+                    loadAllDataOnce();
                 } else {
                     alert('アップロード失敗: ' + result.message);
                 }
@@ -698,7 +719,7 @@
             return;
         }
 
-        let csvContent = "\uFEFF"; // UTF-8 BOM
+        let csvContent = "\uFEFF";
         csvContent += headers.map(h => `"${h}"`).join(",") + "\r\n";
 
         filteredData.forEach(row => {
@@ -742,9 +763,14 @@
         const filtered = [];
         for (let i = startIndex; i < cachedAllData.length; i++) {
             const row = cachedAllData[i];
-            if (row && row[2] !== undefined && row[2] !== null) {
-                const codeVal = String(row[2]).trim();
-                if (codeVal.length >= 2) {
+            const codeVal = (row && row[2] !== undefined && row[2] !== null) ? String(row[2]).trim() : "";
+            
+            if (selectedPrefix === "OTHER") {
+                if (!(codeVal.length >= 2 && /^[A-Za-z]{2}/.test(codeVal))) {
+                    filtered.push(formatRowWithMcd(row));
+                }
+            } else {
+                if (codeVal.length >= 2 && /^[A-Za-z]{2}/.test(codeVal)) {
                     const prefix = codeVal.substring(0, 2).toUpperCase();
                     if (prefix === selectedPrefix) {
                         filtered.push(formatRowWithMcd(row));
@@ -756,7 +782,9 @@
     }
 
     function previewCodeData() {
-        const selectedPrefix = document.getElementById('code-prefix-select').value;
+        const selectElem = document.getElementById('code-prefix-select');
+        const selectedPrefix = selectElem.value;
+        const selectedText = selectElem.options[selectElem.selectedIndex].text;
         const filteredData = getFilteredDataByCodePrefix();
         const previewContainer = document.getElementById('code-preview-container');
         const previewContent = document.getElementById('code-preview-content');
@@ -768,7 +796,7 @@
             return;
         }
 
-        let html = `<p style="margin:0 0 8px 0; font-weight:bold; color:var(--accent-color);">【プレビュー】コード頭文字: ${selectedPrefix} （全 ${filteredData.length} 件）</p>`;
+        let html = `<p style="margin:0 0 8px 0; font-weight:bold; color:var(--accent-color);">【プレビュー】${selectedText} （全 ${filteredData.length} 件）</p>`;
         html += '<table class="preview-table"><thead><tr>';
         headers.forEach(header => {
             html += `<th>${header}</th>`;
@@ -805,7 +833,8 @@
             csvContent += escapedRow.join(",") + "\r\n";
         });
 
-        triggerDownload(csvContent, `登録一覧_コード頭文字_${selectedPrefix}.csv`);
+        const fileLabel = (selectedPrefix === "OTHER") ? "その他" : `頭文字_${selectedPrefix}`;
+        triggerDownload(csvContent, `登録一覧_コード_${fileLabel}.csv`);
     }
 
     // 共通CSVトリガー関数
@@ -884,7 +913,6 @@
                 const row = cachedAllData[i];
                 if (!row) continue;
                 const formatted = formatRowWithMcd(row);
-                // タイムスタンプ（0番目）をExcel日付型対応に変換
                 formatted[0] = convertJSTTimestampToExcelDate(formatted[0]);
                 excelData.push(formatted);
             }
