@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>データ管理・ダウンロード</title>
+
+    <!-- Excel出力用ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --danger-color: #dc2626;
+            --danger-hover: #b91c1c;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #cbd5e1;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            margin-top: 0;
+            color: #0f172a;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px;
+        }
+
+        p {
+            font-size: 0.95rem;
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .section.danger-zone {
+            border-top: 1px dashed var(--border-color);
+            padding-top: 20px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:active {
+            background-color: var(--primary-hover);
+        }
+
+        button:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .danger-btn {
+            background-color: var(--danger-color);
+        }
+
+        .danger-btn:active {
+            background-color: var(--danger-hover);
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            margin-bottom: 8px;
+        }
+
+        /* ローディング用オーバーレイ */
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ffffff;
+            border-top: 4px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 読込中オーバーレイ -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loading-text">処理中...</div>
+    </div>
+
+    <div class="container">
+
+        <h2>データ管理・ダウンロード</h2>
+
+        <!-- ダウンロードセクション -->
+        <div class="section">
+            <p>
+                蓄積されたすべてのデータをExcelファイル（.xlsx）としてダウンロードします。
+            </p>
+
+            <button id="download-btn" onclick="downloadExcel()">
+                Excelファイルをダウンロード
+            </button>
+        </div>
+
+        <!-- 履歴削除セクション -->
+        <div class="section danger-zone">
+            <h2 style="border-bottom-color: var(--danger-color); color: var(--danger-color);">
+                履歴の削除（初期化）
+            </h2>
+
+            <p>
+                スプレッドシートのデータをすべて削除します。<br>
+                実行するにはパスワードを入力してください。
+            </p>
+
+            <input
+                type="password"
+                id="delete-password"
+                placeholder="パスワードを入力"
+            >
+
+            <button
+                id="delete-btn"
+                class="danger-btn"
+                onclick="clearData()"
+            >
+                データをすべて削除する
+            </button>
+        </div>
+
+    </div>
+
+<script>
+
+    // =========================================================
+    // GASウェブアプリURL
+    // =========================================================
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxHbtp-KK-7s1sPhh6ZEvsGFywSJ3fS7TmPMq4YWGd48pfZRAPeevjdXbMj0DlNKVj-Sg/exec';
+
+
+    // =========================================================
+    // 削除用パスワード
+    // =========================================================
+    const CORRECT_PASSWORD = "1234";
+
+
+    // =========================================================
+    // Excelのヘッダ
+    // =========================================================
+    const EXCEL_HEADERS = [
+        "タイムスタンプ",
+        "出展者",
+        "見本市コード",
+        "質問１",
+        "質問２",
+        "質問３",
+        "メモ（特記事項）"
+    ];
+
+
+    // =========================================================
+    // 日本時間のタイムスタンプ文字列を
+    // Excelで認識できるDateデータへ変換
+    //
+    // GASから
+    // yyyy/MM/dd HH:mm:ss
+    // の形式で取得することを前提とする
+    // =========================================================
+    function convertJSTTimestampToExcelDate(timestamp) {
+
+        if (timestamp === undefined || timestamp === null) {
+            return "";
+        }
+
+        const text = String(timestamp).trim();
+
+        if (text === "") {
+            return "";
+        }
+
+        // yyyy/MM/dd HH:mm:ss
+        const match = text.match(
+            /^(\d{4})\/(\d{1,2})\/(\d{1,2})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})$/
+        );
+
+        if (!match) {
+
+            // 既にDate形式などの場合
+            if (timestamp instanceof Date && !isNaN(timestamp.getTime())) {
+                return timestamp;
+            }
+
+            return text;
+        }
+
+        const year = Number(match[1]);
+        const month = Number(match[2]);
+        const day = Number(match[3]);
+        const hour = Number(match[4]);
+        const minute = Number(match[5]);
+        const second = Number(match[6]);
+
+        /*
+         * GASでJSTとして作られた時刻なので、
+         * ここでは「日本時間の年月日時分秒」を
+         * そのままExcelの日時として扱う。
+         *
+         * new Date(year, month, day, ...)
+         * はブラウザのローカル時間として生成されるため、
+         * 日本のPCであればそのまま日本時間になる。
+         *
+         * さらに下でExcelセルの表示形式を
+         * yyyy/mm/dd hh:mm:ss
+         * に指定する。
+         */
+        const date = new Date(
+            year,
+            month - 1,
+            day,
+            hour,
+            minute,
+            second
+        );
+
+        if (isNaN(date.getTime())) {
+            return text;
+        }
+
+        return date;
+    }
+
+
+    // =========================================================
+    // Excelダウンロード処理
+    // =========================================================
+    async function downloadExcel() {
+
+        const overlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
+        const btn = document.getElementById('download-btn');
+
+        overlay.style.display = 'flex';
+        loadingText.innerText = "スプレッドシートからデータを取得中...";
+        btn.disabled = true;
+
+        try {
+
+            // -------------------------------------------------
+            // GASからデータ取得
+            // -------------------------------------------------
+            const response = await fetch(GAS_URL);
+
+            if (!response.ok) {
+                throw new Error(
+                    "データ取得に失敗しました。HTTP Status: " + response.status
+                );
+            }
+
+            const result = await response.json();
+
+
+            // -------------------------------------------------
+            // GASから正常応答
+            // -------------------------------------------------
+            if (result.status === 'success') {
+
+                const data = result.data;
+
+
+                // -------------------------------------------------
+                // データがない場合
+                // -------------------------------------------------
+                if (!data || data.length === 0) {
+
+                    alert('ダウンロードするデータが存在しません。');
+
+                    return;
+                }
+
+
+                loadingText.innerText = "Excelファイルを生成中...";
+
+
+                // -------------------------------------------------
+                // Excelデータ作成
+                // -------------------------------------------------
+                const excelData = [];
+
+                // 1行目：Excelヘッダー
+                excelData.push(EXCEL_HEADERS);
+
+
+                // -------------------------------------------------
+                // GASから取得したデータのヘッダー判定
+                // -------------------------------------------------
+                let startIndex = 0;
+
+                if (data.length > 0) {
+
+                    const firstRow = data[0];
+
+                    if (
+                        Array.isArray(firstRow) &&
+                        (
+                            String(firstRow[0]).includes("タイムスタンプ") ||
+                            String(firstRow[1]).includes("出展者") ||
+                            String(firstRow[2]).includes("見本市コード")
+                        )
+                    ) {
+                        startIndex = 1;
+                    }
+                }
+
+
+                // -------------------------------------------------
+                // データをExcel用配列へ変換
+                // -------------------------------------------------
+                for (let i = startIndex; i < data.length; i++) {
+
+                    const row = data[i];
+
+                    const newRow = [];
+
+
+                    for (let j = 0; j < 7; j++) {
+
+                        if (
+                            row &&
+                            row[j] !== undefined &&
+                            row[j] !== null
+                        ) {
+
+                            // =====================================
+                            // A列：タイムスタンプ
+                            // =====================================
+                            if (j === 0) {
+
+                                const excelDate =
+                                    convertJSTTimestampToExcelDate(row[j]);
+
+                                newRow.push(excelDate);
+
+                            } else {
+
+                                // =================================
+                                // B～G列
+                                // =================================
+                                newRow.push(row[j]);
+                            }
+
+                        } else {
+
+                            newRow.push("");
+                        }
+                    }
+
+
+                    excelData.push(newRow);
+                }
+
+
+                // -------------------------------------------------
+                // ワークシート作成
+                // -------------------------------------------------
+                const worksheet =
+                    XLSX.utils.aoa_to_sheet(excelData);
+
+
+                // -------------------------------------------------
+                // A列タイムスタンプを
+                // Excelの日時として明示設定
+                // -------------------------------------------------
+                for (
+                    let r = 1;
+                    r < excelData.length;
+                    r++
+                ) {
+
+                    const cellAddress =
+                        XLSX.utils.encode_cell({
+                            r: r,
+                            c: 0
+                        });
+
+
+                    const cell = worksheet[cellAddress];
+
+
+                    if (cell) {
+
+                        // Excel上で日付として扱う
+                        cell.t = "d";
+
+                        // Excelの表示形式
+                        cell.z = "yyyy/mm/dd hh:mm:ss";
+                    }
+                }
+
+
+                // -------------------------------------------------
+                // 列幅設定
+                // -------------------------------------------------
+                worksheet["!cols"] = [
+                    { wch: 22 }, // タイムスタンプ
+                    { wch: 25 }, // 出展者
+                    { wch: 18 }, // 見本市コード
+                    { wch: 30 }, // 質問１
+                    { wch: 30 }, // 質問２
+                    { wch: 30 }, // 質問３
+                    { wch: 40 }  // メモ
+                ];
+
+
+                // -------------------------------------------------
+                // ヘッダーの太字設定
+                // -------------------------------------------------
+                EXCEL_HEADERS.forEach(
+                    (header, index) => {
+
+                        const cellAddress =
+                            XLSX.utils.encode_cell({
+                                r: 0,
+                                c: index
+                            });
+
+
+                        if (worksheet[cellAddress]) {
+
+                            worksheet[cellAddress].s = {
+                                font: {
+                                    bold: true
+                                }
+                            };
+                        }
+                    }
+                );
+
+
+                // -------------------------------------------------
+                // ワークブック作成
+                // -------------------------------------------------
+                const workbook =
+                    XLSX.utils.book_new();
+
+
+                XLSX.utils.book_append_sheet(
+                    workbook,
+                    worksheet,
+                    "DATA"
+                );
+
+
+                // -------------------------------------------------
+                // ファイル名
+                // -------------------------------------------------
+                //
+                // ファイル名についても日本時間を使用
+                // -------------------------------------------------
+                const now = new Date();
+
+                const yyyy =
+                    now.getFullYear().toString();
+
+                const mm =
+                    String(now.getMonth() + 1).padStart(2, '0');
+
+                const dd =
+                    String(now.getDate()).padStart(2, '0');
+
+                const hh =
+                    String(now.getHours()).padStart(2, '0');
+
+                const min =
+                    String(now.getMinutes()).padStart(2, '0');
+
+
+                const fileName =
+                    `登録一覧_${yyyy}${mm}${dd}${hh}${min}.xlsx`;
+
+
+                // -------------------------------------------------
+                // Excelファイル出力
+                // -------------------------------------------------
+                XLSX.writeFile(
+                    workbook,
+                    fileName
+                );
+
+            } else {
+
+                alert(
+                    'データ取得失敗: ' +
+                    result.message
+                );
+            }
+
+        } catch (err) {
+
+            alert(
+                '通信エラーが発生しました: ' +
+                err
+            );
+
+        } finally {
+
+            overlay.style.display = 'none';
+
+            btn.disabled = false;
+        }
+    }
+
+
+    // =========================================================
+    // 履歴削除処理
+    // =========================================================
+    async function clearData() {
+
+        const inputPass =
+            document.getElementById(
+                'delete-password'
+            ).value;
+
+
+        // -------------------------------------------------
+        // パスワード確認
+        // -------------------------------------------------
+        if (inputPass !== CORRECT_PASSWORD) {
+
+            alert(
+                'パスワードが間違っています。'
+            );
+
+            return;
+        }
+
+
+        // -------------------------------------------------
+        // 削除確認
+        // -------------------------------------------------
+        if (
+            !confirm(
+                '本当にスプレッドシートのデータをすべて削除しますか？\n' +
+                'この操作は元に戻せません。'
+            )
+        ) {
+
+            return;
+        }
+
+
+        const overlay =
+            document.getElementById(
+                'loading-overlay'
+            );
+
+        const loadingText =
+            document.getElementById(
+                'loading-text'
+            );
+
+        const btn =
+            document.getElementById(
+                'delete-btn'
+            );
+
+
+        overlay.style.display = 'flex';
+
+        loadingText.innerText =
+            "データを削除中...";
+
+        btn.disabled = true;
+
+
+        try {
+
+            // -------------------------------------------------
+            // GASへ削除リクエスト
+            // -------------------------------------------------
+            const response =
+                await fetch(GAS_URL, {
+
+                    method: 'POST',
+
+                    body: JSON.stringify({
+
+                        action: 'clear',
+
+                        password: inputPass
+                    })
+                });
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "削除処理に失敗しました。HTTP Status: " +
+                    response.status
+                );
+            }
+
+
+            const result =
+                await response.json();
+
+
+            overlay.style.display = 'none';
+
+
+            if (result.status === 'success') {
+
+                alert(
+                    'データをすべて削除しました。'
+                );
+
+
+                document.getElementById(
+                    'delete-password'
+                ).value = '';
+
+            } else {
+
+                alert(
+                    '削除失敗: ' +
+                    result.message
+                );
+            }
+
+        } catch (err) {
+
+            overlay.style.display = 'none';
+
+            alert(
+                '通信エラーが発生しました: ' +
+                err
+            );
+
+        } finally {
+
+            btn.disabled = false;
+        }
+    }
+
+</script>
+
+</body>
+</html>
