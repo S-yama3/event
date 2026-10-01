@@ -489,7 +489,7 @@
 
                 // 1. 出展者ドロップダウン構築
                 const exhibitorSelect = document.getElementById('exhibitor-select');
-                exhibitorSelect.innerHTML = '<option value="">-- 出展者を選択してください --</option>';
+                exhibitorSelect.innerHTML = '<option value="">-- 出展社を選択してください --</option>';
                 Array.from(exhibitorSet).sort().forEach(exhibitor => {
                     const option = document.createElement('option');
                     option.value = exhibitor;
@@ -499,7 +499,7 @@
 
                 // 2. 顧客コード頭文字ドロップダウン構築
                 const codeSelect = document.getElementById('code-prefix-select');
-                codeSelect.innerHTML = '<option value="">-- コード頭文字2文字を選択してください --</option>';
+                codeSelect.innerHTML = '<option value="">-- 見本市コード頭文字2文字を選択してください --</option>';
                 Array.from(codePrefixSet).sort().forEach(prefix => {
                     const option = document.createElement('option');
                     option.value = prefix;
@@ -594,7 +594,7 @@
 
                 const result = await response.json();
                 if (result.status === 'success') {
-                    alert(`M_CDマスタのアップロードが完了しました。（登録件数: ${result.count}件）`);
+                    alert(`見本市得意先マスタのアップロードが完了しました。（登録件数: ${result.count}件）`);
                     fileInput.value = "";
                     loadAllDataOnce(); // 再読込してマッピングを更新
                 } else {
