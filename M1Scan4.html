@@ -262,13 +262,7 @@
         <button id="btn-start-cam2" onclick="startCamera2()" style="background-color: #059669;">📷 撮影カメラを起動する</button>
         <button id="btn-snap-cam2" onclick="captureSnapshot2()" style="display: none; background-color: #d97706;">📸 この状態で撮影する</button>
 
-        <div style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-            <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">予備（直接手入力する場合）:</label>
-            <input type="text" id="manual-code2" placeholder="見本市コード：XX9999999" value="">
-        </div>
-
-        <button onclick="confirmCode2()">このコードでアンケートへ進む</button>
-        <button class="secondary" onclick="resetBarcode1()">最初からやり直す（出展社選択に戻る）</button>
+        <button class="secondary" onclick="resetBarcode1()" style="margin-top: 16px;">最初からやり直す（出展社選択に戻る）</button>
     </div>
 
     <!-- アンケート ステップ1 (商品への関心度) -->
@@ -382,7 +376,6 @@
             appData = JSON.parse(savedData);
             currentScreen = savedScreen;
             document.getElementById('manual-code1').value = appData.barcode1 || '';
-            document.getElementById('manual-code2').value = appData.barcode2 || '';
             document.getElementById('display-b1').innerText = appData.barcode1 || '';
             document.getElementById('interestLevel').value = appData.q1 || '0';
             document.getElementById('productName').value = appData.q3 || '';
@@ -539,24 +532,11 @@
         goToScreen('screen-q1');
     }
 
-    function confirmCode2() {
-        const val = document.getElementById('manual-code2').value.trim();
-        if (!val) {
-            alert('顧客コードが入力されていないか、撮影が行われていません。');
-            return;
-        }
-        appData.barcode2 = val;
-        saveState();
-        updateHeaderBadges();
-        goToScreen('screen-q1');
-    }
-
     function resetBarcode1() {
         appData.barcode1 = '';
         appData.barcode2 = '';
         appData.capturedImage = '';
         document.getElementById('manual-code1').value = '';
-        document.getElementById('manual-code2').value = '';
         saveState();
         goToScreen('screen-scan1');
     }
@@ -605,14 +585,6 @@
             return;
         }
 
-        // 手入力欄に既に値がある場合はそれを優先
-        let codeVal = document.getElementById('manual-code2').value.trim();
-        if (codeVal) {
-            appData.barcode2 = codeVal;
-            submitDataToServer();
-            return;
-        }
-
         // 撮影画像がある場合は、ここでOCRを実行
         if (appData.capturedImage) {
             const overlay = document.getElementById('loading-overlay');
@@ -628,7 +600,6 @@
 
                 if (match) {
                     appData.barcode2 = match[0];
-                    document.getElementById('manual-code2').value = match[0];
                     updateHeaderBadges();
                     // 読取成功！そのまま送信
                     submitDataToServer();
@@ -646,8 +617,9 @@
                 goToScreen('screen-fallback');
             }
         } else {
-            // 画像も手入力もない場合
-            alert('顧客コードが取得できていません。「修正する」からコードを入力してください。');
+            // 画像がない場合
+            alert('顧客コードの撮影が行われていません。');
+            goToScreen('screen-scan2');
         }
     }
 
@@ -659,7 +631,6 @@
             return;
         }
         appData.barcode2 = val;
-        document.getElementById('manual-code2').value = val;
         saveState();
         updateHeaderBadges();
         submitDataToServer();
@@ -683,7 +654,6 @@
                 sessionStorage.clear();
                 const currentB1 = appData.barcode1;
                 appData = { barcode1: currentB1, barcode2: '', q1: '0', q2: '', q3: '', memo: '', capturedImage: '' };
-                document.getElementById('manual-code2').value = '';
                 document.getElementById('productName').value = '';
                 document.getElementById('notes').value = '';
                 document.querySelectorAll('input[name="options"]').forEach(chk => chk.checked = false);
