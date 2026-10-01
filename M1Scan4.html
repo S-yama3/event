@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>所感登録（写真撮影・高精度バーコード対応版）</title>
-    <!-- QR・バーコード読取用ライブラリ -->
+    <title>所感登録（後からOCR認識対応版）</title>
+    <!-- QRコード読取用ライブラリ -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <!-- 文字認識(OCR)用ライブラリ (Tesseract.js) -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -65,6 +65,42 @@
             margin-bottom: 12px;
             background: #000;
         }
+        /* カメラ＆カスタムOCR枠 */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            height: 280px;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .camera-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .ocr-guide-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 90px;
+            border: 2px dashed #38bdf8;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
+            border-radius: 6px;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 0.8rem;
+            background: rgba(255, 255, 255, 0.05);
+            text-align: center;
+            font-weight: bold;
+        }
         button {
             width: 100%;
             padding: 12px;
@@ -83,8 +119,6 @@
         button.secondary:active { background-color: #475569; }
         button.warning { background-color: #d97706; }
         button.warning:active { background-color: #b45309; }
-        button.success { background-color: #059669; }
-        button.success:active { background-color: #047857; }
         
         .summary-box {
             background-color: #f8f9fa;
@@ -213,30 +247,27 @@
         </div>
     </div>
 
-    <!-- スキャン2：顧客コード読取（写真撮影による高精度バーコード読取・OCR対応） -->
+    <!-- スキャン2：顧客コード撮影（枠線付き） -->
     <div id="screen-scan2" class="step-screen">
-        <h2>2. 顧客コード読取</h2>
+        <h2>2. 顧客名札（コード）の撮影</h2>
         <div class="info-badge">出展社: <span id="display-b1"></span></div>
-        <p style="font-size: 0.9rem; color: #475569;">小さなバーコード（40×7mm）は、スマホカメラで撮影して読み取ります。</p>
+        <p style="font-size: 0.9rem; color: #475569;">枠内に見本市コード（英2字+数字7桁）を合わせて撮影してください。</p>
         
-        <!-- 写真撮影によるバーコード読取ボタン -->
-        <input type="file" accept="image/*" capture="environment" id="barcode-photo-input" style="display: none;" onchange="decodeBarcodePhoto(event)">
-        <button type="button" onclick="document.getElementById('barcode-photo-input').click()" class="success" style="padding: 16px; font-size: 1.05rem;">
-            📸 バーコードを撮影して読み取る
-        </button>
+        <div class="camera-container">
+            <video id="ocr-video" autoplay playsinline muted></video>
+            <div class="ocr-guide-box">ここにコードを合わせてください</div>
+        </div>
+        <canvas id="snapshot-canvas" style="display: none;"></canvas>
+        
+        <button id="btn-start-cam2" onclick="startCamera2()" style="background-color: #059669;">📷 撮影カメラを起動する</button>
+        <button id="btn-snap-cam2" onclick="captureSnapshot2()" style="display: none; background-color: #d97706;">📸 この状態で撮影する</button>
 
-        <!-- 文字認識(OCR)による撮影ボタン -->
-        <input type="file" accept="image/*" capture="environment" id="ocr-photo-input" style="display: none;" onchange="decodeOcrPhoto(event)">
-        <button type="button" onclick="document.getElementById('ocr-photo-input').click()" class="warning">
-            🔍 読めない時は文字認識(OCR)で撮影
-        </button>
-
-        <div class="input-group" style="margin-top: 20px;">
-            <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">抽出コード (直接手入力も可能):</label>
-            <input type="text" id="manual-code2" placeholder="見本市コード：02-3110003-001" value="">
+        <div style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+            <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">予備（直接手入力する場合）:</label>
+            <input type="text" id="manual-code2" placeholder="見本市コード：XX9999999" value="">
         </div>
 
-        <button onclick="confirmCode2()">このコードで進む</button>
+        <button onclick="confirmCode2()">このコードでアンケートへ進む</button>
         <button class="secondary" onclick="resetBarcode1()">最初からやり直す（出展社選択に戻る）</button>
     </div>
 
@@ -303,8 +334,26 @@
             <div style="margin-bottom: 6px;"><strong>商品名:</strong> <span id="prev-product"></span></div>
             <div><strong>特記事項:</strong> <span id="prev-notes"></span></div>
         </div>
-        <button onclick="submitData()">データを登録する</button>
+        <button onclick="processAndSubmit()" style="background-color: #059669;">データを登録する</button>
         <button class="secondary" onclick="goToScreen('screen-q3')">修正する</button>
+    </div>
+
+    <!-- OCR確認・再入力モーダル（読み取り失敗時のフォールバック画面） -->
+    <div id="screen-fallback" class="step-screen">
+        <h2>⚠️ コードの確認・手入力</h2>
+        <p style="font-size: 0.9rem; color: #475569;">自動読み取りができなかったため、撮影した画像を確認しながらコードを修正・入力してください。</p>
+        
+        <div style="margin-bottom: 12px; text-align: center;">
+            <img id="fallback-img" src="" alt="撮影画像" style="max-width: 100%; max-height: 180px; border-radius: 6px; border: 1px solid var(--border-color);">
+        </div>
+
+        <div class="input-group">
+            <label for="fallback-code">顧客コード（確認・修正用）</label>
+            <input type="text" id="fallback-code" placeholder="XX9999999">
+        </div>
+
+        <button onclick="confirmFallbackCode()">この内容で登録を完了する</button>
+        <button class="secondary" onclick="goToScreen('screen-preview')">確認画面に戻る</button>
     </div>
 </div>
 
@@ -317,11 +366,13 @@
         q1: '0', 
         q2: '', 
         q3: '', 
-        memo: '' 
+        memo: '',
+        capturedImage: '' // 撮影した画像のDataURLを保持
     };
 
     let currentScreen = 'screen-scan1';
     let html5QrCode1 = null;
+    let mediaStream2 = null;
 
     window.addEventListener('DOMContentLoaded', () => {
         const savedScreen = sessionStorage.getItem('currentScreen');
@@ -367,14 +418,20 @@
         document.querySelectorAll('.disp-b2').forEach(el => el.innerText = appData.barcode2 || '(未取得)');
     }
 
-    function stopScanner1() {
+    function stopAllCameras() {
         if (html5QrCode1) {
             try { if (html5QrCode1.isScanning) html5QrCode1.stop().catch(e => {}); } catch(e) {}
+        }
+        if (mediaStream2) {
+            mediaStream2.getTracks().forEach(track => track.stop());
+            mediaStream2 = null;
+            document.getElementById('btn-start-cam2').style.display = 'block';
+            document.getElementById('btn-snap-cam2').style.display = 'none';
         }
     }
 
     function goToScreen(screenId) {
-        stopScanner1();
+        stopAllCameras();
         currentScreen = screenId;
         saveState();
         updateHeaderBadges();
@@ -417,7 +474,8 @@
                 document.getElementById('display-b1').innerText = decodedText;
                 updateHeaderBadges();
                 
-                stopScanner1();
+                try { html5QrCode1.stop().catch(e => {}); } catch(e) {}
+
                 btn.style.display = 'block';
                 goToScreen('screen-scan2');
             },
@@ -441,71 +499,50 @@
         goToScreen('screen-scan2');
     }
 
-    // --- 写真撮影によるCODE128/39高精度読み取り ---
-    async function decodeBarcodePhoto(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const overlay = document.getElementById('loading-overlay');
-        document.getElementById('loading-text').innerText = 'バーコードを解析中...';
-        overlay.style.display = 'flex';
+    // 顧客コード撮影用カメラの起動
+    async function startCamera2() {
+        const btnStart = document.getElementById('btn-start-cam2');
+        const btnSnap = document.getElementById('btn-snap-cam2');
+        btnStart.style.display = 'none';
 
         try {
-            // 一時的な要素を利用して静止画ファイルをスキャン
-            const html5QrCode = new Html5Qrcode("temp-reader-div", {
-                formatsToSupport: [
-                    Html5QrcodeSupportedFormats.CODE_128,
-                    Html5QrcodeSupportedFormats.CODE_39
-                ]
+            mediaStream2 = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: "environment" } }
             });
-            
-            const decodedText = await html5QrCode.scanFile(file, true);
-            overlay.style.display = 'none';
-            
-            document.getElementById('manual-code2').value = decodedText;
-            alert("【バーコード読取成功】\n" + decodedText);
+            const videoElem = document.getElementById('ocr-video');
+            videoElem.srcObject = mediaStream2;
+            btnSnap.style.display = 'block';
         } catch (err) {
-            overlay.style.display = 'none';
-            alert("バーコードが検出されませんでした。\nピントを合わせて再度撮影するか、手入力してください。\n(エラー: " + err + ")");
+            alert("カメラ起動エラー: " + err);
+            btnStart.style.display = 'block';
         }
-        // inputをリセットして同じファイルを再選択できるようにする
-        event.target.value = '';
     }
 
-    // --- 文字認識(OCR)による読み取り ---
-    async function decodeOcrPhoto(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const overlay = document.getElementById('loading-overlay');
-        document.getElementById('loading-text').innerText = '文字を解析中...';
-        overlay.style.display = 'flex';
-
-        try {
-            const { data: { text } } = await Tesseract.recognize(file, 'eng', { logger: m => {} });
-            overlay.style.display = 'none';
-
-            const cleaned = text.replace(/\s+/g, '');
-            const match = cleaned.match(/[0-9]{2}-[0-9]{7}-[0-9]{3}/) || cleaned.match(/[A-Z0-9\-]{10,}/);
-
-            if (match) {
-                const foundCode = match[0];
-                document.getElementById('manual-code2').value = foundCode;
-                alert("【OCR読取成功】\nコード「" + foundCode + "」を読み取りました！");
-            } else {
-                alert("指定コードのパターンが見つかりませんでした。\n[検出テキスト: " + cleaned.substring(0, 30) + "]");
-            }
-        } catch (err) {
-            overlay.style.display = 'none';
-            alert('文字解析エラーが発生しました。');
+    // 撮影実行
+    function captureSnapshot2() {
+        const videoElem = document.getElementById('ocr-video');
+        const canvas = document.getElementById('snapshot-canvas');
+        if (!mediaStream2 || !videoElem.videoWidth) {
+            alert('カメラの映像が準備できていません。');
+            return;
         }
-        event.target.value = '';
+
+        canvas.width = videoElem.videoWidth;
+        canvas.height = videoElem.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
+
+        appData.capturedImage = canvas.toDataURL('image/jpeg', 0.8);
+        saveState();
+
+        // 撮影完了したらスムーズにアンケート（関心度）へ進む
+        goToScreen('screen-q1');
     }
 
     function confirmCode2() {
         const val = document.getElementById('manual-code2').value.trim();
         if (!val) {
-            alert('顧客コードが入力されていません。');
+            alert('顧客コードが入力されていないか、撮影が行われていません。');
             return;
         }
         appData.barcode2 = val;
@@ -517,6 +554,7 @@
     function resetBarcode1() {
         appData.barcode1 = '';
         appData.barcode2 = '';
+        appData.capturedImage = '';
         document.getElementById('manual-code1').value = '';
         document.getElementById('manual-code2').value = '';
         saveState();
@@ -559,12 +597,75 @@
         goToScreen('screen-preview');
     }
 
-    async function submitData() {
+    // 【最後の確認画面からの処理】裏側でOCR実行、成功なら即登録、失敗なら確認・手入力モーダルへ
+    async function processAndSubmit() {
         if (!appData.barcode1) {
             alert('情報不足です。最初からやり直してください。');
             goToScreen('screen-scan1');
             return;
         }
+
+        // 手入力欄に既に値がある場合はそれを優先
+        let codeVal = document.getElementById('manual-code2').value.trim();
+        if (codeVal) {
+            appData.barcode2 = codeVal;
+            submitDataToServer();
+            return;
+        }
+
+        // 撮影画像がある場合は、ここでOCRを実行
+        if (appData.capturedImage) {
+            const overlay = document.getElementById('loading-overlay');
+            document.getElementById('loading-text').innerText = '顧客コードを自動解析中...';
+            overlay.style.display = 'flex';
+
+            try {
+                const { data: { text } } = await Tesseract.recognize(appData.capturedImage, 'eng', { logger: m => {} });
+                overlay.style.display = 'none';
+
+                const cleaned = text.replace(/\s+/g, '');
+                const match = cleaned.match(/[A-Z]{2}[0-9]{7}/);
+
+                if (match) {
+                    appData.barcode2 = match[0];
+                    document.getElementById('manual-code2').value = match[0];
+                    updateHeaderBadges();
+                    // 読取成功！そのまま送信
+                    submitDataToServer();
+                } else {
+                    // 読取失敗時はフォールバック（手動確認）画面へ
+                    document.getElementById('fallback-img').src = appData.capturedImage;
+                    document.getElementById('fallback-code').value = '';
+                    goToScreen('screen-fallback');
+                }
+            } catch (err) {
+                overlay.style.display = 'none';
+                // エラー時もフォールバック画面へ
+                document.getElementById('fallback-img').src = appData.capturedImage;
+                document.getElementById('fallback-code').value = '';
+                goToScreen('screen-fallback');
+            }
+        } else {
+            // 画像も手入力もない場合
+            alert('顧客コードが取得できていません。「修正する」からコードを入力してください。');
+        }
+    }
+
+    // フォールバック画面から確定した場合
+    function confirmFallbackCode() {
+        const val = document.getElementById('fallback-code').value.trim();
+        if (!val) {
+            alert('顧客コードを入力してください。');
+            return;
+        }
+        appData.barcode2 = val;
+        document.getElementById('manual-code2').value = val;
+        saveState();
+        updateHeaderBadges();
+        submitDataToServer();
+    }
+
+    async function submitDataToServer() {
         const overlay = document.getElementById('loading-overlay');
         document.getElementById('loading-text').innerText = 'データを登録中...';
         overlay.style.display = 'flex';
@@ -580,7 +681,8 @@
             if(result.status === 'success') {
                 alert('データを登録しました！');
                 sessionStorage.clear();
-                appData = { barcode1: appData.barcode1, barcode2: '', q1: '0', q2: '', q3: '', memo: '' };
+                const currentB1 = appData.barcode1;
+                appData = { barcode1: currentB1, barcode2: '', q1: '0', q2: '', q3: '', memo: '', capturedImage: '' };
                 document.getElementById('manual-code2').value = '';
                 document.getElementById('productName').value = '';
                 document.getElementById('notes').value = '';
@@ -599,9 +701,6 @@
         }
     }
 </script>
-
-<!-- 内部処理用非表示要素 -->
-<div id="temp-reader-div" style="display:none;"></div>
 
 </body>
 </html>
