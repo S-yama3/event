@@ -14,6 +14,8 @@
             --primary-hover: #1d4ed8;
             --secondary-color: #0d9488;
             --secondary-hover: #0f766e;
+            --accent-color: #7c3aed;
+            --accent-hover: #6d28d9;
             --danger-color: #dc2626;
             --danger-hover: #b91c1c;
             --bg-color: #f8fafc;
@@ -105,6 +107,13 @@
             background-color: var(--secondary-hover);
         }
 
+        .accent-btn {
+            background-color: var(--accent-color);
+        }
+        .accent-btn:active {
+            background-color: var(--accent-hover);
+        }
+
         .danger-btn {
             background-color: var(--danger-color);
         }
@@ -112,7 +121,7 @@
             background-color: var(--danger-hover);
         }
 
-        select, input[type="password"] {
+        select, input[type="password"], input[type="file"] {
             width: 100%;
             padding: 10px;
             border: 1px solid var(--border-color);
@@ -124,7 +133,7 @@
         }
 
         /* プレビューエリア */
-        #preview-container {
+        #preview-container, #code-preview-container {
             margin-top: 16px;
             display: none;
             border: 1px solid var(--border-color);
@@ -152,6 +161,26 @@
             position: sticky;
             top: 0;
             z-index: 1;
+        }
+
+        /* 管理者メニューのアコーディオン用スタイル */
+        .admin-toggle-btn {
+            background-color: #64748b;
+            font-size: 0.9rem;
+            padding: 10px;
+            margin-top: 32px;
+        }
+        .admin-toggle-btn:active {
+            background-color: #475569;
+        }
+
+        #admin-panel {
+            display: none;
+            margin-top: 16px;
+            padding: 16px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            background-color: #f8fafc;
         }
 
         /* ローディング用オーバーレイ */
@@ -201,16 +230,8 @@
 
         <h2>データ管理・ダウンロード</h2>
 
-        <!-- 一括ダウンロードセクション -->
-        <div class="section">
-            <p>蓄積されたすべてのデータをExcelファイル（.xlsx）としてダウンロードします。</p>
-            <button id="download-btn" onclick="downloadExcel()">
-                Excelファイルを一括ダウンロード
-            </button>
-        </div>
-
-        <!-- 出展者別絞り込み・CSV/プレビューセクション -->
-        <div class="section sub-section">
+        <!-- 出展者別絞り込み・CSV/プレビューセクション（通常利用） -->
+        <div class="section sub-section" style="margin-top: 16px;">
             <h2 style="font-size: 1.1rem; border-bottom-color: var(--secondary-color); color: var(--secondary-color);">
                 出展者別データ抽出
             </h2>
@@ -218,7 +239,7 @@
             
             <label for="exhibitor-select" style="font-size: 0.9rem; font-weight: bold; display: block; margin-bottom: 4px;">出展者選択:</label>
             <select id="exhibitor-select" onchange="onExhibitorChange()">
-                <option value="">-- すべて読み込み後に選択可能になります --</option>
+                <option value="">-- 読み込み中... --</option>
             </select>
 
             <button id="preview-btn" class="secondary-btn" onclick="previewData()" disabled>
@@ -238,38 +259,103 @@
             </div>
         </div>
 
-        <!-- 履歴削除セクション -->
-        <div class="section danger-zone">
-            <h2 style="border-bottom-color: var(--danger-color); color: var(--danger-color);">
-                履歴の削除（初期化）
+        <!-- 顧客コード（C列）頭文字2文字別絞り込みセクション -->
+        <div class="section sub-section" style="margin-top: 16px; background-color: #f3e8ff; border-color: #d8b4fe;">
+            <h2 style="font-size: 1.1rem; border-bottom-color: var(--accent-color); color: var(--accent-color);">
+                顧客コード別データ抽出（頭文字2文字）
             </h2>
-            <p>
-                スプレッドシートのデータをすべて削除します。<br>
-                実行するにはパスワードを入力してください。
-            </p>
-            <input type="password" id="delete-password" placeholder="パスワードを入力">
-            <button id="delete-btn" class="danger-btn" onclick="clearData()">
-                データをすべて削除する
+            <p>顧客コード（C列）の先頭2文字を選択し、CSVダウンロードまたはプレビューを行います。</p>
+            
+            <label for="code-prefix-select" style="font-size: 0.9rem; font-weight: bold; display: block; margin-bottom: 4px;">コード頭文字2文字選択:</label>
+            <select id="code-prefix-select" onchange="onCodePrefixChange()">
+                <option value="">-- 読み込み中... --</option>
+            </select>
+
+            <button id="code-preview-btn" class="accent-btn" onclick="previewCodeData()" disabled>
+                ブラウザ内にリスト表示（プレビュー）
             </button>
+
+            <button id="code-csv-btn" class="accent-btn" onclick="downloadCodeCSV()" disabled style="background-color: #9333ea;">
+                選択したコードのCSVダウンロード
+            </button>
+
+            <!-- コード別プレビュー表示エリア -->
+            <div id="code-preview-container">
+                <div id="code-preview-content"></div>
+                <button id="code-preview-csv-btn" class="accent-btn" onclick="downloadCodeCSV()" style="margin-top: 12px; background-color: #9333ea;">
+                    明細（CSV）をダウンロード
+                </button>
+            </div>
+        </div>
+
+        <!-- 最下部：管理者メニュー開閉ボタン -->
+        <button id="admin-toggle-btn" class="admin-toggle-btn" onclick="toggleAdminPanel()">
+            🔒 管理者メニュー（一括ダウンロード・初期化・マスタ更新）
+        </button>
+
+        <!-- 管理者用パネル（初期非表示） -->
+        <div id="admin-panel">
+            <p style="font-weight: bold; color: #b91c1c; margin-top: 0;">管理者権限が必要です。パスワードを入力してください。</p>
+            <input type="password" id="admin-password" placeholder="管理者パスワードを入力">
+            <button class="secondary-btn" onclick="verifyAdminPassword()" style="background-color: #475569; margin-bottom: 16px;">
+                認証してメニューを開く
+            </button>
+
+            <div id="admin-content" style="display: none;">
+                <!-- M_CDマスタ アップロードセクション -->
+                <div class="section" style="margin-top: 16px; background: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <h2 style="font-size: 1.05rem; border-bottom-color: var(--accent-color); color: var(--accent-color);">
+                        M_CDマスタ アップロード
+                    </h2>
+                    <p>ExcelまたはCSVファイルを選択してください。1つ目のシートのA・B列（2行目以降）を読み込み、スプレッドシートのM_CDシート（2行目以降をクリアして）に上書きアップロードします。</p>
+                    <input type="file" id="master-file-input" accept=".xlsx, .xls, .csv">
+                    <button class="accent-btn" onclick="uploadMasterFile()">
+                        M_CDデータをアップロード
+                    </button>
+                </div>
+
+                <!-- 一括ダウンロードセクション -->
+                <div class="section" style="margin-top: 16px;">
+                    <h2 style="font-size: 1.05rem;">全データ一括</h2>
+                    <p>蓄積されたすべてのデータをExcelファイル（.xlsx）としてダウンロードします。</p>
+                    <button id="download-btn" onclick="downloadExcel()">
+                        Excelファイルを一括ダウンロード
+                    </button>
+                </div>
+
+                <!-- 履歴削除セクション -->
+                <div class="section danger-zone" style="margin-bottom: 0;">
+                    <h2 style="border-bottom-color: var(--danger-color); color: var(--danger-color); font-size: 1.05rem;">
+                        履歴の削除（初期化）
+                    </h2>
+                    <p>
+                        スプレッドシートのデータをすべて削除します。<br>
+                        この操作は元に戻せません。
+                    </p>
+                    <button id="delete-btn" class="danger-btn" onclick="clearData()">
+                        データをすべて削除する
+                    </button>
+                </div>
+            </div>
         </div>
 
     </div>
 
 <script>
     // =========================================================
-    // GASウェブアプリURL
+    // GASウェブアプリURL（更新済み）
     // =========================================================
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxHbtp-KK-7s1sPhh6ZEvsGFywSJ3fS7TmPMq4YWGd48pfZRAPeevjdXbMj0DlNKVj-Sg/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbw43o52yFOp1e4N_gy9im95rg9XQxjrFfMMnmObkoxkoMnbP9OhGYQAWumHoJG23rnRVg/exec';
 
     // =========================================================
-    // 削除用パスワード
+    // 管理者パスワード
     // =========================================================
     const CORRECT_PASSWORD = "1234";
 
     // =========================================================
-    // ヘッダー定義
+    // ヘッダー定義のベース
     // =========================================================
-    const EXCEL_HEADERS = [
+    const BASE_HEADERS = [
         "タイムスタンプ",
         "出展者",
         "見本市コード",
@@ -279,61 +365,260 @@
         "メモ（特記事項）"
     ];
 
-    // キャッシュ用データ保存変数
     let cachedAllData = [];
+    let cachedMcdMap = {};
+    let mcdHeaderName = "名称"; // M_CDのB列に対応するヘッダー名のデフォルト
 
-    // ページ読み込み時に自動で出展者リストを取得してセレクトボックスを初期化
+    // 動的なヘッダー配列を取得（見本市コードの後ろにM_CDのB列ヘッダー名を挿入）
+    function getDynamicHeaders() {
+        return [
+            BASE_HEADERS[0],
+            BASE_HEADERS[1],
+            BASE_HEADERS[2],
+            mcdHeaderName,
+            BASE_HEADERS[3],
+            BASE_HEADERS[4],
+            BASE_HEADERS[5],
+            BASE_HEADERS[6]
+        ];
+    }
+
+    // 行データを見本市コード（C列）を基にM_CDと結合し、コードの後ろにM_CDのB列の値を挿入する
+    function formatRowWithMcd(row) {
+        const newRow = [];
+        const timestamp = row[0];
+        const exhibitor = (row[1] !== undefined && row[1] !== null) ? row[1] : "";
+        const code = (row[2] !== undefined && row[2] !== null) ? row[2] : "";
+        const mcdVal = cachedMcdMap[String(code).trim()] || "";
+        const q1 = (row[3] !== undefined && row[3] !== null) ? row[3] : "";
+        const q2 = (row[4] !== undefined && row[4] !== null) ? row[4] : "";
+        const q3 = (row[5] !== undefined && row[5] !== null) ? row[5] : "";
+        const memo = (row[6] !== undefined && row[6] !== null) ? row[6] : "";
+
+        newRow.push(timestamp);
+        newRow.push(exhibitor);
+        newRow.push(code);
+        newRow.push(mcdVal); // M_CDのB列の値を挿入
+        newRow.push(q1);
+        newRow.push(q2);
+        newRow.push(q3);
+        newRow.push(memo);
+        return newRow;
+    }
+
+    // ページ読み込み時に自動でデータを一度だけ取得して各種セレクトボックスを初期化
     window.addEventListener('DOMContentLoaded', () => {
-        loadExhibitorList();
+        loadAllDataOnce();
     });
 
     // =========================================================
-    // 出展者リストの取得とドロップダウン初期化
+    // 全データおよびM_CDマスタの一括取得＆初期化
     // =========================================================
-    async function loadExhibitorList() {
-        try {
-            const response = await fetch(GAS_URL);
-            if (!response.ok) return;
-            const result = await response.json();
+    async function loadAllDataOnce() {
+        const overlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
+        overlay.style.display = 'flex';
+        loadingText.innerText = "データをサーバーから取得中...";
 
-            if (result.status === 'success' && result.data) {
-                cachedAllData = result.data;
+        try {
+            // DATAシートと M_CDシートのデータを同時に取得
+            const [dataRes, mcdRes] = await Promise.all([
+                fetch(GAS_URL),
+                fetch(GAS_URL + '?action=m_list')
+            ]);
+
+            if (!dataRes.ok || !mcdRes.ok) {
+                throw new Error("データ取得に失敗しました。");
+            }
+
+            const dataResult = await dataRes.json();
+            const mcdResult = await mcdRes.json();
+
+            // M_CDマッピングの構築
+            if (mcdResult.status === 'success' && mcdResult.data) {
+                const mcdRows = mcdResult.data;
+                if (mcdRows.length > 0) {
+                    // 1行目のB列をヘッダー名として取得（存在する場合）
+                    if (mcdRows[0].length > 1 && mcdRows[0][1] !== undefined && String(mcdRows[0][1]).trim() !== "") {
+                        mcdHeaderName = String(mcdRows[0][1]).trim();
+                    }
+                    for (let i = 1; i < mcdRows.length; i++) {
+                        const r = mcdRows[i];
+                        if (r && r[0] !== undefined && r[0] !== null) {
+                            const key = String(r[0]).trim();
+                            const val = (r[1] !== undefined && r[1] !== null) ? r[1] : "";
+                            cachedMcdMap[key] = val;
+                        }
+                    }
+                }
+            }
+
+            if (dataResult.status === 'success' && dataResult.data) {
+                cachedAllData = dataResult.data;
                 
-                // ヘッダー行をスキップする判定
                 let startIndex = 0;
                 if (cachedAllData.length > 0) {
                     const firstRow = cachedAllData[0];
-                    if (Array.isArray(firstRow) && (String(firstRow[0]).includes("タイムスタンプ") || String(firstRow[1]).includes("出展者"))) {
+                    if (Array.isArray(firstRow) && (String(firstRow[0]).includes("タイムスタンプ") || String(firstRow[1]).includes("出展者") || String(firstRow[2]).includes("顧客コード"))) {
                         startIndex = 1;
                     }
                 }
 
-                // B列（インデックス1）の値を重複なしで抽出
                 const exhibitorSet = new Set();
+                const codePrefixSet = new Set();
+
                 for (let i = startIndex; i < cachedAllData.length; i++) {
                     const row = cachedAllData[i];
-                    if (row && row[1] !== undefined && row[1] !== null && String(row[1]).trim() !== "") {
-                        exhibitorSet.add(String(row[1]).trim());
+                    if (!row) continue;
+
+                    // B列: 出展者
+                    if (row[1] !== undefined && row[1] !== null) {
+                        const val = String(row[1]).trim();
+                        if (val !== "") exhibitorSet.add(val);
+                    }
+
+                    // C列: 顧客コード（先頭2文字抽出）
+                    if (row[2] !== undefined && row[2] !== null) {
+                        const codeVal = String(row[2]).trim();
+                        if (codeVal.length >= 2) {
+                            const prefix = codeVal.substring(0, 2).toUpperCase();
+                            codePrefixSet.add(prefix);
+                        }
                     }
                 }
 
-                const selectBox = document.getElementById('exhibitor-select');
-                selectBox.innerHTML = '<option value="">-- 出展者を選択してください --</option>';
-                
-                exhibitorSet.forEach(exhibitor => {
+                // 1. 出展者ドロップダウン構築
+                const exhibitorSelect = document.getElementById('exhibitor-select');
+                exhibitorSelect.innerHTML = '<option value="">-- 出展者を選択してください --</option>';
+                Array.from(exhibitorSet).sort().forEach(exhibitor => {
                     const option = document.createElement('option');
                     option.value = exhibitor;
                     option.textContent = exhibitor;
-                    selectBox.appendChild(option);
+                    exhibitorSelect.appendChild(option);
                 });
+
+                // 2. 顧客コード頭文字ドロップダウン構築
+                const codeSelect = document.getElementById('code-prefix-select');
+                codeSelect.innerHTML = '<option value="">-- コード頭文字2文字を選択してください --</option>';
+                Array.from(codePrefixSet).sort().forEach(prefix => {
+                    const option = document.createElement('option');
+                    option.value = prefix;
+                    option.textContent = prefix;
+                    codeSelect.appendChild(option);
+                });
+
+            } else {
+                alert('データ読み込み失敗: ' + (dataResult.message || '不明なエラー'));
             }
         } catch (err) {
-            console.error("出展者リストの読み込みに失敗しました:", err);
+            console.error("データ取得エラー:", err);
+            alert('データの初期取得に失敗しました。ページを再読み込みしてください。');
+        } finally {
+            overlay.style.display = 'none';
         }
     }
 
-    // セレクトボックス変更時のボタン活性・非活性制御
-    functionoxifenitorChange = function() {} // placeholder
+    // =========================================================
+    // 管理者メニューのアコーディオン制御 ＆ パスワード認証
+    // =========================================================
+    function toggleAdminPanel() {
+        const panel = document.getElementById('admin-panel');
+        panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function verifyAdminPassword() {
+        const input = document.getElementById('admin-password').value;
+        if (input === CORRECT_PASSWORD) {
+            document.getElementById('admin-content').style.display = 'block';
+            alert('管理者権限が認証されました。');
+        } else {
+            alert('パスワードが違います。');
+        }
+    }
+
+    // =========================================================
+    // M_CDマスタファイルアップロード処理
+    // =========================================================
+    async function uploadMasterFile() {
+        const fileInput = document.getElementById('master-file-input');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            alert('アップロードするファイルを選択してください。');
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const overlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
+        overlay.style.display = 'flex';
+        loadingText.innerText = "ファイルを解析・アップロード中...";
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                
+                const extractedRows = [];
+                for (let i = 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (!row) continue;
+                    
+                    const colA = (row[0] !== undefined && row[0] !== null) ? row[0] : "";
+                    const colB = (row[1] !== undefined && row[1] !== null) ? row[1] : "";
+                    
+                    if (String(colA).trim() === "" && String(colB).trim() === "") {
+                        continue;
+                    }
+                    
+                    extractedRows.push([colA, colB]);
+                }
+
+                if (extractedRows.length === 0) {
+                    throw new Error("有効なデータが見つかりませんでした。（2行目以降のA・B列を確認してください）");
+                }
+
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'updateMaster',
+                        password: CORRECT_PASSWORD,
+                        data: extractedRows
+                    })
+                });
+
+                if (!response.ok) throw new Error("サーバー通信に失敗しました。");
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    alert(`M_CDマスタのアップロードが完了しました。（登録件数: ${result.count}件）`);
+                    fileInput.value = "";
+                    loadAllDataOnce(); // 再読込してマッピングを更新
+                } else {
+                    alert('アップロード失敗: ' + result.message);
+                }
+
+            } catch (err) {
+                alert('エラーが発生しました: ' + err.message);
+            } finally {
+                overlay.style.display = 'none';
+            }
+        };
+
+        reader.onerror = function() {
+            overlay.style.display = 'none';
+            alert('ファイルの読み込みに失敗しました。');
+        };
+
+        reader.readAsArrayBuffer(file);
+    }
+
+    // =========================================================
+    // 出展者別の制御・プレビュー・CSV
+    // =========================================================
     function onExhibitorChange() {
         const selected = document.getElementById('exhibitor-select').value;
         const previewBtn = document.getElementById('preview-btn');
@@ -349,10 +634,7 @@
         }
     }
 
-    // =========================================================
-    // 選択された出展者のデータをフィルタリング
-    // =========================================================
-    function getFilteredData() {
+    function getFilteredDataByExhibitor() {
         const selectedExhibitor = document.getElementById('exhibitor-select').value;
         if (!selectedExhibitor) return [];
 
@@ -368,35 +650,18 @@
         for (let i = startIndex; i < cachedAllData.length; i++) {
             const row = cachedAllData[i];
             if (row && row[1] && String(row[1]).trim() === selectedExhibitor) {
-                // 7列分のデータ整形で配列化
-                const newRow = [];
-                for (let j = 0; j < 7; j++) {
-                    newRow.push((row[j] !== undefined && row[j] !== null) ? row[j] : "");
-                }
-                filtered.push(newRow);
+                filtered.push(formatRowWithMcd(row));
             }
         }
         return filtered;
     }
 
-    // =========================================================
-    // ブラウザ内リスト表示（プレビュー）
-    // =========================================================
-    async function previewData() {
+    function previewData() {
         const selectedExhibitor = document.getElementById('exhibitor-select').value;
-        if (!selectedExhibitor) {
-            alert('出展者を選択してください。');
-            return;
-        }
-
-        // キャッシュがない場合は再取得
-        if (cachedAllData.length === 0) {
-            await loadExhibitorList();
-        }
-
-        const filteredData = getFilteredData();
+        const filteredData = getFilteredDataByExhibitor();
         const previewContainer = document.getElementById('preview-container');
         const previewContent = document.getElementById('preview-content');
+        const headers = getDynamicHeaders();
 
         if (filteredData.length === 0) {
             previewContent.innerHTML = '<p>該当するデータがありません。</p>';
@@ -404,9 +669,9 @@
             return;
         }
 
-        let html = `<p style="margin:0 0 8px 0; font-weight:bold; color:var(--secondary-color);">【プレビュー】${selectedExhibitor} （全 ${filteredData.length} 件）</p>`;
+        let html = `<p style="margin:0 0 8px 0; font-weight:bold; color:var(--secondary-color);">【プレビュー】出展者: ${selectedExhibitor} （全 ${filteredData.length} 件）</p>`;
         html += '<table class="preview-table"><thead><tr>';
-        EXCEL_HEADERS.forEach(header => {
+        headers.forEach(header => {
             html += `<th>${header}</th>`;
         });
         html += '</tr></thead><tbody>';
@@ -424,59 +689,132 @@
         previewContainer.style.display = 'block';
     }
 
-    // HTMLエスケープ用
-    function escapeHtml(str) {
-        return str.replace(/[&<>'"']/g, function(match) {
-            const escapeTable = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                "'": '&#39;',
-                '"': '&quot;'
-            };
-            return escapeTable[match];
-        });
-    }
-
-    // =========================================================
-    // 選択された出展者のCSVダウンロード処理
-    // =========================================================
-    async function downloadCSV() {
+    function downloadCSV() {
         const selectedExhibitor = document.getElementById('exhibitor-select').value;
-        if (!selectedExhibitor) {
-            alert('出展者を選択してください。');
-            return;
-        }
-
-        if (cachedAllData.length === 0) {
-            await loadExhibitorList();
-        }
-
-        const filteredData = getFilteredData();
+        const filteredData = getFilteredDataByExhibitor();
+        const headers = getDynamicHeaders();
         if (filteredData.length === 0) {
             alert('ダウンロードするデータが存在しません。');
             return;
         }
 
-        // CSV文字列の構築（ヘッダー行付与）
-        let csvContent = "\uFEFF"; // UTF-8 BOM付き（Excel文字化け防止）
-        csvContent += EXCEL_HEADERS.map(h => `"${h}"`).join(",") + "\r\n";
+        let csvContent = "\uFEFF"; // UTF-8 BOM
+        csvContent += headers.map(h => `"${h}"`).join(",") + "\r\n";
 
         filteredData.forEach(row => {
-            const escapedRow = row.map(cell => {
-                let val = String(cell).replace(/"/g, '""'); // ダブルクォーテーションのエスケープ
-                return `"${val}"`;
-            });
+            const escapedRow = row.map(cell => `"${String(cell).replace(/"/g, '""')}"`);
             csvContent += escapedRow.join(",") + "\r\n";
         });
 
-        // ダウンロード実行
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        triggerDownload(csvContent, `登録一覧_出展者_${selectedExhibitor}.csv`);
+    }
+
+    // =========================================================
+    // コード頭文字別の制御・プレビュー・CSV
+    // =========================================================
+    function onCodePrefixChange() {
+        const selected = document.getElementById('code-prefix-select').value;
+        const previewBtn = document.getElementById('code-preview-btn');
+        const csvBtn = document.getElementById('code-csv-btn');
+        
+        if (selected) {
+            previewBtn.disabled = false;
+            csvBtn.disabled = false;
+        } else {
+            previewBtn.disabled = true;
+            csvBtn.disabled = true;
+            document.getElementById('code-preview-container').style.display = 'none';
+        }
+    }
+
+    function getFilteredDataByCodePrefix() {
+        const selectedPrefix = document.getElementById('code-prefix-select').value;
+        if (!selectedPrefix) return [];
+
+        let startIndex = 0;
+        if (cachedAllData.length > 0) {
+            const firstRow = cachedAllData[0];
+            if (Array.isArray(firstRow) && (String(firstRow[0]).includes("タイムスタンプ") || String(firstRow[1]).includes("出展者"))) {
+                startIndex = 1;
+            }
+        }
+
+        const filtered = [];
+        for (let i = startIndex; i < cachedAllData.length; i++) {
+            const row = cachedAllData[i];
+            if (row && row[2] !== undefined && row[2] !== null) {
+                const codeVal = String(row[2]).trim();
+                if (codeVal.length >= 2) {
+                    const prefix = codeVal.substring(0, 2).toUpperCase();
+                    if (prefix === selectedPrefix) {
+                        filtered.push(formatRowWithMcd(row));
+                    }
+                }
+            }
+        }
+        return filtered;
+    }
+
+    function previewCodeData() {
+        const selectedPrefix = document.getElementById('code-prefix-select').value;
+        const filteredData = getFilteredDataByCodePrefix();
+        const previewContainer = document.getElementById('code-preview-container');
+        const previewContent = document.getElementById('code-preview-content');
+        const headers = getDynamicHeaders();
+
+        if (filteredData.length === 0) {
+            previewContent.innerHTML = '<p>該当するデータがありません。</p>';
+            previewContainer.style.display = 'block';
+            return;
+        }
+
+        let html = `<p style="margin:0 0 8px 0; font-weight:bold; color:var(--accent-color);">【プレビュー】コード頭文字: ${selectedPrefix} （全 ${filteredData.length} 件）</p>`;
+        html += '<table class="preview-table"><thead><tr>';
+        headers.forEach(header => {
+            html += `<th>${header}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+
+        filteredData.forEach(row => {
+            html += '<tr>';
+            row.forEach(cell => {
+                html += `<td>${escapeHtml(String(cell))}</td>`;
+            });
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+
+        previewContent.innerHTML = html;
+        previewContainer.style.display = 'block';
+    }
+
+    function downloadCodeCSV() {
+        const selectedPrefix = document.getElementById('code-prefix-select').value;
+        const filteredData = getFilteredDataByCodePrefix();
+        const headers = getDynamicHeaders();
+        if (filteredData.length === 0) {
+            alert('ダウンロードするデータが存在しません。');
+            return;
+        }
+
+        let csvContent = "\uFEFF";
+        csvContent += headers.map(h => `"${h}"`).join(",") + "\r\n";
+
+        filteredData.forEach(row => {
+            const escapedRow = row.map(cell => `"${String(cell).replace(/"/g, '""')}"`);
+            csvContent += escapedRow.join(",") + "\r\n";
+        });
+
+        triggerDownload(csvContent, `登録一覧_コード頭文字_${selectedPrefix}.csv`);
+    }
+
+    // 共通CSVトリガー関数
+    function triggerDownload(content, filename) {
+        const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         
-        // ファイル名生成（現在日時）
         const now = new Date();
         const yyyy = now.getFullYear().toString();
         const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -484,16 +822,22 @@
         const hh = String(now.getHours()).padStart(2, '0');
         const min = String(now.getMinutes()).padStart(2, '0');
         
-        a.download = `登録一覧_${selectedExhibitor}_${yyyy}${mm}${dd}${hh}${min}.csv`;
+        a.download = filename.replace('.csv', `_${yyyy}${mm}${dd}${hh}${min}.csv`);
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
 
-    // =========================================================
-    // 日本時間のタイムスタンプ文字列をExcelで認識できるDateデータへ変換
-    // =========================================================
+    // HTMLエスケープ
+    function escapeHtml(str) {
+        return str.replace(/[&<>'"']/g, function(match) {
+            const escapeTable = { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' };
+            return escapeTable[match];
+        });
+    }
+
+    // タイムスタンプ変換
     function convertJSTTimestampToExcelDate(timestamp) {
         if (timestamp === undefined || timestamp === null) return "";
         const text = String(timestamp).trim();
@@ -501,121 +845,77 @@
 
         const match = text.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})$/);
         if (!match) {
-            if (timestamp instanceof Date && !isNaN(timestamp.getTime())) {
-                return timestamp;
-            }
+            if (timestamp instanceof Date && !isNaN(timestamp.getTime())) return timestamp;
             return text;
         }
 
-        const year = Number(match[1]);
-        const month = Number(match[2]);
-        const day = Number(match[3]);
-        const hour = Number(match[4]);
-        const minute = Number(match[5]);
-        const second = Number(match[6]);
-
-        const date = new Date(year, month - 1, day, hour, minute, second);
-        if (isNaN(date.getTime())) return text;
-        return date;
+        const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), Number(match[4]), Number(match[5]), Number(match[6]));
+        return isNaN(date.getTime()) ? text : date;
     }
 
     // =========================================================
-    // Excel一括ダウンロード処理
+    // 全データ一括Excelダウンロード処理
     // =========================================================
     async function downloadExcel() {
+        if (cachedAllData.length === 0) {
+            alert('ダウンロードするデータが存在しません。');
+            return;
+        }
+
         const overlay = document.getElementById('loading-overlay');
         const loadingText = document.getElementById('loading-text');
-        const btn = document.getElementById('download-btn');
-
         overlay.style.display = 'flex';
-        loadingText.innerText = "スプレッドシートからデータを取得中...";
-        btn.disabled = true;
+        loadingText.innerText = "Excelファイルを生成中...";
 
         try {
-            const response = await fetch(GAS_URL);
-            if (!response.ok) {
-                throw new Error("データ取得に失敗しました。HTTP Status: " + response.status);
+            const headers = getDynamicHeaders();
+            const excelData = [];
+            excelData.push(headers);
+
+            let startIndex = 0;
+            if (cachedAllData.length > 0) {
+                const firstRow = cachedAllData[0];
+                if (Array.isArray(firstRow) && (String(firstRow[0]).includes("タイムスタンプ") || String(firstRow[1]).includes("出展者"))) {
+                    startIndex = 1;
+                }
             }
 
-            const result = await response.json();
-
-            if (result.status === 'success') {
-                const data = result.data;
-                cachedAllData = data; // キャッシュ更新
-
-                if (!data || data.length === 0) {
-                    alert('ダウンロードするデータが存在しません。');
-                    return;
-                }
-
-                loadingText.innerText = "Excelファイルを生成中...";
-
-                const excelData = [];
-                excelData.push(EXCEL_HEADERS);
-
-                let startIndex = 0;
-                if (data.length > 0) {
-                    const firstRow = data[0];
-                    if (Array.isArray(firstRow) && (String(firstRow[0]).includes("タイムスタンプ") || String(firstRow[1]).includes("出展者") || String(firstRow[2]).includes("見本市コード"))) {
-                        startIndex = 1;
-                    }
-                }
-
-                for (let i = startIndex; i < data.length; i++) {
-                    const row = data[i];
-                    const newRow = [];
-                    for (let j = 0; j < 7; j++) {
-                        if (row && row[j] !== undefined && row[j] !== null) {
-                            if (j === 0) {
-                                newRow.push(convertJSTTimestampToExcelDate(row[j]));
-                            } else {
-                                newRow.push(row[j]);
-                            }
-                        } else {
-                            newRow.push("");
-                        }
-                    }
-                    excelData.push(newRow);
-                }
-
-                const worksheet = XLSX.utils.aoa_to_sheet(excelData);
-
-                for (let r = 1; r < excelData.length; r++) {
-                    const cellAddress = XLSX.utils.encode_cell({ r: r, c: 0 });
-                    const cell = worksheet[cellAddress];
-                    if (cell) {
-                        cell.t = "d";
-                        cell.z = "yyyy/mm/dd hh:mm:ss";
-                    }
-                }
-
-                worksheet["!cols"] = [
-                    { wch: 22 }, { wch: 25 }, { wch: 18 },
-                    { wch: 30 }, { wch: 30 }, { wch: 30 }, { wch: 40 }
-                ];
-
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "DATA");
-
-                const now = new Date();
-                const yyyy = now.getFullYear().toString();
-                const mm = String(now.getMonth() + 1).padStart(2, '0');
-                const dd = String(now.getDate()).padStart(2, '0');
-                const hh = String(now.getHours()).padStart(2, '0');
-                const min = String(now.getMinutes()).padStart(2, '0');
-
-                const fileName = `登録一覧_${yyyy}${mm}${dd}${hh}${min}.xlsx`;
-                XLSX.writeFile(workbook, fileName);
-
-            } else {
-                alert('データ取得失敗: ' + result.message);
+            for (let i = startIndex; i < cachedAllData.length; i++) {
+                const row = cachedAllData[i];
+                if (!row) continue;
+                const formatted = formatRowWithMcd(row);
+                // タイムスタンプ（0番目）をExcel日付型対応に変換
+                formatted[0] = convertJSTTimestampToExcelDate(formatted[0]);
+                excelData.push(formatted);
             }
+
+            const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+
+            for (let r = 1; r < excelData.length; r++) {
+                const cellAddress = XLSX.utils.encode_cell({ r: r, c: 0 });
+                const cell = worksheet[cellAddress];
+                if (cell) {
+                    cell.t = "d";
+                    cell.z = "yyyy/mm/dd hh:mm:ss";
+                }
+            }
+
+            worksheet["!cols"] = [
+                { wch: 22 }, { wch: 25 }, { wch: 18 }, { wch: 20 },
+                { wch: 30 }, { wch: 30 }, { wch: 30 }, { wch: 40 }
+            ];
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "DATA");
+
+            const now = new Date();
+            const fileName = `登録一覧_一括_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.xlsx`;
+            XLSX.writeFile(workbook, fileName);
 
         } catch (err) {
-            alert('通信エラーが発生しました: ' + err);
+            alert('Excel生成エラー: ' + err);
         } finally {
             overlay.style.display = 'none';
-            btn.disabled = false;
         }
     }
 
@@ -623,56 +923,38 @@
     // 履歴削除処理
     // =========================================================
     async function clearData() {
-        const inputPass = document.getElementById('delete-password').value;
-
-        if (inputPass !== CORRECT_PASSWORD) {
-            alert('パスワードが間違っています。');
-            return;
-        }
-
         if (!confirm('本当にスプレッドシートのデータをすべて削除しますか？\nこの操作は元に戻せません。')) {
             return;
         }
 
         const overlay = document.getElementById('loading-overlay');
         const loadingText = document.getElementById('loading-text');
-        const btn = document.getElementById('delete-btn');
-
         overlay.style.display = 'flex';
         loadingText.innerText = "データを削除中...";
-        btn.disabled = true;
 
         try {
             const response = await fetch(GAS_URL, {
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'clear',
-                    password: inputPass
+                    password: CORRECT_PASSWORD
                 })
             });
 
-            if (!response.ok) {
-                throw new Error("削除処理に失敗しました。HTTP Status: " + response.status);
-            }
+            if (!response.ok) throw new Error("削除処理に失敗しました。");
 
             const result = await response.json();
-            overlay.style.display = 'none';
-
             if (result.status === 'success') {
                 alert('データをすべて削除しました。');
-                document.getElementById('delete-password').value = '';
                 cachedAllData = [];
-                loadExhibitorList(); // リストを空に更新
-                document.getElementById('preview-container').style.display = 'none';
+                loadAllDataOnce();
             } else {
                 alert('削除失敗: ' + result.message);
             }
-
         } catch (err) {
-            overlay.style.display = 'none';
             alert('通信エラーが発生しました: ' + err);
         } finally {
-            btn.disabled = false;
+            overlay.style.display = 'none';
         }
     }
 </script>
