@@ -95,6 +95,11 @@
             font-size: 18px;
             margin-bottom: 20px;
             color: #1a202c;
+            line-height: 1.5;
+        }
+        .question-line {
+            display: block;
+            margin-bottom: 4px;
         }
         .options-group {
             display: flex;
@@ -126,7 +131,7 @@
             color: var(--primary-color);
         }
         
-        /* プログレスバー用のスタイル */
+        /* プログレスバー */
         .progress-container {
             margin-bottom: 25px;
         }
@@ -185,7 +190,7 @@
     <div class="container">
         <!-- STEP 1: 初期選択画面 -->
         <div id="step1" class="step-section active">
-            <h2>ストレスチェック回答者選択</h2>
+            <h2>初期選択（グループ・担当者）</h2>
             <p>ご自身の所属するグループと担当者名を選択して「アンケートへ進む」を押してください。</p>
             
             <div class="form-group">
@@ -207,12 +212,12 @@
             </div>
         </div>
 
-        <!-- STEP 2: アンケート回答画面（1問ずつ表示 ＋ プログレスバー） -->
+        <!-- STEP 2: アンケート回答画面 -->
         <div id="step2" class="step-section">
             <h2>アンケート回答</h2>
             <div class="employee-info-box" id="selectedEmployeeDisplay"></div>
             
-            <!-- プログレスバー表示エリア -->
+            <!-- プログレスバー -->
             <div class="progress-container">
                 <div class="progress-header">
                     <span id="progressText">質問 1 / -- 問</span>
@@ -350,7 +355,6 @@
             const q = allQuestions[currentQuestionIndex];
             const container = document.getElementById('singleQuestionContainer');
             
-            // プログレスバーの更新計算
             const total = allQuestions.length;
             const current = currentQuestionIndex + 1;
             const percent = Math.round((current / total) * 100);
@@ -359,12 +363,19 @@
             document.getElementById('progressPercent').textContent = `${percent}%`;
             document.getElementById('progressBarFill').style.width = `${percent}%`;
             
-            let qTextParts = [q.q1, q.q2, q.q3].filter(Boolean).join(' - ');
+            let qLinesHtml = '';
+            if (q.q1) qLinesHtml += `<span class="question-line">${q.q1}</span>`;
+            if (q.q2) qLinesHtml += `<span class="question-line">${q.q2}</span>`;
+            if (q.q3) qLinesHtml += `<span class="question-line">${q.q3}</span>`;
+
             const currentAns = answersState[q.no] || "";
 
             container.innerHTML = `
                 <div class="question-card">
-                    <div class="question-title">問 ${q.no}: ${qTextParts}</div>
+                    <div class="question-title">
+                        <div>問 ${q.no}</div>
+                        ${qLinesHtml}
+                    </div>
                     <div class="options-group">
                         <label class="option-label"><input type="radio" name="current_q" value="1" ${currentAns == 1 ? 'checked' : ''} onclick="saveCurrentAnswer(${q.no}, 1)"><span>1: ${q.opt1}</span></label>
                         <label class="option-label"><input type="radio" name="current_q" value="2" ${currentAns == 2 ? 'checked' : ''} onclick="saveCurrentAnswer(${q.no}, 2)"><span>2: ${q.opt2}</span></label>
@@ -440,8 +451,8 @@
                 else if (ans == 3) ansText = "3: " + q.opt3;
                 else if (ans == 4) ansText = "4: " + q.opt4;
                 
-                let qTextParts = [q.q1, q.q2, q.q3].filter(Boolean).join(' - ');
-                html += `<div class="confirm-item"><strong>問${q.no} (${qTextParts}):</strong> <span style="color:var(--primary-color);">${ansText}</span></div>`;
+                let qParts = [q.q1, q.q2, q.q3].filter(Boolean).join('<br>');
+                html += `<div class="confirm-item"><strong>問${q.no}:</strong><br>${qParts}<br><span style="color:var(--primary-color); font-weight:bold;">➡ ${ansText}</span></div>`;
             });
             
             confirmBox.innerHTML = html;
@@ -465,7 +476,7 @@
                 selectedEmployee.furigana,
                 selectedEmployee.birth,
                 selectedEmployee.gender,
-                selectedPageId = selectedEmployee.id2,
+                selectedEmployee.id2,
                 selectedEmployee.deptCode,
                 selectedEmployee.deptName
             ];
