@@ -92,25 +92,25 @@
         }
         .question-title {
             font-weight: bold;
-            font-size: 16px;
-            margin-bottom: 12px;
+            font-size: 18px;
+            margin-bottom: 20px;
             color: #1a202c;
         }
         .options-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
         .option-label {
             display: flex;
             align-items: center;
             background: #f8fafc;
             border: 1px solid var(--border-color);
-            padding: 10px 12px;
+            padding: 15px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: normal;
-            font-size: 14px;
+            font-size: 16px;
             transition: all 0.2s;
         }
         .option-label:hover {
@@ -118,11 +118,18 @@
             border-color: #cbd5e0;
         }
         .option-label input {
-            margin-right: 8px;
+            margin-right: 12px;
+            transform: scale(1.2);
         }
         .option-label input:checked + span {
             font-weight: bold;
             color: var(--primary-color);
+        }
+        .progress-indicator {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 15px;
+            font-weight: bold;
         }
         #loading {
             display: none;
@@ -179,16 +186,17 @@
             </div>
         </div>
 
-        <!-- STEP 2: アンケート回答画面 -->
+        <!-- STEP 2: アンケート回答画面（1問ずつ表示） -->
         <div id="step2" class="step-section">
             <h2>アンケート回答</h2>
             <div class="employee-info-box" id="selectedEmployeeDisplay"></div>
             
-            <div id="questionsContainer"></div>
+            <div class="progress-indicator" id="progressIndicator"></div>
+            <div id="singleQuestionContainer"></div>
 
             <div class="button-group">
-                <button type="button" class="secondary" onclick="goToStep1()">⬅ 戻る（初期選択へ）</button>
-                <button type="button" onclick="goToStep3()">確認画面へ進む ➔</button>
+                <button type="button" class="secondary" id="prevQBtn" onclick="prevQuestion()">⬅ 前の質問</button>
+                <button type="button" id="nextQBtn" onclick="nextQuestion()">次へ ➔</button>
             </div>
         </div>
 
@@ -200,7 +208,7 @@
             <div id="confirmContent" style="background: #f8fafc; padding: 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;"></div>
 
             <div class="button-group">
-                <button type="button" class="secondary" onclick="goToStep2FromConfirm()">⬅ アンケートに戻る</button>
+                <button type="button" class="secondary" onclick="backToLastQuestion()">⬅ アンケートに戻る</button>
                 <button type="button" onclick="submitData()">送信する（DATAシートへ保存）</button>
             </div>
         </div>
@@ -222,12 +230,11 @@
         let allQuestions = [];
         let selectedEmployee = null;
         let answersState = {};
+        let currentQuestionIndex = 0; // 現在表示している質問のインデックス
 
-        // ページ読み込み時にJSONPで初期データを取得
         window.onload = function() {
             document.getElementById('loading').style.display = 'block';
             
-            // JSONP用のコールバック関数名
             const callbackName = 'handleInitialData_' + Math.round(Math.random() * 100000);
             
             window[callbackName] = function(data) {
@@ -239,9 +246,7 @@
                 allEmployees = data.employees;
                 allQuestions = data.questions;
                 initGroupSelect();
-                renderQuestions();
                 
-                // クリーンアップ
                 delete window[callbackName];
                 scriptTag.remove();
             };
@@ -291,32 +296,6 @@
             });
         }
 
-        function renderQuestions() {
-            const container = document.getElementById('questionsContainer');
-            container.innerHTML = '';
-            
-            allQuestions.forEach((q) => {
-                const card = document.createElement('div');
-                card.className = 'question-card';
-                let qTextParts = [q.q1, q.q2, q.q3].filter(Boolean).join(' - ');
-                
-                card.innerHTML = `
-                    <div class="question-title">問 ${q.no}: ${qTextParts}</div>
-                    <div class="options-group">
-                        <label class="option-label"><input type="radio" name="q_${q.no}" value="1" onchange="saveAnswer(${q.no}, 1)"><span>1: ${q.opt1}</span></label>
-                        <label class="option-label"><input type="radio" name="q_${q.no}" value="2" onchange="saveAnswer(${q.no}, 2)"><span>2: ${q.opt2}</span></label>
-                        <label class="option-label"><input type="radio" name="q_${q.no}" value="3" onchange="saveAnswer(${q.no}, 3)"><span>3: ${q.opt3}</span></label>
-                        <label class="option-label"><input type="radio" name="q_${q.no}" value="4" onchange="saveAnswer(${q.no}, 4)"><span>4: ${q.opt4}</span></label>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function saveAnswer(qNo, val) {
-            answersState[qNo] = val;
-        }
-
         function goToStep2() {
             const empId = document.getElementById('employeeSelect').value;
             if (!empId) {
@@ -327,8 +306,82 @@
             document.getElementById('selectedEmployeeDisplay').innerHTML = `
                 <strong>選択中の担当者：</strong> ${selectedEmployee.name} （社員ID: ${selectedEmployee.id1} / 職場: ${selectedEmployee.deptName}）
             `;
+            
+            currentQuestionIndex = 0;
+            renderCurrentQuestion();
             switchStep('step2');
             window.scrollTo(0, 0);
+        }
+
+        function renderCurrentQuestion() {
+            if (allQuestions.length === 0) return;
+            
+            const q = allQuestions[currentQuestionIndex];
+            const container = document.getElementById('singleQuestionContainer');
+            const progress = document.getElementById('progressIndicator');
+            
+            progress.textContent = `質問 ${currentQuestionIndex + 1} / ${allQuestions.length} 問`;
+            
+            let qTextParts = [q.q1, q.q2, q.q3].filter(Boolean).join(' - ');
+            const currentAns = answersState[q.no] || "";
+
+            container.innerHTML = `
+                <div class="question-card">
+                    <div class="question-title">問 ${q.no}: ${qTextParts}</div>
+                    <div class="options-group">
+                        <label class="option-label"><input type="radio" name="current_q" value="1" ${currentAns == 1 ? 'checked' : ''} onclick="saveCurrentAnswer(${q.no}, 1)"><span>1: ${q.opt1}</span></label>
+                        <label class="option-label"><input type="radio" name="current_q" value="2" ${currentAns == 2 ? 'checked' : ''} onclick="saveCurrentAnswer(${q.no}, 2)"><span>2: ${q.opt2}</span></label>
+                        <label class="option-label"><input type="radio" name="current_q" value="3" ${currentAns == 3 ? 'checked' : ''} onclick="saveCurrentAnswer(${q.no}, 3)"><span>3: ${q.opt3}</span></label>
+                        <label class="option-label"><input type="radio" name="current_q" value="4" ${currentAns == 4 ? 'checked' : ''} onclick="saveCurrentAnswer(${q.no}, 4)"><span>4: ${q.opt4}</span></label>
+                    </div>
+                </div>
+            `;
+
+            // ボタンの表示切り替え
+            const prevBtn = document.getElementById('prevQBtn');
+            const nextBtn = document.getElementById('nextQBtn');
+            
+            if (currentQuestionIndex === 0) {
+                prevBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'inline-block';
+            }
+
+            if (currentQuestionIndex === allQuestions.length - 1) {
+                nextBtn.textContent = '確認画面へ進む ➔';
+            } else {
+                nextBtn.textContent = '次へ ➔';
+            }
+        }
+
+        function saveCurrentAnswer(qNo, val) {
+            answersState[qNo] = val;
+        }
+
+        function nextQuestion() {
+            const q = allQuestions[currentQuestionIndex];
+            if (answersState[q.no] === undefined) {
+                alert('選択肢を選んでください。');
+                return;
+            }
+
+            if (currentQuestionIndex < allQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderCurrentQuestion();
+                window.scrollTo(0, 0);
+            } else {
+                goToStep3();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderCurrentQuestion();
+                window.scrollTo(0, 0);
+            } else {
+                goToStep1();
+            }
         }
 
         function goToStep1() {
@@ -337,13 +390,6 @@
         }
 
         function goToStep3() {
-            const unanswered = allQuestions.filter(q => answersState[q.no] === undefined);
-            if (unanswered.length > 0) {
-                if (!confirm(`未回答の質問が ${unanswered.length} 問あります。このまま確認画面に進みますか？`)) {
-                    return;
-                }
-            }
-            
             const confirmBox = document.getElementById('confirmContent');
             let html = `<h3>【担当者情報】</h3>
                         <div class="confirm-item"><strong>氏名:</strong> ${selectedEmployee.name} (ID: ${selectedEmployee.id1})</div>
@@ -367,7 +413,9 @@
             window.scrollTo(0, 0);
         }
 
-        function goToStep2FromConfirm() {
+        function backToLastQuestion() {
+            currentQuestionIndex = allQuestions.length - 1;
+            renderCurrentQuestion();
             switchStep('step2');
             window.scrollTo(0, 0);
         }
@@ -391,7 +439,6 @@
                 answers: answersState
             };
             
-            // 送信は通常のfetchで動作することが多いため維持（必要に応じてCORS対策）
             fetch(GAS_API_URL, {
                 method: 'POST',
                 body: JSON.stringify(payload)
