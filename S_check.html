@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アンケート入力システム</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --primary-hover: #2c5282;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        h2, h3 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-top: 0;
+        }
+        .step-section {
+            display: none;
+        }
+        .step-section.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: #fff;
+        }
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+        button.secondary {
+            background-color: #718096;
+        }
+        button.secondary:hover {
+            background-color: #4a5568;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        /* 質問カードのスタイル */
+        .question-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .question-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #1a202c;
+        }
+        .options-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        .option-label {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: normal;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .option-label:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+        .option-label input {
+            margin-right: 8px;
+        }
+        .option-label input:checked + span {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        /* ローディングオーバーレイ */
+        #loading {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8);
+            z-index: 999;
+            text-align: center;
+            padding-top: 200px;
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .employee-info-box {
+            background: #ebf8ff;
+            border: 1px solid #bee3f8;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .confirm-item {
+            margin-bottom: 12px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading">データを読み込んでいます...</div>
+
+    <div class="container">
+        <!-- STEP 1: 初期選択画面 -->
+        <div id="step1" class="step-section active">
+            <h2>初期選択（グループ・担当者）</h2>
+            <p>ご自身の所属するグループと担当者名を選択して「アンケートへ進む」を押してください。</p>
+            
+            <div class="form-group">
+                <label for="groupSelect">グループ（職場名）</label>
+                <select id="groupSelect" onchange="onGroupChange()">
+                    <option value="">-- グループを選択してください --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="employeeSelect">担当者（氏名）</label>
+                <select id="employeeSelect">
+                    <option value="">-- 先にグループを選択するか、直接選択してください --</option>
+                </select>
+            </div>
+
+            <div style="text-align: right; margin-top: 30px;">
+                <button type="button" onclick="goToStep2()">アンケートへ進む ➔</button>
+            </div>
+        </div>
+
+        <!-- STEP 2: アンケート回答画面 -->
+        <div id="step2" class="step-section">
+            <h2>アンケート回答</h2>
+            <div class="employee-info-box" id="selectedEmployeeDisplay">
+                <!-- 選択した社員情報が表示されます -->
+            </div>
+            
+            <div id="questionsContainer">
+                <!-- 質問が動的に生成されます -->
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="secondary" onclick="goToStep1()">⬅ 戻る（初期選択へ）</button>
+                <button type="button" onclick="goToStep3()">確認画面へ進む ➔</button>
+            </div>
+        </div>
+
+        <!-- STEP 3: 確認画面 -->
+        <div id="step3" class="step-section">
+            <h2>入力内容の確認</h2>
+            <p>以下の内容で送信します。よろしければ「送信する」ボタンを押してください。</p>
+            
+            <div id="confirmContent" style="background: #f8fafc; padding: 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+                <!-- 確認内容がここに表示されます -->
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="secondary" onclick="goToStep2FromConfirm()">⬅ アンケートに戻る</button>
+                <button type="button" onclick="submitData()">送信する（DATAシートへ保存）</button>
+            </div>
+        </div>
+
+        <!-- STEP 4: 完了画面 -->
+        <div id="step4" class="step-section">
+            <h2>送信完了</h2>
+            <p style="font-size: 18px; text-align: center; margin: 40px 0;">アンケートの回答が正常に保存されました。</p>
+            <div style="text-align: center;">
+                <button type="button" onclick="location.reload()">最初に戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // デプロイしたGASのウェブアプリURLを指定
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwdLKEqX0FCL5oFx6bbMEWq_Tygni6KTSC-wBvctNCIgznpr3CFLfSCSLWTwQuCSxXXuA/exec";
+
+        let allEmployees = [];
+        let allQuestions = [];
+        let selectedEmployee = null;
+        let answersState = {}; // 回答を保持するオブジェクト { 質問番号: 選択値(1〜4) }
+
+        // ページ読み込み時にGASから初期データを取得
+        window.onload = function() {
+            document.getElementById('loading').style.display = 'block';
+            
+            fetch(GAS_API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    allEmployees = data.employees;
+                    allQuestions = data.questions;
+                    initGroupSelect();
+                    renderQuestions();
+                    document.getElementById('loading').style.display = 'none';
+                })
+                .catch(error => {
+                    alert('データの取得に失敗しました: ' + error.message);
+                    document.getElementById('loading').style.display = 'none';
+                });
+        };
+
+        // グループのドロップダウン初期化
+        function initGroupSelect() {
+            const groupSelect = document.getElementById('groupSelect');
+            const groups = [...new Set(allEmployees.map(e => e.deptName))].filter(Boolean);
+            
+            groups.forEach(group => {
+                const opt = document.createElement('option');
+                opt.value = group;
+                opt.textContent = group;
+                groupSelect.appendChild(opt);
+            });
+            
+            updateEmployeeSelect(); // 初期状態（全表示）
+        }
+
+        // グループ選択変更時の処理
+        function onGroupChange() {
+            updateEmployeeSelect();
+        }
+
+        // 担当者ドロップダウンの更新（絞り込み or 全表示）
+        function updateEmployeeSelect() {
+            const selectedGroup = document.getElementById('groupSelect').value;
+            const employeeSelect = document.getElementById('employeeSelect');
+            
+            employeeSelect.innerHTML = '<option value="">-- 担当者を選択してください --</option>';
+            
+            let filteredEmployees = allEmployees;
+            if (selectedGroup !== "") {
+                filteredEmployees = allEmployees.filter(e => e.deptName === selectedGroup);
+            }
+            
+            filteredEmployees.forEach(emp => {
+                const opt = document.createElement('option');
+                opt.value = emp.id1;
+                opt.textContent = `${emp.name} （ID: ${emp.id1} / 職場: ${emp.deptName}）`;
+                employeeSelect.appendChild(opt);
+            });
+        }
+
+        // Qシートの質問を画面にレンダリングする
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            
+            allQuestions.forEach((q) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                
+                let qTextParts = [q.q1, q.q2, q.q3].filter(Boolean).join(' - ');
+                
+                card.innerHTML = `
+                    <div class="question-title">問 ${q.no}: ${qTextParts}</div>
+                    <div class="options-group">
+                        <label class="option-label">
+                            <input type="radio" name="q_${q.no}" value="1" onchange="saveAnswer(${q.no}, 1)">
+                            <span>1: ${q.opt1}</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="q_${q.no}" value="2" onchange="saveAnswer(${q.no}, 2)">
+                            <span>2: ${q.opt2}</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="q_${q.no}" value="3" onchange="saveAnswer(${q.no}, 3)">
+                            <span>3: ${q.opt3}</span>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="q_${q.no}" value="4" onchange="saveAnswer(${q.no}, 4)">
+                            <span>4: ${q.opt4}</span>
+                        </label>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 回答を一時保存する関数
+        function saveAnswer(qNo, val) {
+            answersState[qNo] = val;
+        }
+
+        // STEP 1 ➔ STEP 2
+        function goToStep2() {
+            const empId = document.getElementById('employeeSelect').value;
+            if (!empId) {
+                alert('担当者を選択してください。');
+                return;
+            }
+            
+            selectedEmployee = allEmployees.find(e => String(e.id1) === String(empId));
+            
+            document.getElementById('selectedEmployeeDisplay').innerHTML = `
+                <strong>選択中の担当者：</strong> ${selectedEmployee.name} （社員ID: ${selectedEmployee.id1} / 職場: ${selectedEmployee.deptName}）
+            `;
+            
+            switchStep('step2');
+            window.scrollTo(0, 0);
+        }
+
+        // STEP 2 ➔ STEP 1 (戻る：回答は消えない)
+        function goToStep1() {
+            switchStep('step1');
+            window.scrollTo(0, 0);
+        }
+
+        // STEP 2 ➔ STEP 3 (確認画面)
+        function goToStep3() {
+            const unanswered = allQuestions.filter(q => answersState[q.no] === undefined);
+            if (unanswered.length > 0) {
+                if (!confirm(`未回答の質問が ${unanswered.length} 問あります。このまま確認画面に進みますか？`)) {
+                    return;
+                }
+            }
+            
+            const confirmBox = document.getElementById('confirmContent');
+            let html = `<h3>【担当者情報】</h3>
+                        <div class="confirm-item"><strong>氏名:</strong> ${selectedEmployee.name} (ID: ${selectedEmployee.id1})</div>
+                        <div class="confirm-item"><strong>職場名:</strong> ${selectedEmployee.deptName}</div>
+                        <h3>【回答サマリー】</h3>`;
+            
+            allQuestions.forEach(q => {
+                const ans = answersState[q.no];
+                let ansText = "未回答";
+                if (ans == 1) ansText = "1: " + q.opt1;
+                else if (ans == 2) ansText = "2: " + q.opt2;
+                else if (ans == 3) ansText = "3: " + q.opt3;
+                else if (ans == 4) ansText = "4: " + q.opt4;
+                
+                let qTextParts = [q.q1, q.q2, q.q3].filter(Boolean).join(' - ');
+                html += `<div class="confirm-item"><strong>問${q.no} (${qTextParts}):</strong> <span style="color:var(--primary-color);">${ansText}</span></div>`;
+            });
+            
+            confirmBox.innerHTML = html;
+            switchStep('step3');
+            window.scrollTo(0, 0);
+        }
+
+        // STEP 3 ➔ STEP 2
+        function goToStep2FromConfirm() {
+            switchStep('step2');
+            window.scrollTo(0, 0);
+        }
+
+        // STEP 3 ➔ 送信処理
+        function submitData() {
+            document.getElementById('loading').style.display = 'block';
+            
+            const employeeArray = [
+                selectedEmployee.id1,
+                selectedEmployee.name,
+                selectedEmployee.furigana,
+                selectedEmployee.birth,
+                selectedEmployee.gender,
+                selectedEmployee.id2,
+                selectedEmployee.deptCode,
+                selectedEmployee.deptName
+            ];
+            
+            const payload = {
+                employee: employeeArray,
+                answers: answersState
+            };
+            
+            fetch(GAS_API_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(res => {
+                document.getElementById('loading').style.display = 'none';
+                if (res.success) {
+                    switchStep('step4');
+                    window.scrollTo(0, 0);
+                } else {
+                    throw new Error(res.error || '不明なエラー');
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                alert('送信に失敗しました: ' + error.message);
+            });
+        }
+
+        // 画面切り替え用ヘルパー
+        function switchStep(stepId) {
+            document.querySelectorAll('.step-section').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.getElementById(stepId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
