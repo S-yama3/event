@@ -125,12 +125,33 @@
             font-weight: bold;
             color: var(--primary-color);
         }
-        .progress-indicator {
+        
+        /* プログレスバー用のスタイル */
+        .progress-container {
+            margin-bottom: 25px;
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
             font-size: 14px;
             color: #718096;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             font-weight: bold;
         }
+        .progress-bar-bg {
+            width: 100%;
+            height: 10px;
+            background-color: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
         #loading {
             display: none;
             position: fixed;
@@ -186,12 +207,22 @@
             </div>
         </div>
 
-        <!-- STEP 2: アンケート回答画面（1問ずつ表示） -->
+        <!-- STEP 2: アンケート回答画面（1問ずつ表示 ＋ プログレスバー） -->
         <div id="step2" class="step-section">
             <h2>アンケート回答</h2>
             <div class="employee-info-box" id="selectedEmployeeDisplay"></div>
             
-            <div class="progress-indicator" id="progressIndicator"></div>
+            <!-- プログレスバー表示エリア -->
+            <div class="progress-container">
+                <div class="progress-header">
+                    <span id="progressText">質問 1 / -- 問</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progressBarFill"></div>
+                </div>
+            </div>
+
             <div id="singleQuestionContainer"></div>
 
             <div class="button-group">
@@ -230,7 +261,7 @@
         let allQuestions = [];
         let selectedEmployee = null;
         let answersState = {};
-        let currentQuestionIndex = 0; // 現在表示している質問のインデックス
+        let currentQuestionIndex = 0;
 
         window.onload = function() {
             document.getElementById('loading').style.display = 'block';
@@ -318,9 +349,15 @@
             
             const q = allQuestions[currentQuestionIndex];
             const container = document.getElementById('singleQuestionContainer');
-            const progress = document.getElementById('progressIndicator');
             
-            progress.textContent = `質問 ${currentQuestionIndex + 1} / ${allQuestions.length} 問`;
+            // プログレスバーの更新計算
+            const total = allQuestions.length;
+            const current = currentQuestionIndex + 1;
+            const percent = Math.round((current / total) * 100);
+
+            document.getElementById('progressText').textContent = `質問 ${current} / ${total} 問`;
+            document.getElementById('progressPercent').textContent = `${percent}%`;
+            document.getElementById('progressBarFill').style.width = `${percent}%`;
             
             let qTextParts = [q.q1, q.q2, q.q3].filter(Boolean).join(' - ');
             const currentAns = answersState[q.no] || "";
@@ -337,7 +374,6 @@
                 </div>
             `;
 
-            // ボタンの表示切り替え
             const prevBtn = document.getElementById('prevQBtn');
             const nextBtn = document.getElementById('nextQBtn');
             
@@ -429,7 +465,7 @@
                 selectedEmployee.furigana,
                 selectedEmployee.birth,
                 selectedEmployee.gender,
-                selectedEmployee.id2,
+                selectedPageId = selectedEmployee.id2,
                 selectedEmployee.deptCode,
                 selectedEmployee.deptName
             ];
