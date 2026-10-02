@@ -340,7 +340,7 @@
             }
             selectedEmployee = allEmployees.find(e => String(e.id1) === String(empId));
             document.getElementById('selectedEmployeeDisplay').innerHTML = `
-                <strong></strong> ${selectedEmployee.name} （社員ID: ${selectedEmployee.id1} / 職場: ${selectedEmployee.deptName}）
+                <strong></strong> ${selectedEmployee.name} （職場: ${selectedEmployee.deptName}）
             `;
             
             currentQuestionIndex = 0;
