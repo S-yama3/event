@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理者メンテナンス - 社員データ管理</title>
-    <!-- SheetJS (Excel読み書き用ライブラリ) -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <title>ストレスチェック回答入力システム</title>
     <style>
         :root {
             --primary-color: #2b6cb0;
@@ -24,42 +22,40 @@
             line-height: 1.6;
         }
         .container {
-            max-width: 700px;
-            margin: 40px auto;
+            max-width: 800px;
+            margin: 0 auto;
             background: var(--card-bg);
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
         }
-        h2 {
+        h2, h3 {
             color: var(--primary-color);
             border-bottom: 2px solid var(--border-color);
             padding-bottom: 8px;
             margin-top: 0;
         }
-        h3 {
-            font-size: 16px;
-            color: #1a202c;
-            margin-bottom: 5px;
+        .step-section {
+            display: none;
         }
-        .admin-box {
-            padding: 20px;
-            background: #fffaf0;
-            border: 1px solid #feebc8;
-            border-radius: 8px;
-            margin-bottom: 20px;
+        .step-section.active {
+            display: block;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
-        input[type="file"] {
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        select {
             width: 100%;
             padding: 10px;
             font-size: 16px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
             background-color: #fff;
-            box-sizing: border-box;
         }
         button {
             background-color: var(--primary-color);
@@ -81,18 +77,86 @@
         button.secondary:hover {
             background-color: #4a5568;
         }
-        button.success {
-            background-color: #38a169;
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
         }
-        button.success:hover {
-            background-color: #2f855a;
+        .question-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
         }
-        .desc {
-            font-size: 13px;
+        .question-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #1a202c;
+            line-height: 1.5;
+        }
+        .question-line {
+            display: block;
+            margin-bottom: 4px;
+        }
+        .options-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-label {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            padding: 10px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: normal;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .option-label:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+        .option-label input {
+            margin-right: 10px;
+            transform: scale(1.1);
+        }
+        .option-label input:checked + span {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        /* プログレスバー */
+        .progress-container {
+            margin-bottom: 25px;
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
             color: #718096;
-            margin-top: 0;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
+            font-weight: bold;
         }
+        .progress-bar-bg {
+            width: 100%;
+            height: 10px;
+            background-color: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
         #loading {
             display: none;
             position: fixed;
@@ -105,73 +169,119 @@
             font-weight: bold;
             color: var(--primary-color);
         }
-        .status-msg {
-            margin-top: 10px;
-            font-size: 14px;
-            font-weight: bold;
+        .employee-info-box {
+            background: #ebf8ff;
+            border: 1px solid #bee3f8;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .confirm-item {
+            margin-bottom: 12px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 8px;
         }
     </style>
 </head>
 <body>
 
-    <div id="loading">処理中...</div>
+    <div id="loading">データを読み込んでいます...</div>
 
     <div class="container">
-        <h2>⚙️ 管理者メンテナンスページ</h2>
-        <p class="desc">スプレッドシートの <strong>EMPLOYEE</strong> シートのデータをダウンロードしたり、新しいファイルで一括入替（上書き）を行います。</p>
-        
-        <div class="admin-box">
-            <!-- ダウンロード機能 -->
-            <div style="margin-bottom: 30px;">
-                <h3>📥 社員データのダウンロード</h3>
-                <p class="desc">現在登録されている社員データをExcelファイル形式で保存します。</p>
-                <button type="button" class="secondary" onclick="downloadEmployeeExcel()">Excelダウンロード</button>
-                <div id="downloadStatus" class="status-msg" style="color: #2b6cb0;"></div>
+        <!-- STEP 1: 初期選択画面 -->
+        <div id="step1" class="step-section active">
+            <h2>ストレスチェック回答</h2>
+            <p>回答者を選択して「回答へ進む」を押してください。</p>
+            
+            <div class="form-group">
+                <label for="groupSelect">グループ（職場名）</label>
+                <select id="groupSelect" onchange="onGroupChange()">
+                    <option value="">-- グループを選択してください --</option>
+                </select>
             </div>
 
-            <hr style="border: 0; border-top: 1px solid #feebc8; margin: 20px 0;">
+            <div class="form-group">
+                <label for="employeeSelect">担当者（氏名）</label>
+                <select id="employeeSelect">
+                    <option value="">-- 先にグループを選択するか、直接選択してください --</option>
+                </select>
+            </div>
 
-            <!-- アップロード（一括入替）機能 -->
-            <div>
-                <h3>📤 社員データの一括入替（アップロード）</h3>
-                <p class="desc">Excelファイル（またはCSV）を選択し、既存のEMPLOYEEデータをすべて上書きします。</p>
-                <div class="form-group">
-                    <input type="file" id="employeeExcelFile" accept=".xlsx, .xls, .csv">
-                </div>
-                <button type="button" class="success" onclick="uploadEmployeeExcel()">選択したファイルで「すべて入替」を実行</button>
+            <div style="text-align: right; margin-top: 30px;">
+                <button type="button" onclick="goToStep2()">回答へ進む ➔</button>
             </div>
         </div>
 
-        <div>
-            <button type="button" class="secondary" onclick="window.close()">このページを閉じる</button>
+        <!-- STEP 2: アンケート回答画面 -->
+        <div id="step2" class="step-section">
+            <h2>ストレスチェック回答</h2>
+            <div class="employee-info-box" id="selectedEmployeeDisplay"></div>
+            
+            <!-- プログレスバー -->
+            <div class="progress-container">
+                <div class="progress-header">
+                    <span id="progressText">質問 1 / -- 問</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progressBarFill"></div>
+                </div>
+            </div>
+
+            <div id="singleQuestionContainer"></div>
+
+            <div class="button-group">
+                <button type="button" class="secondary" id="prevQBtn" onclick="prevQuestion()">⬅ 前の質問</button>
+                <button type="button" id="nextQBtn" onclick="nextQuestion()">次へ ➔</button>
+            </div>
+        </div>
+
+        <!-- STEP 3: 確認画面 -->
+        <div id="step3" class="step-section">
+            <h2>入力内容の確認</h2>
+            <p>以下の内容で送信します。よろしければ「送信する」ボタンを押してください。</p>
+            
+            <div id="confirmContent" style="background: #f8fafc; padding: 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;"></div>
+
+            <div class="button-group">
+                <button type="button" class="secondary" onclick="backToLastQuestion()">⬅ 回答に戻る</button>
+                <button type="button" onclick="submitData()">回答を終了する</button>
+            </div>
+        </div>
+
+        <!-- STEP 4: 完了画面 -->
+        <div id="step4" class="step-section">
+            <h2>送信完了</h2>
+            <p style="font-size: 18px; text-align: center; margin: 40px 0;">ストレスチェック回答が正常に保存されました。</p>
+            <div style="text-align: center;">
+                <button type="button" onclick="location.reload()">最初に戻る</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // ★ご自身のGASのウェブアプリURLに書き換えてください
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxV5b_w7ePA8SGUKgzzcvDFBlqF2IddKbVRhye1EVtEzGcqoebAYeKup24W8k-740kgMA/exec";
 
         let allEmployees = [];
+        let allQuestions = [];
+        let selectedEmployee = null;
+        let answersState = {};
+        let currentQuestionIndex = 0;
 
-        // ページ読み込み時に現在の社員データを取得しておく（ダウンロード用）
         window.onload = function() {
-            fetchEmployeesData();
-        };
-
-        function fetchEmployeesData() {
-            const statusEl = document.getElementById('downloadStatus');
-            statusEl.textContent = "サーバーからデータを読み込み中...";
-
-            const callbackName = 'handleAdminData_' + Math.round(Math.random() * 100000);
+            document.getElementById('loading').style.display = 'block';
+            
+            const callbackName = 'handleInitialData_' + Math.round(Math.random() * 100000);
             
             window[callbackName] = function(data) {
-                statusEl.textContent = "";
+                document.getElementById('loading').style.display = 'none';
                 if (data.error) {
                     alert('エラー: ' + data.error);
                     return;
                 }
                 allEmployees = data.employees;
-                statusEl.textContent = `読込完了（現在 ${allEmployees.length} 件の社員データ登録済）`;
+                allQuestions = data.questions;
+                initGroupSelect();
                 
                 delete window[callbackName];
                 scriptTag.remove();
@@ -180,103 +290,227 @@
             const scriptTag = document.createElement('script');
             scriptTag.src = `${GAS_API_URL}?callback=${callbackName}`;
             scriptTag.onerror = function() {
-                statusEl.textContent = "";
+                document.getElementById('loading').style.display = 'none';
                 alert('データの読み込みに失敗しました（ネットワークエラー）');
             };
             document.body.appendChild(scriptTag);
+        };
+
+        function initGroupSelect() {
+            const groupSelect = document.getElementById('groupSelect');
+            const groups = [...new Set(allEmployees.map(e => e.deptName))].filter(Boolean);
+            
+            groups.forEach(group => {
+                const opt = document.createElement('option');
+                opt.value = group;
+                opt.textContent = group;
+                groupSelect.appendChild(opt);
+            });
+            updateEmployeeSelect();
         }
 
-        // EMPLOYEEデータをエクセルとしてダウンロード
-        function downloadEmployeeExcel() {
-            if (allEmployees.length === 0) {
-                alert('ダウンロードする社員データがまだ読み込まれていないか、データが存在しません。');
-                return;
-            }
-
-            const header = ["社員ID(id1)", "氏名", "ふりがな", "生年月日", "性別", "予備ID(id2)", "部署コード", "部署名"];
-            const rows = allEmployees.map(e => [
-                e.id1, e.name, e.furigana, e.birth, e.gender, e.id2, e.deptCode, e.deptName
-            ]);
-
-            const sheetData = [header, ...rows];
-            const ws = XLSX.utils.aoa_to_sheet(sheetData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "EMPLOYEE");
-
-            XLSX.writeFile(wb, "EMPLOYEE_DATA.xlsx");
+        function onGroupChange() {
+            updateEmployeeSelect();
         }
 
-        // 選択したエクセルファイルをアップロードしてすべて入替
-        function uploadEmployeeExcel() {
-            const fileInput = document.getElementById('employeeExcelFile');
-            if (fileInput.files.length === 0) {
-                alert('アップロードするエクセルファイルを選択してください。');
+        function updateEmployeeSelect() {
+            const selectedGroup = document.getElementById('groupSelect').value;
+            const employeeSelect = document.getElementById('employeeSelect');
+            
+            employeeSelect.innerHTML = '<option value="">-- 担当者を選択してください --</option>';
+            
+            let filteredEmployees = allEmployees;
+            if (selectedGroup !== "") {
+                filteredEmployees = allEmployees.filter(e => e.deptName === selectedGroup);
+            }
+            
+            filteredEmployees.forEach(emp => {
+                const opt = document.createElement('option');
+                opt.value = emp.id1;
+                opt.textContent = `${emp.name} （ID: ${emp.id1} / 職場: ${emp.deptName}）`;
+                employeeSelect.appendChild(opt);
+            });
+        }
+
+        function goToStep2() {
+            const empId = document.getElementById('employeeSelect').value;
+            if (!empId) {
+                alert('担当者を選択してください。');
+                return;
+            }
+            selectedEmployee = allEmployees.find(e => String(e.id1) === String(empId));
+            document.getElementById('selectedEmployeeDisplay').innerHTML = `
+                <strong></strong> ${selectedEmployee.name} （職場: ${selectedEmployee.deptName}）
+            `;
+            
+            currentQuestionIndex = 0;
+            renderCurrentQuestion();
+            switchStep('step2');
+            window.scrollTo(0, 0);
+        }
+
+        function renderCurrentQuestion() {
+            if (allQuestions.length === 0) return;
+            
+            const q = allQuestions[currentQuestionIndex];
+            const container = document.getElementById('singleQuestionContainer');
+            
+            const total = allQuestions.length;
+            const current = currentQuestionIndex + 1;
+            const percent = Math.round((current / total) * 100);
+
+            document.getElementById('progressText').textContent = `質問 ${current} / ${total} 問`;
+            document.getElementById('progressPercent').textContent = `${percent}%`;
+            document.getElementById('progressBarFill').style.width = `${percent}%`;
+            
+            let qLinesHtml = '';
+            if (q.q1) qLinesHtml += `<span class="question-line">${q.q1}</span>`;
+            if (q.q2) qLinesHtml += `<span class="question-line">${q.q2}</span>`;
+            if (q.q3) qLinesHtml += `<span class="question-line">${q.q3}</span>`;
+
+            const currentAns = answersState[q.no] || "";
+
+            container.innerHTML = `
+                <div class="question-card">
+                    <div class="question-title">
+                        <div>問 ${q.no}</div>
+                        ${qLinesHtml}
+                    </div>
+                    <div class="options-group">
+                        <label class="option-label"><input type="radio" name="current_q" value="1" ${currentAns == 1 ? 'checked' : ''} onclick="saveCurrentAnswer(${q.no}, 1)"><span>1: ${q.opt1}</span></label>
+                        <label class="option-label"><input type="radio" name="current_q" value="2" ${currentAns == 2 ? 'checked' : ''} onclick="saveCurrentAnswer(${q.no}, 2)"><span>2: ${q.opt2}</span></label>
+                        <label class="option-label"><input type="radio" name="current_q" value="3" ${currentAns == 3 ? 'checked' : ''} onclick="saveCurrentAnswer(${q.no}, 3)"><span>3: ${q.opt3}</span></label>
+                        <label class="option-label"><input type="radio" name="current_q" value="4" ${currentAns == 4 ? 'checked' : ''} onclick="saveCurrentAnswer(${q.no}, 4)"><span>4: ${q.opt4}</span></label>
+                    </div>
+                </div>
+            `;
+
+            const prevBtn = document.getElementById('prevQBtn');
+            const nextBtn = document.getElementById('nextQBtn');
+            
+            if (currentQuestionIndex === 0) {
+                prevBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'inline-block';
+            }
+
+            if (currentQuestionIndex === allQuestions.length - 1) {
+                nextBtn.textContent = '確認画面へ進む ➔';
+            } else {
+                nextBtn.textContent = '次へ ➔';
+            }
+        }
+
+        function saveCurrentAnswer(qNo, val) {
+            answersState[qNo] = val;
+        }
+
+        function nextQuestion() {
+            const q = allQuestions[currentQuestionIndex];
+            if (answersState[q.no] === undefined) {
+                alert('選択肢を選んでください。');
                 return;
             }
 
-            if (!confirm('【警告】現在のEMPLOYEEシートのデータをすべてクリアし、選択したファイルの内容で完全に上書き（入替）します。実行してよろしいですか？')) {
-                return;
+            if (currentQuestionIndex < allQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderCurrentQuestion();
+                window.scrollTo(0, 0);
+            } else {
+                goToStep3();
             }
+        }
 
-            const file = fileInput.files[0];
-            const reader = new FileReader();
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderCurrentQuestion();
+                window.scrollTo(0, 0);
+            } else {
+                goToStep1();
+            }
+        }
 
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    
-                    // ヘッダー行らしきものがあればスキップ
-                    let rows = jsonData.filter(row => row.length > 0);
-                    if (rows.length > 0) {
-                        const firstRowStr = String(rows[0][0]);
-                        if (firstRowStr.includes('ID') || firstRowStr.includes('id') || firstRowStr.includes('社員')) {
-                            rows.shift();
-                        }
-                    }
+        function goToStep1() {
+            switchStep('step1');
+            window.scrollTo(0, 0);
+        }
 
-                    if (rows.length === 0) {
-                        alert('ファイルに有効なデータが見つかりませんでした。');
-                        return;
-                    }
+        function goToStep3() {
+            const confirmBox = document.getElementById('confirmContent');
+            let html = `<h3>【担当者情報】</h3>
+                        <div class="confirm-item"><strong>氏名:</strong> ${selectedEmployee.name} (ID: ${selectedEmployee.id1})</div>
+                        <div class="confirm-item"><strong>職場名:</strong> ${selectedEmployee.deptName}</div>
+                        <h3>【回答サマリー】</h3>`;
+            
+            allQuestions.forEach(q => {
+                const ans = answersState[q.no];
+                let ansText = "未回答";
+                if (ans == 1) ansText = "1: " + q.opt1;
+                else if (ans == 2) ansText = "2: " + q.opt2;
+                else if (ans == 3) ansText = "3: " + q.opt3;
+                else if (ans == 4) ansText = "4: " + q.opt4;
+                
+                let qParts = [q.q1, q.q2, q.q3].filter(Boolean).join('<br>');
+                html += `<div class="confirm-item"><strong>問${q.no}:</strong><br>${qParts}<br><span style="color:var(--primary-color); font-weight:bold;">➡ ${ansText}</span></div>`;
+            });
+            
+            confirmBox.innerHTML = html;
+            switchStep('step3');
+            window.scrollTo(0, 0);
+        }
 
-                    document.getElementById('loading').style.display = 'block';
+        function backToLastQuestion() {
+            currentQuestionIndex = allQuestions.length - 1;
+            renderCurrentQuestion();
+            switchStep('step2');
+            window.scrollTo(0, 0);
+        }
 
-                    const payload = {
-                        action: "replaceEmployees",
-                        employees: rows
-                    };
-
-                    fetch(GAS_API_URL, {
-                        method: 'POST',
-                        body: JSON.stringify(payload)
-                    })
-                    .then(response => response.json())
-                    .then(res => {
-                        document.getElementById('loading').style.display = 'none';
-                        if (res.success) {
-                            alert('従業員データをすべて入替しました。');
-                            location.reload();
-                        } else {
-                            throw new Error(res.error || '不明なエラー');
-                        }
-                    })
-                    .catch(error => {
-                        document.getElementById('loading').style.display = 'none';
-                        alert('入替に失敗しました: ' + error.message);
-                    });
-
-                } catch (err) {
-                    alert('ファイルの解析に失敗しました: ' + err.message);
-                }
+        function submitData() {
+            document.getElementById('loading').style.display = 'block';
+            
+            const employeeArray = [
+                selectedEmployee.id1,
+                selectedEmployee.name,
+                selectedEmployee.furigana,
+                selectedEmployee.birth,
+                selectedEmployee.gender,
+                selectedEmployee.id2,
+                selectedEmployee.deptCode,
+                selectedEmployee.deptName
+            ];
+            
+            const payload = {
+                employee: employeeArray,
+                answers: answersState
             };
+            
+            fetch(GAS_API_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(res => {
+                document.getElementById('loading').style.display = 'none';
+                if (res.success) {
+                    switchStep('step4');
+                    window.scrollTo(0, 0);
+                } else {
+                    throw new Error(res.error || '不明なエラー');
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                alert('送信に失敗しました: ' + error.message);
+            });
+        }
 
-            reader.readAsArrayBuffer(file);
+        function switchStep(stepId) {
+            document.querySelectorAll('.step-section').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.getElementById(stepId).classList.add('active');
         }
     </script>
 </body>
-</html>
