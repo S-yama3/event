@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者メンテナンス - 社員データ管理</title>
+    <!-- SheetJS (Excel読み書き用ライブラリ) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --primary-hover: #2c5282;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-top: 0;
+        }
+        h3 {
+            font-size: 16px;
+            color: #1a202c;
+            margin-bottom: 5px;
+        }
+        .admin-box {
+            padding: 20px;
+            background: #fffaf0;
+            border: 1px solid #feebc8;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+        button.secondary {
+            background-color: #718096;
+        }
+        button.secondary:hover {
+            background-color: #4a5568;
+        }
+        button.success {
+            background-color: #38a169;
+        }
+        button.success:hover {
+            background-color: #2f855a;
+        }
+        .desc {
+            font-size: 13px;
+            color: #718096;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        #loading {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8);
+            z-index: 999;
+            text-align: center;
+            padding-top: 200px;
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .status-msg {
+            margin-top: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading">処理中...</div>
+
+    <div class="container">
+        <h2>⚙️ 管理者メンテナンスページ</h2>
+        <p class="desc"><strong>ストレスチェック対象者</strong> のデータをメンテナンスします。</p>
+        
+        <div class="admin-box">
+            <!-- ダウンロード機能 -->
+            <div style="margin-bottom: 30px;">
+                <h3>📥 社員データのダウンロード</h3>
+                <p class="desc">現在登録されている社員名簿をExcelファイル形式で保存します。</p>
+                <button type="button" class="secondary" onclick="downloadEmployeeExcel()">Excelダウンロード</button>
+                <div id="downloadStatus" class="status-msg" style="color: #2b6cb0;"></div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #feebc8; margin: 20px 0;">
+
+            <!-- アップロード（一括入替）機能 -->
+            <div>
+                <h3>📤 社員データの一括入替（アップロード）</h3>
+                <p class="desc">現在の名簿のExcelファイルを選択し、既存のリストを更新します。</p>
+                <div class="form-group">
+                    <input type="file" id="employeeExcelFile" accept=".xlsx, .xls, .csv">
+                </div>
+                <button type="button" class="success" onclick="uploadEmployeeExcel()">選択したファイルで名簿の更新を実行</button>
+            </div>
+        </div>
+
+        <div>
+            <button type="button" class="secondary" onclick="window.close()">このページを閉じる</button>
+        </div>
+    </div>
+
+    <script>
+        // ★ご自身のGASのウェブアプリURLに書き換えてください
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxV5b_w7ePA8SGUKgzzcvDFBlqF2IddKbVRhye1EVtEzGcqoebAYeKup24W8k-740kgMA/exec";
+
+        let allEmployees = [];
+
+        // ページ読み込み時に現在の社員データを取得しておく（ダウンロード用）
+        window.onload = function() {
+            fetchEmployeesData();
+        };
+
+        function fetchEmployeesData() {
+            const statusEl = document.getElementById('downloadStatus');
+            statusEl.textContent = "サーバーからデータを読み込み中...";
+
+            const callbackName = 'handleAdminData_' + Math.round(Math.random() * 100000);
+            
+            window[callbackName] = function(data) {
+                statusEl.textContent = "";
+                if (data.error) {
+                    alert('エラー: ' + data.error);
+                    return;
+                }
+                allEmployees = data.employees;
+                statusEl.textContent = `読込完了（現在 ${allEmployees.length} 件の社員データ登録済）`;
+                
+                delete window[callbackName];
+                scriptTag.remove();
+            };
+
+            const scriptTag = document.createElement('script');
+            scriptTag.src = `${GAS_API_URL}?callback=${callbackName}`;
+            scriptTag.onerror = function() {
+                statusEl.textContent = "";
+                alert('データの読み込みに失敗しました（ネットワークエラー）');
+            };
+            document.body.appendChild(scriptTag);
+        }
+
+        // EMPLOYEEデータをエクセルとしてダウンロード
+        function downloadEmployeeExcel() {
+            if (allEmployees.length === 0) {
+                alert('ダウンロードする社員データがまだ読み込まれていないか、データが存在しません。');
+                return;
+            }
+
+            const header = ["社員ID(id1)", "氏名", "ふりがな", "生年月日", "性別", "予備ID(id2)", "部署コード", "部署名"];
+            const rows = allEmployees.map(e => [
+                e.id1, e.name, e.furigana, e.birth, e.gender, e.id2, e.deptCode, e.deptName
+            ]);
+
+            const sheetData = [header, ...rows];
+            const ws = XLSX.utils.aoa_to_sheet(sheetData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "EMPLOYEE");
+
+            XLSX.writeFile(wb, "EMPLOYEE_DATA.xlsx");
+        }
+
+        // 選択したエクセルファイルをアップロードしてすべて入替
+        function uploadEmployeeExcel() {
+            const fileInput = document.getElementById('employeeExcelFile');
+            if (fileInput.files.length === 0) {
+                alert('アップロードするエクセルファイルを選択してください。');
+                return;
+            }
+
+            if (!confirm('【警告】現在のEMPLOYEEシートのデータをすべてクリアし、選択したファイルの内容で完全に上書き（入替）します。実行してよろしいですか？')) {
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    // ヘッダー行らしきものがあればスキップ
+                    let rows = jsonData.filter(row => row.length > 0);
+                    if (rows.length > 0) {
+                        const firstRowStr = String(rows[0][0]);
+                        if (firstRowStr.includes('ID') || firstRowStr.includes('id') || firstRowStr.includes('社員')) {
+                            rows.shift();
+                        }
+                    }
+
+                    if (rows.length === 0) {
+                        alert('ファイルに有効なデータが見つかりませんでした。');
+                        return;
+                    }
+
+                    document.getElementById('loading').style.display = 'block';
+
+                    const payload = {
+                        action: "replaceEmployees",
+                        employees: rows
+                    };
+
+                    fetch(GAS_API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    })
+                    .then(response => response.json())
+                    .then(res => {
+                        document.getElementById('loading').style.display = 'none';
+                        if (res.success) {
+                            alert('従業員データをすべて入替しました。');
+                            location.reload();
+                        } else {
+                            throw new Error(res.error || '不明なエラー');
+                        }
+                    })
+                    .catch(error => {
+                        document.getElementById('loading').style.display = 'none';
+                        alert('入替に失敗しました: ' + error.message);
+                    });
+
+                } catch (err) {
+                    alert('ファイルの解析に失敗しました: ' + err.message);
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
+</body>
+</html>
