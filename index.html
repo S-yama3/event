@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ｎｅｗビジネスフェア</title>
 <meta name="description" content="2026年7月17日開催！AI活用、オフィス改革、酷暑対策、防災対策など企業の課題解決につながる最新ソリューションを展示。">
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght=700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">
 
 <style>
 /* 🌟 デザインシステムとカラーパレットの定義 */
@@ -519,13 +519,10 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
   .slide-in-right { transform: translateX(40px); }
 }
 
-@media (max-width: 768px) {@media (max-width: 768px) {
-
+@media (max-width: 768px) {
   .card-link {
     height: auto;
   }
-
-}
   nav { padding: 15px 20px; }
   .logo { text-shadow: 1.5px 1.5px 0px #fff, 3px 3px 0px var(--border-color); }
   
@@ -604,12 +601,8 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
       開催まで<span id="days-count" class="days-highlight">--</span>
     </div>
 
-    <div class="timer-box">
-      <span id="timer-count">5</span>
-    </div>
-
     <div class="skip-notice">
-      👆 この画面はクリックするとスキップ出来ます
+      👆 <!--画面をクリックするとメインページが開きます-->
     </div>
   </div>
 </div>
@@ -649,7 +642,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
     </div>
     
     <div class="info-date-box">
-      7月17日<span class="weekday">(金)</span> <span class="time">10:00～17:00 開催</span>
+      2026年7月17日<span class="weekday">(金)</span> <span class="time">10:00～17:00 開催</span>
     </div>
     
 <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
@@ -672,21 +665,21 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
     <div class="hero-badges-container">
       <div class="bubble-alert left">
         <span style="color: #ff3366; font-size: 24px;">⚠️ 【重要】</span><br>
-        本イベントへのご来場には、事前エントリー（登録）が必要です。<br>画面下のエントリーフォームから登録をお願いします。
+        本イベントは終了いたしました。たくさんのご来場ありがとうございました。
       </div>
       <div class="bubble-alert right">
         <span style="color: #ff9900; font-size: 24px;">🎁 Check!</span><br>
-        当日アンケート回答ですてきなギフトが抽選であたるチャンスも！！
+        当日アンケートにご協力いただきありがとうございました。
       </div>
     </div>
   </section>
 
   <div class="slider-container">
     <div class="slider-wrapper" id="slider">
-      <div class="slide">　</div>
-      <div class="slide">　</div>
-      <div class="slide">　</div>
-      <div class="slide">　</div>
+      <div class="slide"> </div>
+      <div class="slide"> </div>
+      <div class="slide"> </div>
+      <div class="slide"> </div>
     </div>
   </div>
   <div class="slider-dots">
@@ -705,7 +698,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
           【セミナー1】 11:00～
         </span>
         <span style="font-size:15px; font-weight:800;">
-            🎤　AI活用による1on1の質的向上とエンゲージメント向上へのアプローチ
+            🎤 AI活用による1on1の質的向上とエンゲージメント向上へのアプローチ
         </span>
       </p>
         <p style="font-size: 13px; color: #666; margin-bottom: 5px;">講師：TONOME株式会社 代表取締役CEO プロコーチ 小笠原 広大 氏</p>
@@ -717,7 +710,7 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
           【セミナー2】 14:00～
         </span>
         <span style="font-size:15px; font-weight:800;">
-            🎤　ライオン事務器がお届けするエンゲージメントを高める ”ワーキングプレイス”
+            🎤 ライオン事務器がお届けするエンゲージメントを高める ”ワーキングプレイス”
         </span>
       </p>
         <p style="font-size: 13px; color: #666;">講師：株式会社ライオン事務器 商品本部オフィス環境エンジニアリング部 部長 中柴 秀明 氏</p>
@@ -768,25 +761,9 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
     </a>
 
     <div class="form-card slide-in-left" id="entryFormSection">
-      <div id="form-toggle-btn" onclick="toggleForm(event)" style="background:var(--secondary); padding:20px; border-bottom:4px solid var(--border-color); text-align:center; cursor:pointer; user-select:none; transition: background 0.2s;">
-        <h3 style="margin:0; display: inline-block; font-size: clamp(1.1rem, 3.5vw, 1.8rem);">💌 <span id="toggle-text">エントリーはこちら</span> <span id="toggle-arrow">▼</span></h3>
+      <div class="closed-msg-box">
+        🏁 イベントは終了しました。<br>ありがとうございました。
       </div>
-      <div id="form-content" style="width:100%; height:0px; overflow:hidden; transition: height 0.5s cubic-bezier(0.25, 1, 0.5, 1);">
-
-        <div id="form-inner-container" style="width:100%; height:700px;">
-          <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfcbB7PN8-55oXZuzzrZvOKuY7GycuNckMXhrBLLi5xFscBfQ/viewform?embedded=true" style="width:100%; height:100%; border:none;"></iframe>
-        </div>
-      </div>
-    </div>
-<div style="margin: 20px auto; padding: 20px; max-width: 90%; background: #ffffff; border: 2px solid #ccc; border-radius: 10px; font-size: 14px; color: #333; line-height: 1.6; text-align: left;">
-
-        　エントリー後は、システムより<strong>「承認確認メール」</strong>が送信されます。メール内の承認リンクをクリックし承認を完了すると<strong>入場用ＱＲメール</strong>が届きます。<br><br>
-      <p style="margin: 0 0 10px 0; font-weight: bold; color: #d32f2f;">　⚠️ エントリー後メールが届かないお客様へ ⚠️</p>
-      <p style="margin: 0;">
-	　メールが届かない場合は迷惑メールフォルダに届いていないかご確認ください。<br>
-        　承認済みでＱＲコードが届かない場合は、お手数ですが<strong>再度エントリー</strong>をお願いします。登録済みのアドレスと入力のアドレスが一致すると入場用ＱＲコードが添付されたメールが再送されます。<br>
-	　アドレスが不一致の場合は入力されたアドレスへ「承認確認」メールが届きます。
-      </p>
     </div>
   </section>
 </div>
@@ -804,12 +781,11 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 </div>
 
 <script>
-let isIntro = true, currentSlide = 0, timeLeft = 5, autoTimer, countdownInterval, isClosedEvent = false;
+let isIntro = true, currentSlide = 0, autoTimer;
 
 const slider = document.getElementById('slider');
 const dots = document.querySelectorAll('.dot');
 const introLayer = document.getElementById('intro-layer');
-const timerDisplay = document.getElementById('timer-count');
 const shortcutBtn = document.getElementById('shortcutBtn');
 
 function updateSliderUI() {
@@ -827,13 +803,8 @@ function updateSliderUI() {
 }
 
 function exitIntro() {
-  clearInterval(countdownInterval);
   introLayer.classList.add('slide-up');
   isIntro = false;
-  // 🚨 イベント終了後は画面右側の「申込する」ボタンを非表示にする
-  if (!isClosedEvent) {
-    shortcutBtn.classList.add('visible');
-  }
   startMainSliderTimer();
 }
 
@@ -842,7 +813,12 @@ function startMainSliderTimer() {
   autoTimer = setInterval(() => { currentSlide++; updateSliderUI(); }, 5000);
 }
 
-function handleInteraction() { if (isIntro) exitIntro(); }
+// 画面をクリックした時のみメインページ（イントロ非表示）を開く
+function handleInteraction() { 
+  if (isIntro) {
+    exitIntro();
+  }
+}
 
 function dotClick(idx, e) {
   e.stopPropagation();
@@ -856,54 +832,8 @@ function startMainTimer() {
   autoTimer = setInterval(() => { currentSlide++; updateSliderUI(); }, 5000);
 }
 
-function setFormOpenState(isOpen) {
-  // 🚨 すでにイベント終了している場合はアコーディオンが開かないようにする
-  if (isClosedEvent) return;
-
-  const formContent = document.getElementById('form-content');
-  const toggleText = document.getElementById('toggle-text');
-  const toggleArrow = document.getElementById('toggle-arrow');
-  const toggleBtn = document.getElementById('form-toggle-btn');
-
-  if (isOpen) {
-    formContent.style.height = '700px'; 
-    toggleText.innerText = 'エントリーフォームを閉じる';
-    toggleArrow.innerText = '▲';
-    toggleBtn.style.background = 'var(--primary)'; 
-  } else {
-    formContent.style.height = '0px'; 
-    toggleText.innerText = 'エントリーはこちら';
-    toggleArrow.innerText = '▼';
-    toggleBtn.style.background = 'var(--secondary)'; 
-  }
-}
-
-function toggleForm(e) {
-  e.stopPropagation(); 
-  const formContent = document.getElementById('form-content');
-  const isCurrentlyClosed = (formContent.style.height === '0px' || formContent.style.height === '');
-  setFormOpenState(isCurrentlyClosed);
-}
-
 function scrollToAndOpenForm(e) {
   e.stopPropagation();
-  if (isClosedEvent) return; // 終了時はボタン自体出ませんがガード処理
-
-  const formContent = document.getElementById('form-content');
-  const isClosed = formContent.style.height === '0px' || formContent.style.height === '';
-
-  if (isClosed) {
-    setFormOpenState(true);
-  }
-
-  setTimeout(() => {
-    const iframe = document.querySelector('#form-content iframe');
-    if (iframe) {
-      iframe.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-      document.getElementById('entryFormSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, 600);
 }
 
 function initScrollAnimation() {
@@ -956,64 +886,19 @@ document.getElementById('pass-input').addEventListener('keypress', function(e) {
   if (e.key === 'Enter') checkPassword();
 });
 
-/* 📅 残り日数およびフォーム締め切りの判定ロジック */
-function calculateDaysLeft() {
-  const targetStart = new Date("2026/07/17 00:00:00"); 
-  const targetEnd = new Date("2026/07/17 17:00:00");   
-  const today = new Date();
-  
-  const currentDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const targetDateOnly = new Date(targetStart.getFullYear(), targetStart.getMonth(), targetStart.getDate());
-  
-  const diffTime = targetDateOnly - currentDateOnly;
-  const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  const displayContainer = document.getElementById('days-count');
-  
-  if (today >= targetEnd) {
-    // 🚨 【イベント終了後】の処理
-    isClosedEvent = true;
-    displayContainer.innerHTML = `<span style="font-size:0.85em; color:#bbb;">イベントは終了しました</span>`;
-    
-    // フォーム部分を終了メッセージボックスへ差し替える
-    const entrySection = document.getElementById('entryFormSection');
-    if (entrySection) {
-      entrySection.innerHTML = `
-        <div class="closed-msg-box">
-          🏁 イベントは終了しました。<br>ありがとうございました。
-        </div>
-      `;
-      // アコーディオンアニメーション用に無理やり非表示になってしまうのを防ぐため高さを自動化
-      entrySection.style.height = "auto";
-      entrySection.style.boxShadow = "none";
-      entrySection.style.border = "none";
-      entrySection.style.background = "transparent";
-    }
-    // 右下の追従ボタンを完全に隠す
-    shortcutBtn.style.display = "none";
-
-  } else if (today >= targetStart && today < targetEnd) {
-    // 7月17日の 00:00 から 16:59:59 までの間
-    displayContainer.innerHTML = `<span class="days-highlight" style="color:#ffcc00; font-size:1.2em;">本日開催中！</span>`;
-  } else if (daysLeft > 0) {
-    // 7月16日以前の場合
-    displayContainer.innerHTML = `あと<span class="days-highlight">${daysLeft}</span>日！`;
-  } else {
-    displayContainer.innerHTML = `<span style="font-size:0.85em; color:#bbb;">イベントは終了しました</span>`;
-  }
-}
-
 window.onload = () => {
-  calculateDaysLeft(); // 🚨 先に時間判定を行ってフォーム状態を確定させる
   initScrollAnimation();
   
-  countdownInterval = setInterval(() => {
-    timeLeft--;
-    if(timerDisplay) timerDisplay.innerText = timeLeft;
-    if (timeLeft <= 0) exitIntro();
-  }, 1000);
+  // 終了表示の固定
+  const displayContainer = document.getElementById('days-count');
+  if(displayContainer) {
+    displayContainer.innerHTML = `<span style="font-size:0.85em; color:#bbb;">イベントは終了しました</span>`;
+  }
+  // 右下の申込ボタンを非表示
+  if(shortcutBtn) {
+    shortcutBtn.style.display = "none";
+  }
 };
-
 </script>
 
 <footer class="site-footer">
