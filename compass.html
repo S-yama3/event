@@ -1,28 +1,15 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Information | compass</title>
-
-<!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
-
 <style>
-/* =========================================================
-   基本設定
-========================================================= */
-* {
-    box-sizing: border-box;
-}
-
-html {
-    scroll-behavior: smooth;
-}
-
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 body {
     margin: 0;
     font-family: "Noto Sans JP", "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif;
@@ -30,20 +17,7 @@ body {
     background: #f8fafc;
     line-height: 1.6;
 }
-
-/* =========================================================
-   ページ全体
-========================================================= */
-.page {
-    width: 100%;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 48px 24px 80px;
-}
-
-/* =========================================================
-   ページタイトル
-========================================================= */
+.page { width: 100%; max-width: 1100px; margin: 0 auto; padding: 48px 24px 80px; }
 .page-heading {
     display: flex;
     align-items: flex-end;
@@ -52,12 +26,7 @@ body {
     padding-bottom: 24px;
     border-bottom: 2px solid #e2e8f0;
 }
-
-.heading-left {
-    position: relative;
-    padding-left: 16px;
-}
-
+.heading-left { position: relative; padding-left: 16px; }
 .heading-left::before {
     content: "";
     position: absolute;
@@ -68,765 +37,298 @@ body {
     border-radius: 2px;
     background: #2563eb;
 }
+.heading-en { margin-bottom: 4px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; font-weight: 700; color: #2563eb; letter-spacing: 0.15em; }
+.heading-title { margin: 0; font-size: 28px; font-weight: 700; color: #0f172a; letter-spacing: 0.03em; }
+.heading-description { margin: 6px 0 0; font-size: 13px; color: #64748b; }
+.content-layout { display: grid; grid-template-columns: 1fr 340px; gap: 32px; align-items: start; }
+.main-column { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+.sub-column { display: flex; flex-direction: column; gap: 24px; position: sticky; top: 32px; }
 
-.heading-en {
-    margin-bottom: 4px;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    color: #2563eb;
-    letter-spacing: 0.15em;
-}
-
-.heading-title {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 700;
-    color: #0f172a;
-    letter-spacing: 0.03em;
-}
-
-.heading-description {
-    margin: 6px 0 0;
-    font-size: 13px;
-    color: #64748b;
-}
-
-/* =========================================================
-   メインコンテンツ全体のレイアウト構成
-========================================================= */
-.content-layout {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 32px;
-    align-items: start;
-}
-
-.main-column {
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-    min-width: 0;
-}
-
-.sub-column {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    position: sticky;
-    top: 32px;
-}
-
-/* =========================================================
-   画面全体ローディングオーバーレイ（読込中演出）
-========================================================= */
+/* Loading */
 .global-loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(241, 245, 249, 0.85);
-    backdrop-filter: blur(2px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    z-index: 9999;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(241, 245, 249, 0.85); backdrop-filter: blur(2px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    z-index: 9999; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
 }
+body.is-loading .global-loading-overlay { opacity: 1; visibility: visible; }
+.loading-spinner { width: 44px; height: 44px; border: 4px solid #cbd5e1; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; }
+.loading-text { font-size: 14px; font-weight: 600; color: #334155; letter-spacing: 0.08em; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-body.is-loading .global-loading-overlay {
-    opacity: 1;
-    visibility: visible;
-}
-
-.loading-spinner {
-    width: 44px;
-    height: 44px;
-    border: 4px solid #cbd5e1;
-    border-top-color: #2563eb;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-.loading-text {
-    font-size: 14px;
-    font-weight: 600;
-    color: #334155;
-    letter-spacing: 0.08em;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* =========================================================
-   情報カード共通
-========================================================= */
+/* Cards */
 .notice-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    overflow: hidden;
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
     transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
 }
-
-.notice-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-}
-
+.notice-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05); }
 .price-card { border-top: 4px solid #f97316; }
 .product-card { border-top: 4px solid #3b82f6; }
 .seasonal-card { border-top: 4px solid #10b981; }
 .useful-card { border-top: 4px solid #8b5cf6; }
 
-/* =========================================================
-   カードヘッダー
-========================================================= */
 .notice-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 24px;
-    border-bottom: 1px solid #f1f5f9;
-    cursor: pointer;
-    user-select: none;
-    transition: background-color 0.2s ease;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px; border-bottom: 1px solid #f1f5f9; cursor: pointer; user-select: none; transition: background-color 0.2s ease;
 }
-
 .price-card .notice-header { background: linear-gradient(to bottom, #fffaf5, #fff7ed); border-bottom-color: #fed7aa; }
 .product-card .notice-header { background: linear-gradient(to bottom, #f0f7ff, #eff6ff); border-bottom-color: #bfdbfe; }
 .seasonal-card .notice-header { background: linear-gradient(to bottom, #f0fdf4, #ecfdf5); border-bottom-color: #a7f3d0; }
 .useful-card .notice-header { background: linear-gradient(to bottom, #f5f3ff, #ede9fe); border-bottom-color: #ddd6fe; }
 
-.notice-header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.notice-header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
+.notice-header-right, .notice-header-left { display: flex; align-items: center; gap: 12px; }
 .notice-icon {
-    width: 38px;
-    height: 38px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 700;
+    width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; font-size: 16px; font-weight: 700;
 }
-
 .price-card .notice-icon { color: #c2410c; background: #ffedd5; }
 .product-card .notice-icon { color: #1d4ed8; background: #dbeafe; }
 .seasonal-card .notice-icon { color: #047857; background: #d1fae5; }
 .useful-card .notice-icon { color: #7c3aed; background: #ede9fe; }
 
-.notice-title-area {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.notice-title {
-    margin: 0;
-    font-size: 17px;
-    font-weight: 700;
-    color: #1e293b;
-}
-
-.notice-subtitle {
-    margin: 2px 0 0;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 10px;
-    font-weight: 700;
-    color: #94a3b8;
-    letter-spacing: 0.12em;
-}
-
-.notice-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 36px;
-    height: 24px;
-    padding: 0 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
+.notice-title-area { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.notice-title { margin: 0; font-size: 17px; font-weight: 700; color: #1e293b; }
+.notice-subtitle { margin: 2px 0 0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 10px; font-weight: 700; color: #94a3b8; letter-spacing: 0.12em; }
+.notice-count { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 24px; padding: 0 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
 .price-card .notice-count { background: #ffedd5; color: #c2410c; }
 .product-card .notice-count { background: #dbeafe; color: #1d4ed8; }
 .seasonal-card .notice-count { background: #d1fae5; color: #047857; }
 .useful-card .notice-count { background: #ede9fe; color: #7c3aed; }
 
-.toggle-arrow {
-    display: inline-block;
-    font-size: 14px;
-    font-weight: 700;
-    transition: transform 0.3s ease;
-}
-
+.toggle-arrow { display: inline-block; font-size: 14px; font-weight: 700; transition: transform 0.3s ease; }
 .price-card .toggle-arrow { color: #c2410c; }
 .product-card .toggle-arrow { color: #1d4ed8; }
 .seasonal-card .toggle-arrow { color: #047857; }
 .useful-card .toggle-arrow { color: #7c3aed; }
+.notice-card.is-open .toggle-arrow { transform: rotate(180deg); }
 
-.notice-card.is-open .toggle-arrow {
-    transform: rotate(180deg);
-}
+.notice-body-wrapper { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 0.3s ease; }
+.notice-card:not(.is-open) .notice-body-wrapper { grid-template-rows: 0fr; }
+.notice-body-inner { overflow: hidden; }
 
-/* =========================================================
-   アコーディオン本体の開閉アニメーション設定
-========================================================= */
-.notice-body-wrapper {
-    display: grid;
-    grid-template-rows: 1fr;
-    transition: grid-template-rows 0.3s ease;
-}
-
-.notice-card:not(.is-open) .notice-body-wrapper {
-    grid-template-rows: 0fr;
-}
-
-.notice-body-inner {
-    overflow: hidden;
-}
-
-/* =========================================================
-   一覧リスト
-========================================================= */
-.notice-list {
-    list-style: none;
-    margin: 0;
-    padding: 12px 18px 18px;
-}
-
+/* List */
+.notice-list { list-style: none; margin: 0; padding: 12px 18px 18px; }
 .notice-item {
-    display: grid;
-    grid-template-columns: 95px minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 18px;
-    min-height: 76px;
-    padding: 14px 10px;
-    border-bottom: 1px solid #f1f5f9;
-    transition: background-color 0.2s ease;
+    display: grid; grid-template-columns: 95px minmax(0, 1fr) auto;
+    align-items: center; gap: 18px; min-height: 76px; padding: 14px 10px; border-bottom: 1px solid #f1f5f9; transition: background-color 0.2s ease;
 }
-
-.notice-item:last-child {
-    border-bottom: none;
-}
-
-.notice-item:hover {
-    background: #f8fafc;
-    border-radius: 8px;
-}
-
-.date-area {
-    display: flex;
-    flex-direction: column;
-}
-
-.date {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    color: #475569;
-    white-space: nowrap;
-}
-
-.date-label {
-    font-size: 10px;
-    color: #94a3b8;
-    letter-spacing: 0.05em;
-    margin-top: 1px;
-}
-
-.notice-content {
-    min-width: 0;
-}
-
-.notice-item-title {
-    display: block;
-    font-size: 15px;
-    font-weight: 600;
-    color: #1e293b;
-    word-break: break-word;
-    line-height: 1.5;
-}
-
+.notice-item:last-child { border-bottom: none; }
+.notice-item:hover { background: #f8fafc; border-radius: 8px; }
+.date-area { display: flex; flex-direction: column; }
+.date { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; color: #475569; white-space: nowrap; }
+.date-label { font-size: 10px; color: #94a3b8; letter-spacing: 0.05em; margin-top: 1px; }
+.notice-content { min-width: 0; }
+.notice-item-title { display: block; font-size: 15px; font-weight: 600; color: #1e293b; word-break: break-word; line-height: 1.5; }
+.notice-item-title br { display: block; content: ""; margin-top: 3px; }
 .new-badge {
-    display: inline-flex;
-    align-items: center;
-    height: 18px;
-    padding: 0 6px;
-    margin-left: 8px;
-    border-radius: 4px;
-    background: #ef4444;
-    color: #ffffff;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    vertical-align: middle;
+    display: inline-flex; align-items: center; height: 18px; padding: 0 6px; margin-left: 8px; border-radius: 4px;
+    background: #ef4444; color: #ffffff; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.05em; vertical-align: middle;
 }
-
 .view-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    min-width: 90px;
-    height: 36px;
-    padding: 0 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    background: #ffffff;
-    color: #475569;
-    text-decoration: none;
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-    transition: all 0.2s ease;
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 90px; height: 36px; padding: 0 12px;
+    border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; color: #475569; text-decoration: none; font-size: 12px; font-weight: 600; white-space: nowrap; transition: all 0.2s ease;
 }
+.view-link:hover { background: #f1f5f9; color: #0f172a; border-color: #94a3b8; }
+.arrow { font-size: 12px; transition: transform 0.2s ease; }
+.view-link:hover .arrow { transform: translateX(2px); }
 
-.view-link:hover {
-    background: #f1f5f9;
-    color: #0f172a;
-    border-color: #94a3b8;
+/* Widgets */
+.compass-widget, .calendar-widget {
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
 }
+.compass-widget-header { padding: 16px 20px; background: #0f172a; color: #ffffff; display: flex; align-items: center; justify-content: space-between; }
+.compass-logo { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 0.1em; }
+.compass-logo span { color: #38bdf8; }
+.compass-badge { font-size: 10px; font-weight: 600; background: #1e293b; padding: 3px 8px; border-radius: 4px; color: #94a3b8; letter-spacing: 0.05em; }
+.compass-body { padding: 16px; }
+.compass-banner { display: block; position: relative; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; text-decoration: none; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.compass-banner:hover { transform: translateY(-2px); box-shadow: 0 8px 12px -3px rgba(15, 23, 42, 0.1); }
+.compass-banner img { width: 100%; height: auto; display: block; aspect-ratio: 1 / 1.3; object-fit: cover; }
+.compass-desc { margin: 12px 4px 4px; font-size: 12px; color: #64748b; line-height: 1.5; }
 
-.arrow {
-    font-size: 12px;
-    transition: transform 0.2s ease;
-}
+.calendar-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #1e293b; color: #ffffff; font-size: 14px; font-weight: 700; }
+.cal-btn { background: transparent; border: none; color: #ffffff; font-size: 16px; font-weight: 700; cursor: pointer; padding: 0 8px; border-radius: 4px; transition: background-color 0.2s ease; }
+.cal-btn:hover { background: rgba(255, 255, 255, 0.1); }
+.calendar-body { padding: 16px; }
+.calendar-table { width: 100%; border-collapse: collapse; table-layout: fixed; text-align: center; font-size: 13px; }
+.calendar-table th, .calendar-table td { width: 14.28%; height: 42px; padding: 0; vertical-align: middle; position: relative; box-sizing: border-box; }
+.calendar-table th { font-weight: 600; color: #334155; }
+.calendar-table td { color: #334155; }
+.is-red-day { color: #ef4444 !important; font-weight: 600; }
+.calendar-table td .holiday-star { display: block; font-size: 9px; color: #ef4444; line-height: 1; margin-top: 2px; }
+.calendar-note { margin-top: 10px; padding-top: 8px; border-top: 1px solid #f1f5f9; font-size: 11px; color: #64748b; text-align: left; }
+.calendar-note-star { color: #ef4444; font-size: 13px; font-weight: 700; }
+.calendar-table td.other-month { color: #cbd5e1; }
 
-.view-link:hover .arrow {
-    transform: translateX(2px);
-}
-
-/* =========================================================
-   サイドカラム：月間チラシ「compass」専用セクション
-========================================================= */
-.compass-widget {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-}
-
-.compass-widget-header {
-    padding: 16px 20px;
-    background: #0f172a;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.compass-logo {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-}
-
-.compass-logo span {
-    color: #38bdf8;
-}
-
-.compass-badge {
-    font-size: 10px;
-    font-weight: 600;
-    background: #1e293b;
-    padding: 3px 8px;
-    border-radius: 4px;
-    color: #94a3b8;
-    letter-spacing: 0.05em;
-}
-
-.compass-body {
-    padding: 16px;
-}
-
-.compass-banner {
-    display: block;
-    position: relative;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid #e2e8f0;
-    text-decoration: none;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.compass-banner:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 12px -3px rgba(15, 23, 42, 0.1);
-}
-
-.compass-banner img {
-    width: 100%;
-    height: auto;
-    display: block;
-    aspect-ratio: 1 / 1.3;
-    object-fit: cover;
-}
-
-.compass-desc {
-    margin: 12px 4px 4px;
-    font-size: 12px;
-    color: #64748b;
-    line-height: 1.5;
-}
-
-/* =========================================================
-   サイドカラム：月間カレンダーウィジェット（幅・高さ固定）
-========================================================= */
-.calendar-widget {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-}
-
-.calendar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: #1e293b;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 700;
-}
-
-.cal-btn {
-    background: transparent;
-    border: none;
-    color: #ffffff;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    padding: 0 8px;
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
-}
-
-.cal-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.calendar-body {
-    padding: 16px;
-}
-
-.calendar-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-    text-align: center;
-    font-size: 13px;
-}
-
-.calendar-table th, 
-.calendar-table td {
-    width: 14.28%;
-    height: 42px;
-    padding: 0;
-    vertical-align: middle;
-    position: relative;
-    box-sizing: border-box;
-}
-
-.calendar-table th {
-    font-weight: 600;
-    color: #334155;
-}
-
-.calendar-table td {
-    color: #334155;
-}
-
-/* sheet2のA列：赤文字スタイル */
-.is-red-day {
-    color: #ef4444 !important;
-    font-weight: 600;
-}
-
-/* sheet2のB列：日付の下に表示する赤い星マーク */
-.calendar-table td .holiday-star {
-    display: block;
-    font-size: 9px;
-    color: #ef4444;
-    line-height: 1;
-    margin-top: 2px;
-}
-/* カレンダー下の見本市説明 */
-.calendar-note {
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid #f1f5f9;
-    font-size: 11px;
-    color: #64748b;
-    text-align: left;
-}
-
-.calendar-note-star {
-    color: #ef4444;
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.calendar-table td.other-month {
-    color: #cbd5e1;
-}
-
-/* =========================================================
-   重要情報エリア
-========================================================= */
 .info-note {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 32px;
-    padding: 14px 20px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    background: #ffffff;
-    color: #64748b;
-    font-size: 12px;
+    display: flex; align-items: center; gap: 12px; margin-top: 32px; padding: 14px 20px;
+    border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff; color: #64748b; font-size: 12px;
 }
-
 .info-note-icon {
-    width: 22px;
-    height: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: #f1f5f9;
-    color: #475569;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
+    width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    border-radius: 50%; background: #f1f5f9; color: #475569; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; font-weight: 700;
 }
+.empty-message { padding: 24px 10px; text-align: center; color: #94a3b8; font-size: 12px; }
 
-.empty-message {
-    padding: 24px 10px;
-    text-align: center;
-    color: #94a3b8;
-    font-size: 12px;
-}
-
-/* =========================================================
-   レスポンシブデザイン（スマホ対応）
-========================================================= */
 @media (max-width: 900px) {
-    .content-layout {
-        grid-template-columns: 1fr;
-    }
-    .sub-column {
-        position: static;
-    }
-    .page {
-        padding: 32px 16px 60px;
-    }
+    .content-layout { grid-template-columns: 1fr; }
+    .sub-column { position: static; }
+    .page { padding: 32px 16px 60px; }
 }
-
 @media (max-width: 650px) {
-    .page-heading {
-        display: block;
-        margin-bottom: 24px;
-    }
-    .heading-title {
-        font-size: 24px;
-    }
-    .notice-item {
-        grid-template-columns: 85px minmax(0, 1fr) auto;
-        gap: 12px;
-    }
+    .page-heading { display: block; margin-bottom: 24px; }
+    .heading-title { font-size: 24px; }
+    .notice-item { grid-template-columns: 85px minmax(0, 1fr) auto; gap: 12px; }
 }
 </style>
 </head>
-
 <body class="is-loading">
+<div class="global-loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">読み込み中...</div>
+</div>
 
-    <div class="global-loading-overlay">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">読み込み中...</div>
+<main class="page">
+    <header class="page-heading">
+        <div class="heading-left">
+            <div class="heading-en">INFORMATION</div>
+            <h1 class="heading-title">compass</h1>
+            <p class="heading-description">仙台山三からの最新情報をご案内しています。</p>
+        </div>
+    </header>
+
+    <div class="content-layout">
+        <div class="main-column">
+            <!-- 新着情報 -->
+            <article id="usefulCard" class="notice-card useful-card">
+                <div class="notice-header" onclick="toggleCard(this)">
+                    <div class="notice-header-left">
+                        <div class="notice-icon">新</div>
+                        <div>
+                            <div class="notice-title-area">
+                                <h2 class="notice-title">新着情報</h2>
+                                <span id="usefulHeaderNew" class="new-badge" style="display: none;">NEW</span>
+                            </div>
+                            <div class="notice-subtitle">WHAT'S NEW</div>
+                        </div>
+                    </div>
+                    <div class="notice-header-right">
+                        <div id="usefulCount" class="notice-count">0件</div>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                </div>
+                <div class="notice-body-wrapper"><div class="notice-body-inner"><ul id="usefulList" class="notice-list"></ul></div></div>
+            </article>
+
+            <!-- 価格改定情報 -->
+            <article id="priceCard" class="notice-card price-card">
+                <div class="notice-header" onclick="toggleCard(this)">
+                    <div class="notice-header-left">
+                        <div class="notice-icon">￥</div>
+                        <div>
+                            <div class="notice-title-area">
+                                <h2 class="notice-title">価格改定情報</h2>
+                                <span id="priceHeaderNew" class="new-badge" style="display: none;">NEW</span>
+                            </div>
+                            <div class="notice-subtitle">PRICE REVISION</div>
+                        </div>
+                    </div>
+                    <div class="notice-header-right">
+                        <div id="priceCount" class="notice-count">0件</div>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                </div>
+                <div class="notice-body-wrapper"><div class="notice-body-inner"><ul id="priceRevisionList" class="notice-list"></ul></div></div>
+            </article>
+
+            <!-- 新商品情報 -->
+            <article id="productCard" class="notice-card product-card">
+                <div class="notice-header" onclick="toggleCard(this)">
+                    <div class="notice-header-left">
+                        <div class="notice-icon">＋</div>
+                        <div>
+                            <div class="notice-title-area">
+                                <h2 class="notice-title">新商品情報</h2>
+                                <span id="productHeaderNew" class="new-badge" style="display: none;">NEW</span>
+                            </div>
+                            <div class="notice-subtitle">NEW PRODUCTS</div>
+                        </div>
+                    </div>
+                    <div class="notice-header-right">
+                        <div id="productCount" class="notice-count">0件</div>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                </div>
+                <div class="notice-body-wrapper"><div class="notice-body-inner"><ul id="newProductList" class="notice-list"></ul></div></div>
+            </article>
+
+            <!-- チラシアーカイブ -->
+            <article id="seasonalCard" class="notice-card seasonal-card">
+                <div class="notice-header" onclick="toggleCard(this)">
+                    <div class="notice-header-left">
+                        <div class="notice-icon">チ</div>
+                        <div>
+                            <div class="notice-title-area">
+                                <h2 class="notice-title">仙台山三チラシ〈compass〉アーカイブ</h2>
+                                <span id="seasonalHeaderNew" class="new-badge" style="display: none;">NEW</span>
+                            </div>
+                            <div class="notice-subtitle">SEASONAL PROPOSAL</div>
+                        </div>
+                    </div>
+                    <div class="notice-header-right">
+                        <div id="seasonalCount" class="notice-count">0件</div>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                </div>
+                <div class="notice-body-wrapper"><div class="notice-body-inner"><ul id="seasonalList" class="notice-list"></ul></div></div>
+            </article>
+        </div>
+
+        <aside class="sub-column">
+            <!-- compass -->
+            <div class="compass-widget">
+                <div class="compass-widget-header">
+                    <div class="compass-logo">COMPASS<span>.</span></div>
+                    <div class="compass-badge">月間チラシ</div>
+                </div>
+                <div class="compass-body">
+                    <a href="images/202610_top.jpg" class="compass-banner" target="_blank" rel="noopener noreferrer">
+                        <img src="images/202610_top.jpg" alt="月間チラシ COMPASS 最新号を見る">
+                    </a>
+                    <p class="compass-desc">最新チラシはコチラ！</p>
+                </div>
+            </div>
+
+            <!-- カレンダー -->
+            <div class="calendar-widget">
+                <div class="calendar-header">
+                    <button id="prevBtn" class="cal-btn" onclick="changeMonth(-1)">‹</button>
+                    <span id="calendarTitle">2026年 9月</span>
+                    <button id="nextBtn" class="cal-btn" onclick="changeMonth(1)">›</button>
+                </div>
+                <div class="calendar-body">
+                    <table class="calendar-table">
+                        <thead>
+                            <tr><th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th></tr>
+                        </thead>
+                        <tbody id="calendarBody"></tbody>
+                    </table>
+                    <div class="calendar-note"><span class="calendar-note-star">★</span>＝見本市</div>
+                </div>
+            </div>
+        </aside>
     </div>
 
-    <main class="page">
-        <header class="page-heading">
-            <div class="heading-left">
-                <div class="heading-en">INFORMATION</div>
-                <h1 class="heading-title">compass</h1>
-                <p class="heading-description">仙台山三からの最新情報をご案内しています。</p>
-            </div>
-        </header>
-
-        <div class="content-layout">
-            <div class="main-column">
-                <article id="usefulCard" class="notice-card useful-card">
-                    <div class="notice-header" onclick="toggleCard(this)">
-                        <div class="notice-header-left">
-                            <div class="notice-icon">新</div>
-                            <div>
-                                <div class="notice-title-area">
-                                    <h2 class="notice-title">新着情報</h2>
-                                    <span id="usefulHeaderNew" class="new-badge" style="display: none;">NEW</span>
-                                </div>
-                                <div class="notice-subtitle">WHAT'S NEW</div>
-                            </div>
-                        </div>
-                        <div class="notice-header-right">
-                            <div id="usefulCount" class="notice-count">0件</div>
-                            <span class="toggle-arrow">▼</span>
-                        </div>
-                    </div>
-                    <div class="notice-body-wrapper">
-                        <div class="notice-body-inner">
-                            <ul id="usefulList" class="notice-list"></ul>
-                        </div>
-                    </div>
-                </article>
-
-                <article id="priceCard" class="notice-card price-card">
-                    <div class="notice-header" onclick="toggleCard(this)">
-                        <div class="notice-header-left">
-                            <div class="notice-icon">￥</div>
-                            <div>
-                                <div class="notice-title-area">
-                                    <h2 class="notice-title">価格改定情報</h2>
-                                    <span id="priceHeaderNew" class="new-badge" style="display: none;">NEW</span>
-                                </div>
-                                <div class="notice-subtitle">PRICE REVISION</div>
-                            </div>
-                        </div>
-                        <div class="notice-header-right">
-                            <div id="priceCount" class="notice-count">0件</div>
-                            <span class="toggle-arrow">▼</span>
-                        </div>
-                    </div>
-                    <div class="notice-body-wrapper">
-                        <div class="notice-body-inner">
-                            <ul id="priceRevisionList" class="notice-list"></ul>
-                        </div>
-                    </div>
-                </article>
-
-                <article id="productCard" class="notice-card product-card">
-                    <div class="notice-header" onclick="toggleCard(this)">
-                        <div class="notice-header-left">
-                            <div class="notice-icon">＋</div>
-                            <div>
-                                <div class="notice-title-area">
-                                    <h2 class="notice-title">新商品情報</h2>
-                                    <span id="productHeaderNew" class="new-badge" style="display: none;">NEW</span>
-                                </div>
-                                <div class="notice-subtitle">NEW PRODUCTS</div>
-                            </div>
-                        </div>
-                        <div class="notice-header-right">
-                            <div id="productCount" class="notice-count">0件</div>
-                            <span class="toggle-arrow">▼</span>
-                        </div>
-                    </div>
-                    <div class="notice-body-wrapper">
-                        <div class="notice-body-inner">
-                            <ul id="newProductList" class="notice-list"></ul>
-                        </div>
-                    </div>
-                </article>
-
-                <article id="seasonalCard" class="notice-card seasonal-card">
-                    <div class="notice-header" onclick="toggleCard(this)">
-                        <div class="notice-header-left">
-                            <div class="notice-icon">チ</div>
-                            <div>
-                                <div class="notice-title-area">
-                                    <h2 class="notice-title">仙台山三チラシ〈compass〉アーカイブ</h2>
-                                    <span id="seasonalHeaderNew" class="new-badge" style="display: none;">NEW</span>
-                                </div>
-                                <div class="notice-subtitle">SEASONAL PROPOSAL</div>
-                            </div>
-                        </div>
-                        <div class="notice-header-right">
-                            <div id="seasonalCount" class="notice-count">0件</div>
-                            <span class="toggle-arrow">▼</span>
-                        </div>
-                    </div>
-                    <div class="notice-body-wrapper">
-                        <div class="notice-body-inner">
-                            <ul id="seasonalList" class="notice-list"></ul>
-                        </div>
-                    </div>
-                </article>
-            </div>
-
-            <aside class="sub-column">
-                <div class="compass-widget">
-                    <div class="compass-widget-header">
-                        <div class="compass-logo">COMPASS<span>.</span></div>
-                        <div class="compass-badge">月間チラシ</div>
-                    </div>
-                    <div class="compass-body">
-                        <a href="images/202610_top.jpg" class="compass-banner" target="_blank" rel="noopener noreferrer">
-                            <img src="images/202610_top.jpg" alt="月間チラシ COMPASS 最新号を見る">
-                        </a>
-                        <p class="compass-desc">最新チラシはコチラ！</p>
-                    </div>
-                </div>
-
-                <div class="calendar-widget">
-                    <div class="calendar-header">
-                        <button id="prevBtn" class="cal-btn" onclick="changeMonth(-1)">‹</button>
-                        <span id="calendarTitle">2026年 9月</span>
-                        <button id="nextBtn" class="cal-btn" onclick="changeMonth(1)">›</button>
-                    </div>
-                    <div class="calendar-body">
-                        <table class="calendar-table">
-                            <thead>
-                                <tr>
-                                    <th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th>
-                                </tr>
-                            </thead>
-                            <tbody id="calendarBody"></tbody>
-                        </table>
-    				<div class="calendar-note">
-    				    <span class="calendar-note-star">★</span>＝見本市
-    				</div>
-                    </div>
-                </div>
-            </aside>
-        </div>
-
-        <div class="info-note">
-            <div class="info-note-icon">i</div>
-            <div>掲載内容についてご不明な点がございましたら、担当営業までお問い合わせください。</div>
-        </div>
-    </main>
+    <div class="info-note">
+        <div class="info-note-icon">i</div>
+        <div>掲載内容についてご不明な点がございましたら、担当営業までお問い合わせください。</div>
+    </div>
+</main>
 
 <script>
 function toggleCard(headerEl) {
-    const card = headerEl.closest('.notice-card');
-    card.classList.toggle('is-open');
+    headerEl.closest('.notice-card').classList.toggle('is-open');
 }
 
 let calendarDate = new Date();
@@ -839,47 +341,32 @@ function changeMonth(direction) {
     const targetMonth = targetDate.getMonth();
 
     if (!hasHolidayInMonth(targetYear, targetMonth, cachedHolidays) && !hasHolidayInMonth(targetYear, targetMonth, cachedRedDays)) {
-        return; 
+        return;
     }
-
     calendarDate = targetDate;
     renderCalendar(cachedRedDays, cachedHolidays);
 }
 
 function hasHolidayInMonth(year, month, daysArray) {
-    const firstDay = 1;
     const lastDay = new Date(year, month + 1, 0).getDate();
     const mStr = String(month + 1).padStart(2, '0');
-
-    for (let d = firstDay; d <= lastDay; d++) {
-        const dStr = String(d).padStart(2, '0');
-        if (daysArray.includes(`${year}${mStr}${dStr}`)) {
-            return true;
-        }
+    for (let d = 1; d <= lastDay; d++) {
+        if (daysArray.includes(`${year}${mStr}${String(d).padStart(2, '0')}`)) return true;
     }
     return false;
 }
 
 const fetchAllData = async () => {
     const webAppUrl = 'https://script.google.com/macros/s/AKfycbz42cNSUUKGNszl02UauIrkrUF5yE6S4XEp1L0E_eLl_isW4IPX7H5rRLTrTGDuJJqW6A/exec';
-
     try {
         const response = await fetch(webAppUrl);
         const result = await response.json();
-
         const rows = Array.isArray(result) ? result : (result.rows || []);
-        const redDays = Array.isArray(result.redDays) ? result.redDays : [];
-        const holidays = Array.isArray(result.holidays) ? result.holidays : [];
-
         const data = {
-            priceRevisions: [],
-            newProducts: [],
-            seasonalProposals: [],
-            usefulInfo: [],
-            redDays: redDays,
-            holidays: holidays
+            priceRevisions: [], newProducts: [], seasonalProposals: [], usefulInfo: [],
+            redDays: Array.isArray(result.redDays) ? result.redDays : [],
+            holidays: Array.isArray(result.holidays) ? result.holidays : []
         };
-        
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -892,32 +379,17 @@ const fetchAllData = async () => {
                 startDate: row.startDate || '',
                 endDate: row.endDate || ''
             };
+            if (item.startDate && today < new Date(item.startDate).setHours(0,0,0,0)) return;
+            if (item.endDate && today > new Date(item.endDate).setHours(23,59,59,999)) return;
 
-            if (item.startDate) {
-                const start = new Date(item.startDate);
-                start.setHours(0, 0, 0, 0);
-                if (today < start) return;
-            }
-            if (item.endDate) {
-                const end = new Date(item.endDate);
-                end.setHours(23, 59, 59, 999);
-                if (today > end) return;
-            }
-
-            if (item.category === 'A') {
-                data.priceRevisions.push(item);
-            } else if (item.category === 'B') {
-                data.newProducts.push(item);
-            } else if (item.category === 'C') {
-                data.seasonalProposals.push(item);
-            } else if (item.category === 'D') {
-                data.usefulInfo.push(item);
-            }
+            if (item.category === 'A') data.priceRevisions.push(item);
+            else if (item.category === 'B') data.newProducts.push(item);
+            else if (item.category === 'C') data.seasonalProposals.push(item);
+            else if (item.category === 'D') data.usefulInfo.push(item);
         });
-
         return data;
     } catch (error) {
-        console.error("GASからのデータ取得に失敗しました。", error);
+        console.error("データ取得エラー", error);
         return { priceRevisions: [], newProducts: [], seasonalProposals: [], usefulInfo: [], redDays: [], holidays: [] };
     }
 };
@@ -925,10 +397,7 @@ const fetchAllData = async () => {
 function formatDate(dateString) {
     const date = new Date(dateString);
     if (isNaN(date)) return dateString;
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}/${month}/${day}`;
+    return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`;
 }
 
 function isNew(dateString) {
@@ -942,14 +411,13 @@ function isNew(dateString) {
 function renderCalendar(redDaysArray, holidaysArray) {
     cachedRedDays = redDaysArray.map(d => String(d).trim());
     cachedHolidays = holidaysArray.map(h => String(h).trim());
-    
+
     const calendarTitle = document.getElementById("calendarTitle");
     const calendarBody = document.getElementById("calendarBody");
     calendarBody.innerHTML = "";
 
     const year = calendarDate.getFullYear();
     const month = calendarDate.getMonth();
-
     calendarTitle.textContent = `${year}年 ${month + 1}月`;
 
     const prevBtn = document.getElementById("prevBtn");
@@ -970,7 +438,6 @@ function renderCalendar(redDaysArray, holidaysArray) {
 
     const firstDayIndex = new Date(year, month, 1).getDay();
     const lastDay = new Date(year, month + 1, 0).getDate();
-
     let dateCounter = 1;
     let row = document.createElement("tr");
 
@@ -985,29 +452,13 @@ function renderCalendar(redDaysArray, holidaysArray) {
             calendarBody.appendChild(row);
             row = document.createElement("tr");
         }
-
         const td = document.createElement("td");
-        const mStr = String(month + 1).padStart(2, '0');
-        const dStr = String(dateCounter).padStart(2, '0');
-        const yyyymmdd = `${year}${mStr}${dStr}`;
-
+        const yyyymmdd = `${year}${String(month + 1).padStart(2, '0')}${String(dateCounter).padStart(2, '0')}`;
         const isHoliday = cachedHolidays.includes(yyyymmdd);
         const isRed = cachedRedDays.includes(yyyymmdd);
 
-        // A列（赤文字）と B列（星マーク）を個別に判定して組み立て
-        let htmlContent = '';
-        if (isRed) {
-            htmlContent += `<span class="is-red-day">${dateCounter}</span>`;
-        } else {
-            htmlContent += `<span>${dateCounter}</span>`;
-        }
-
-        if (isHoliday) {
-            htmlContent += `<span class="holiday-star">★</span>`;
-        }
-
-        td.innerHTML = htmlContent;
-
+        td.innerHTML = (isRed ? `<span class="is-red-day">${dateCounter}</span>` : `<span>${dateCounter}</span>`) +
+                     (isHoliday ? `<span class="holiday-star">★</span>` : "");
         row.appendChild(td);
         dateCounter++;
     }
@@ -1017,9 +468,7 @@ function renderCalendar(redDaysArray, holidaysArray) {
         td.className = "other-month";
         row.appendChild(td);
     }
-    if (row.children.length > 0) {
-        calendarBody.appendChild(row);
-    }
+    if (row.children.length > 0) calendarBody.appendChild(row);
 }
 
 function renderList(cardId, containerId, dataArray, countId, headerNewId) {
@@ -1027,15 +476,10 @@ function renderList(cardId, containerId, dataArray, countId, headerNewId) {
     const container = document.getElementById(containerId);
     const count = document.getElementById(countId);
     const headerNewBadge = document.getElementById(headerNewId);
-    
+
     container.innerHTML = "";
     count.textContent = `${dataArray.length}件`;
-
-    if (dataArray && dataArray.length > 0) {
-        card.classList.add('is-open');
-    } else {
-        card.classList.remove('is-open');
-    }
+    card.classList.toggle('is-open', dataArray && dataArray.length > 0);
 
     if (!dataArray || dataArray.length === 0) {
         const empty = document.createElement("li");
@@ -1046,33 +490,22 @@ function renderList(cardId, containerId, dataArray, countId, headerNewId) {
         return;
     }
 
-    const sortedData = [...dataArray].sort((a, b) => new Date(b.date) - new Date(a.date));
     let hasNewItem = false;
-
-    sortedData.forEach(item => {
+    [...dataArray].sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(item => {
         const li = document.createElement("li");
         li.className = "notice-item";
-
-        if (!item.url) {
-            li.style.gridTemplateColumns = "95px minmax(0, 1fr)";
-        }
+        if (!item.url) li.style.gridTemplateColumns = "95px minmax(0, 1fr)";
 
         const dateArea = document.createElement("div");
         dateArea.className = "date-area";
-        const date = document.createElement("div");
-        date.className = "date";
-        date.textContent = formatDate(item.date);
-        const dateLabel = document.createElement("div");
-        dateLabel.className = "date-label";
-        dateLabel.textContent = "掲載日";
-        dateArea.appendChild(date);
-        dateArea.appendChild(dateLabel);
+        dateArea.innerHTML = `<div class="date">${formatDate(item.date)}</div><div class="date-label">掲載日</div>`;
 
         const content = document.createElement("div");
         content.className = "notice-content";
+
         const title = document.createElement("span");
         title.className = "notice-item-title";
-        title.textContent = item.title;
+        title.innerHTML = String(item.title || "").replace(/<br\s*\/?>/gi, "<br>");
 
         if (isNew(item.date)) {
             hasNewItem = true;
@@ -1082,7 +515,6 @@ function renderList(cardId, containerId, dataArray, countId, headerNewId) {
             title.appendChild(newBadge);
         }
         content.appendChild(title);
-
         li.appendChild(dateArea);
         li.appendChild(content);
 
@@ -1095,13 +527,10 @@ function renderList(cardId, containerId, dataArray, countId, headerNewId) {
             link.innerHTML = `資料を見る <span class="arrow">→</span>`;
             li.appendChild(link);
         }
-
         container.appendChild(li);
     });
 
-    if (headerNewBadge) {
-        headerNewBadge.style.display = hasNewItem ? "inline-flex" : "none";
-    }
+    if (headerNewBadge) headerNewBadge.style.display = hasNewItem ? "inline-flex" : "none";
 }
 
 async function init() {
@@ -1111,10 +540,9 @@ async function init() {
         renderList("productCard", "newProductList", data.newProducts, "productCount", "productHeaderNew");
         renderList("seasonalCard", "seasonalList", data.seasonalProposals, "seasonalCount", "seasonalHeaderNew");
         renderList("usefulCard", "usefulList", data.usefulInfo, "usefulCount", "usefulHeaderNew");
-        
         renderCalendar(data.redDays, data.holidays);
     } catch (error) {
-        console.error("お知らせ情報の初期化に失敗しました。", error);
+        console.error("初期化エラー", error);
     } finally {
         document.body.classList.remove("is-loading");
     }
