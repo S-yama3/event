@@ -50,7 +50,7 @@
     <div class="max-w-7xl mx-auto">
         <header class="mb-6 sm:mb-8 text-center px-2">
             <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">入場管理データ照合ツール</h1>
-            <p class="text-xs sm:text-base text-gray-600">CSV Aの B・C・D・E列 と、CSV Bの最新「入場時間」をKEY照合して表示します。</p>
+            <p class="text-xs sm:text-base text-gray-600">エントリーリストと来場一覧。</p>
         </header>
 
         <!-- コントロール・ステータス・絞り込みエリア -->
@@ -199,9 +199,6 @@
                 cachedCombinedData = rowsA.map(rowA => {
                     const keyA = (rowA.length > KEY_INDEX_A) ? rowA[KEY_INDEX_A].trim() : '';
                     const latestTime = keyA && latestTimeMap.has(keyA) ? latestTimeMap.get(keyA) : '';
-                    
-                    // 各項目の値を取り出してオブジェクトとして保持
-                    // TARGET_COLUMNS_A[0] (インデックス1) が社名（B列）と想定
                     const companyName = (rowA.length > 1 && rowA[1] !== undefined) ? rowA[1] : '';
 
                     return {
@@ -241,7 +238,11 @@
             const filterValue = document.getElementById('filter-status').value;
             const sortValue = document.getElementById('sort-company').value;
 
-            // 1. 絞り込み (Filter)
+            // 1. 全データ中の「来場済（タイムスタンプあり）」の総数を計算
+            const totalCount = cachedCombinedData.length;
+            const checkedInCount = cachedCombinedData.filter(item => item.latestTime !== '').length;
+
+            // 2. 絞り込み (Filter)
             let filteredData = cachedCombinedData.filter(item => {
                 const hasTime = item.latestTime !== '';
                 if (filterValue === 'has-time') return hasTime;
@@ -249,7 +250,7 @@
                 return true; // 'all'
             });
 
-            // 2. 並び替え (Sort by company name - B列)
+            // 3. 並び替え (Sort by company name - B列)
             if (sortValue !== 'none') {
                 filteredData.sort((a, b) => {
                     const compA = a.companyName;
@@ -262,7 +263,7 @@
                 });
             }
 
-            // 3. 描画
+            // 4. 描画
             let bodyHtml = '';
             filteredData.forEach(item => {
                 bodyHtml += '<tr class="hover:bg-gray-50 block sm:table-row">';
@@ -282,8 +283,10 @@
             });
 
             tableBody.innerHTML = bodyHtml;
-            statusEl.textContent = `表示中: ${filteredData.length} 件 （全 ${cachedCombinedData.length} 件中）`;
-            statusEl.className = 'text-sm sm:text-lg font-medium text-green-600 text-center sm:text-left';
+
+            // ステータス表示の更新（総件数／来場済カウント ＋ 絞り込み時の表示件数）
+            statusEl.innerHTML = `総件数: <span class="font-bold text-gray-900">${totalCount}件</span> ／ 来場済: <span class="font-bold text-green-600">${checkedInCount}件</span> <span class="text-xs text-gray-500 font-normal sm:ml-2">(表示中: ${filteredData.length}件)</span>`;
+            statusEl.className = 'text-sm sm:text-base font-medium text-blue-600 text-center sm:text-left';
         }
 
         // ページ読み込み時に実行
