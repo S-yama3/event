@@ -50,10 +50,10 @@
     <div class="max-w-7xl mx-auto">
         <header class="mb-6 sm:mb-8 text-center px-2">
             <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">入場管理データ照合ツール</h1>
-            <p class="text-xs sm:text-base text-gray-600">エントリーリストと来場一覧。</p>
+            <p class="text-xs sm:text-base text-gray-600">CSV Aの B・C・D・E列 と、CSV Bの最新「入場時間」をKEY照合して表示します。</p>
         </header>
 
-        <!-- コントロール・ステータス・絞り込みエリア -->
+        <!-- コントロール・ステータス・検索・絞り込みエリア -->
         <div class="bg-white shadow rounded-lg p-4 sm:p-6 mb-6 space-y-4">
             <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div id="status" class="text-sm sm:text-lg font-medium text-blue-600 text-center sm:text-left">
@@ -64,8 +64,20 @@
                 </button>
             </div>
 
+            <!-- キーワード検索ボックス -->
+            <div class="pt-2">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input type="text" id="search-keyword" oninput="renderTable()" placeholder="すべての項目からキーワード検索（社名、氏名、メールなど）..." class="w-full bg-gray-50 border border-gray-300 text-gray-800 text-xs sm:text-sm rounded-md pl-10 pr-4 py-2.5 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+
             <!-- 絞り込み & ソートコントロール -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gray-200">
                 <!-- タイムスタンプ絞り込み -->
                 <div class="flex items-center gap-2">
                     <label for="filter-status" class="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">絞り込み:</label>
@@ -114,7 +126,7 @@
         const TARGET_COLUMNS_A = [1, 2, 3, 4]; // B, C, D, E列
 
         let cachedHeaderA = [];
-        let cachedCombinedData = []; // 結合済みの全データを保持
+        let cachedCombinedData = [];
 
         // 簡易CSVパーサー
         function parseCSV(text) {
@@ -181,7 +193,6 @@
                 const rowsA = dataA.slice(1);
                 const rowsB = dataB.length > 1 ? dataB.slice(1) : dataB;
 
-                // 1. CSV Bから同じKEYの中で最も新しい「入場時間」をマップ化
                 const latestTimeMap = new Map();
                 rowsB.forEach(rowB => {
                     if (rowB.length > KEY_INDEX_B) {
@@ -195,7 +206,6 @@
                     }
                 });
 
-                // 2. 結合データ配列を作成
                 cachedCombinedData = rowsA.map(rowA => {
                     const keyA = (rowA.length > KEY_INDEX_A) ? rowA[KEY_INDEX_A].trim() : '';
                     const latestTime = keyA && latestTimeMap.has(keyA) ? latestTimeMap.get(keyA) : '';
@@ -208,9 +218,7 @@
                     };
                 });
 
-                // ヘッダーを構築
                 buildHeader();
-                // テーブルを描画
                 renderTable();
 
             } catch (error) {
@@ -237,20 +245,36 @@
             const tableBody = document.getElementById('table-body');
             const filterValue = document.getElementById('filter-status').value;
             const sortValue = document.getElementById('sort-company').value;
+            const searchKeyword = document.getElementById('search-keyword').value.trim().toLowerCase();
 
-            // 1. 全データ中の「来場済（タイムスタンプあり）」の総数を計算
             const totalCount = cachedCombinedData.length;
             const checkedInCount = cachedCombinedData.filter(item => item.latestTime !== '').length;
 
-            // 2. 絞り込み (Filter)
+            // 1. キーワード検索 ＆ タイムスタンプ絞り込み
             let filteredData = cachedCombinedData.filter(item => {
+                // タイムスタンプ絞り込みチェック
                 const hasTime = item.latestTime !== '';
-                if (filterValue === 'has-time') return hasTime;
-                if (filterValue === 'no-time') return !hasTime;
-                return true; // 'all'
+                if (filterValue === 'has-time' && !hasTime) return false;
+                if (filterValue === 'no-time' && hasTime) return false;
+
+                // キーワード検索チェック (B, C, D, E列 または 入場時間にキーワードが含まれるか)
+                if (searchKeyword !== '') {
+                    let matched = false;
+                    // B, C, D, E列をチェック
+                    TARGET_COLUMNS_A.forEach(colIdx => {
+                        let val = (item.rowA.length > colIdx && item.rowA[colIdx] !== undefined) ? String(item.rowA[colIdx]).toLowerCase() : '';
+                        if (val.includes(searchKeyword)) matched = true;
+                    });
+                    // 入場時間もチェック
+                    if (item.latestTime.toLowerCase().includes(searchKeyword)) matched = true;
+
+                    if (!matched) return false;
+                }
+
+                return true;
             });
 
-            // 3. 並び替え (Sort by company name - B列)
+            // 2. 並び替え (Sort)
             if (sortValue !== 'none') {
                 filteredData.sort((a, b) => {
                     const compA = a.companyName;
@@ -263,7 +287,7 @@
                 });
             }
 
-            // 4. 描画
+            // 3. 描画
             let bodyHtml = '';
             filteredData.forEach(item => {
                 bodyHtml += '<tr class="hover:bg-gray-50 block sm:table-row">';
@@ -283,8 +307,6 @@
             });
 
             tableBody.innerHTML = bodyHtml;
-
-            // ステータス表示の更新（総件数／来場済カウント ＋ 絞り込み時の表示件数）
             statusEl.innerHTML = `総件数: <span class="font-bold text-gray-900">${totalCount}件</span> ／ 来場済: <span class="font-bold text-green-600">${checkedInCount}件</span> <span class="text-xs text-gray-500 font-normal sm:ml-2">(表示中: ${filteredData.length}件)</span>`;
             statusEl.className = 'text-sm sm:text-base font-medium text-blue-600 text-center sm:text-left';
         }
