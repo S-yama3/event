@@ -49,8 +49,8 @@
 <body class="bg-gray-50 text-gray-800 min-h-screen py-4 sm:py-8 px-2 sm:px-4">
     <div class="max-w-7xl mx-auto">
         <header class="mb-6 sm:mb-8 text-center px-2">
-            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">入場管理データ照合ツール</h1>
-            <p class="text-xs sm:text-base text-gray-600">CSV Aの B・C・D・E列 と、CSV Bの最新「入場時間」をKEY照合して表示します。</p>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">入場管理データ</h1>
+            <p class="text-xs sm:text-base text-gray-600">エントリーリストと入場時間の照合表示</p>
         </header>
 
         <!-- コントロール・ステータス・検索・絞り込みエリア -->
@@ -72,7 +72,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
-                    <input type="text" id="search-keyword" oninput="renderTable()" placeholder="すべての項目からキーワード検索（社名、氏名、メールなど）..." class="w-full bg-gray-50 border border-gray-300 text-gray-800 text-xs sm:text-sm rounded-md pl-10 pr-4 py-2.5 focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" id="search-keyword" oninput="renderTable()" placeholder="キーワード検索（社名、氏名、電話番号など）..." class="w-full bg-gray-50 border border-gray-300 text-gray-800 text-xs sm:text-sm rounded-md pl-10 pr-4 py-2.5 focus:ring-blue-500 focus:border-blue-500">
                 </div>
             </div>
 
@@ -83,8 +83,8 @@
                     <label for="filter-status" class="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">絞り込み:</label>
                     <select id="filter-status" onchange="renderTable()" class="w-full bg-gray-50 border border-gray-300 text-gray-800 text-xs sm:text-sm rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="all">すべて表示</option>
-                        <option value="has-time">タイムスタンプ「あり」のみ</option>
-                        <option value="no-time">タイムスタンプ「なし」のみ</option>
+                        <option value="has-time">「来場済」のみ</option>
+                        <option value="no-time">「未来場」のみ</option>
                     </select>
                 </div>
 
@@ -93,8 +93,8 @@
                     <label for="sort-company" class="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">社名順:</label>
                     <select id="sort-company" onchange="renderTable()" class="w-full bg-gray-50 border border-gray-300 text-gray-800 text-xs sm:text-sm rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="none">元の順序</option>
-                        <option value="asc">社名 昇順 (あ〜わ / A〜Z)</option>
-                        <option value="desc">社名 降順 (わ〜あ / Z〜A)</option>
+                        <option value="asc">社名 昇順</option>
+                        <option value="desc">社名 降順</option>
                     </select>
                 </div>
             </div>
