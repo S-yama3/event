@@ -2,22 +2,61 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <!-- スマホでの表示倍率・ズームを最適化 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>入場管理・最新タイムスタンプ結合</title>
     <!-- Tailwind CSS (スタイリング用) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* スマホ用：テーブルをカード風リストに変換するレスポンシブ設定 */
+        @media (max-width: 768px) {
+            .responsive-table, .responsive-table tbody, .responsive-table tr, .responsive-table td {
+                display: block;
+                width: 100%;
+            }
+            .responsive-table thead {
+                display: none; /* スマホではヘッダーを非表示にしてカード側で項目名を表示 */
+            }
+            .responsive-table tr {
+                margin-bottom: 1rem;
+                background-color: #ffffff;
+                border: 1px solid #e5e7eb;
+                border-radius: 0.5rem;
+                box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+                padding: 0.75rem;
+            }
+            .responsive-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.5rem 0.25rem;
+                border-bottom: 1px solid #f3f4f6;
+                text-align: right;
+            }
+            .responsive-table td:last-child {
+                border-bottom: none;
+            }
+            /* 各セルのラベルを自動付与するための擬似要素 */
+            .responsive-table td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #4b5563;
+                text-align: left;
+                margin-right: 1rem;
+                flex-shrink: 0;
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen py-4 sm:py-8 px-2 sm:px-4">
     <div class="max-w-7xl mx-auto">
         <header class="mb-6 sm:mb-8 text-center px-2">
-            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">入場管理データ</h1>
-            <p class="text-sm sm:text-base text-gray-600">エントリーリストと入場時間表示。</p>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">入場管理データ照合ツール</h1>
+            <p class="text-xs sm:text-base text-gray-600">CSV Aの B・C・D・E列 と、CSV Bの最新「入場時間」をKEY照合して表示します。</p>
         </header>
 
         <!-- コントロール・ステータスエリア -->
         <div class="bg-white shadow rounded-lg p-4 sm:p-6 mb-6 sm:mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div id="status" class="text-base sm:text-lg font-medium text-blue-600 text-center sm:text-left">
+            <div id="status" class="text-sm sm:text-lg font-medium text-blue-600 text-center sm:text-left">
                 データを読み込み中...
             </div>
             <button onclick="loadAndMergeData()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-md shadow transition duration-200 active:scale-95">
@@ -25,14 +64,14 @@
             </button>
         </div>
 
-        <!-- 結果表示テーブル（スマホ対応の横スクロールコンテナ） -->
-        <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-200">
-            <div class="overflow-x-auto -webkit-overflow-scrolling-touch">
-                <table id="result-table" class="min-w-full divide-y divide-gray-200">
-                    <thead id="table-head" class="bg-gray-100">
+        <!-- 結果表示エリア -->
+        <div class="bg-transparent sm:bg-white sm:shadow sm:rounded-lg sm:overflow-hidden sm:border sm:border-gray-200">
+            <div class="sm:overflow-x-auto">
+                <table id="result-table" class="responsive-table min-w-full divide-y divide-gray-200">
+                    <thead id="table-head" class="bg-gray-100 hidden sm:table-header-group">
                         <!-- 動的に列ヘッダーが生成されます -->
                     </thead>
-                    <tbody id="table-body" class="divide-y divide-gray-200 bg-white text-xs sm:text-sm">
+                    <tbody id="table-body" class="divide-y divide-gray-200 bg-transparent sm:bg-white text-xs sm:text-sm space-y-3 sm:space-y-0">
                         <!-- 動的にデータ行が生成されます -->
                     </tbody>
                 </table>
@@ -93,7 +132,7 @@
             const tableBody = document.getElementById('table-body');
 
             statusEl.textContent = 'CSVデータを取得中...';
-            statusEl.className = 'text-base sm:text-lg font-medium text-blue-600 text-center sm:text-left';
+            statusEl.className = 'text-sm sm:text-lg font-medium text-blue-600 text-center sm:text-left';
             tableHead.innerHTML = '';
             tableBody.innerHTML = '';
 
@@ -115,7 +154,7 @@
 
                 if (dataA.length === 0) {
                     statusEl.textContent = 'CSV Aにデータが存在しません。';
-                    statusEl.className = 'text-base sm:text-lg font-medium text-red-600 text-center sm:text-left';
+                    statusEl.className = 'text-sm sm:text-lg font-medium text-red-600 text-center sm:text-left';
                     return;
                 }
 
@@ -137,7 +176,7 @@
                     }
                 });
 
-                // 2. テーブルヘッダーの生成
+                // 2. テーブルヘッダーの生成（PC用）
                 let headerHtml = '<tr>';
                 TARGET_COLUMNS_A.forEach(colIdx => {
                     let thName = (headerA.length > colIdx) ? headerA[colIdx] : `列 ${colIdx + 1}`;
@@ -147,7 +186,7 @@
                 headerHtml += '</tr>';
                 tableHead.innerHTML = headerHtml;
 
-                // 3. 各行のデータを抽出して構築
+                // 3. 各行のデータを構築（スマホではカード型、PCではテーブル行型になるよう data-label を付与）
                 let bodyHtml = '';
                 let processedCount = 0;
 
@@ -155,18 +194,20 @@
                     const keyA = (rowA.length > KEY_INDEX_A) ? rowA[KEY_INDEX_A].trim() : '';
                     const latestTime = keyA && latestTimeMap.has(keyA) ? latestTimeMap.get(keyA) : '';
 
-                    bodyHtml += '<tr class="hover:bg-gray-50">';
+                    bodyHtml += '<tr class="hover:bg-gray-50 block sm:table-row">';
                     
                     // B, C, D, E列の値を出力
                     TARGET_COLUMNS_A.forEach(colIdx => {
+                        let thName = (headerA.length > colIdx) ? headerA[colIdx] : `列 ${colIdx + 1}`;
                         let cellValue = (rowA.length > colIdx && rowA[colIdx] !== undefined) ? rowA[colIdx] : '';
                         cellValue = cellValue.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-                        bodyHtml += `<td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-gray-700 border-b border-gray-200">${cellValue}</td>`;
+                        
+                        bodyHtml += `<td data-label="${thName}" class="px-3 sm:px-6 py-2 sm:py-4 text-gray-700 sm:border-b sm:border-gray-200">${cellValue}</td>`;
                     });
 
                     // 最新の入場時間を出力
                     let timeVal = latestTime.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-                    bodyHtml += `<td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap font-semibold text-green-700 bg-green-50/50 border-b border-gray-200">${timeVal}</td>`;
+                    bodyHtml += `<td data-label="入場時間" class="px-3 sm:px-6 py-2 sm:py-4 font-semibold text-green-700 bg-green-50/30 sm:bg-green-50/50 sm:border-b sm:border-gray-200">${timeVal}</td>`;
                     
                     bodyHtml += '</tr>';
                     processedCount++;
@@ -174,12 +215,12 @@
 
                 tableBody.innerHTML = bodyHtml;
                 statusEl.textContent = `照合完了: 全 ${processedCount} 件を表示中`;
-                statusEl.className = 'text-base sm:text-lg font-medium text-green-600 text-center sm:text-left';
+                statusEl.className = 'text-sm sm:text-lg font-medium text-green-600 text-center sm:text-left';
 
             } catch (error) {
                 console.error(error);
                 statusEl.textContent = `エラーが発生しました: ${error.message}`;
-                statusEl.className = 'text-base sm:text-lg font-medium text-red-600 text-center sm:text-left';
+                statusEl.className = 'text-sm sm:text-lg font-medium text-red-600 text-center sm:text-left';
             }
         }
 
