@@ -2,36 +2,37 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <!-- スマホでの表示倍率・ズームを最適化 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>入場管理・最新タイムスタンプ結合</title>
     <!-- Tailwind CSS (スタイリング用) -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 text-gray-800 min-h-screen py-8 px-4">
+<body class="bg-gray-50 text-gray-800 min-h-screen py-4 sm:py-8 px-2 sm:px-4">
     <div class="max-w-7xl mx-auto">
-        <header class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">入場管理データ照合ツール</h1>
-            <p class="text-gray-600">CSV Aの B・C・D・E列 と、CSV Bの最新「入場時間」をKEY照合して表示します。</p>
+        <header class="mb-6 sm:mb-8 text-center px-2">
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">入場管理データ照合ツール</h1>
+            <p class="text-sm sm:text-base text-gray-600">CSV Aの B・C・D・E列 と、CSV Bの最新「入場時間」をKEY照合して表示します。</p>
         </header>
 
         <!-- コントロール・ステータスエリア -->
-        <div class="bg-white shadow rounded-lg p-6 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div id="status" class="text-lg font-medium text-blue-600">
+        <div class="bg-white shadow rounded-lg p-4 sm:p-6 mb-6 sm:mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div id="status" class="text-base sm:text-lg font-medium text-blue-600 text-center sm:text-left">
                 データを読み込み中...
             </div>
-            <button onclick="loadAndMergeData()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-md shadow transition duration-200">
+            <button onclick="loadAndMergeData()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-md shadow transition duration-200 active:scale-95">
                 データを再読み込み
             </button>
         </div>
 
-        <!-- 結果表示テーブル -->
-        <div class="bg-white shadow rounded-lg overflow-hidden">
-            <div class="overflow-x-auto">
+        <!-- 結果表示テーブル（スマホ対応の横スクロールコンテナ） -->
+        <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-200">
+            <div class="overflow-x-auto -webkit-overflow-scrolling-touch">
                 <table id="result-table" class="min-w-full divide-y divide-gray-200">
                     <thead id="table-head" class="bg-gray-100">
                         <!-- 動的に列ヘッダーが生成されます -->
                     </thead>
-                    <tbody id="table-body" class="divide-y divide-gray-200 bg-white text-sm">
+                    <tbody id="table-body" class="divide-y divide-gray-200 bg-white text-xs sm:text-sm">
                         <!-- 動的にデータ行が生成されます -->
                     </tbody>
                 </table>
@@ -45,12 +46,9 @@
         const CSV_B_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRqxmOav0KJySI86gMxypguZ-Rh6bDkIBs1DYO-L7isDWGB3I9MI_KyxMcE4FRFbsYyA_2kxuEAQAqg/pub?output=csv';
 
         // キー列の設定（0始まりのインデックス）
-        // CSV A の KEY列 = H列 (7)
-        const KEY_INDEX_A = 7;
-        
-        // CSV B の 入場時間列(タイムスタンプ) = A列 (0)、KEY列 = B列 (1)
-        const TIME_INDEX_B = 0;
-        const KEY_INDEX_B = 1;
+        const KEY_INDEX_A = 7; // CSV A の KEY列 = H列
+        const TIME_INDEX_B = 0; // CSV B の 入場時間列 = A列
+        const KEY_INDEX_B = 1; // CSV B の KEY列 = B列
 
         // 表示したいCSV Aの列インデックス（B=1, C=2, D=3, E=4）
         const TARGET_COLUMNS_A = [1, 2, 3, 4];
@@ -95,7 +93,7 @@
             const tableBody = document.getElementById('table-body');
 
             statusEl.textContent = 'CSVデータを取得中...';
-            statusEl.className = 'text-lg font-medium text-blue-600';
+            statusEl.className = 'text-base sm:text-lg font-medium text-blue-600 text-center sm:text-left';
             tableHead.innerHTML = '';
             tableBody.innerHTML = '';
 
@@ -117,7 +115,7 @@
 
                 if (dataA.length === 0) {
                     statusEl.textContent = 'CSV Aにデータが存在しません。';
-                    statusEl.className = 'text-lg font-medium text-red-600';
+                    statusEl.className = 'text-base sm:text-lg font-medium text-red-600 text-center sm:text-left';
                     return;
                 }
 
@@ -139,13 +137,13 @@
                     }
                 });
 
-                // 2. テーブルヘッダーの生成（指定されたB, C, D, E列 ＋ 入場時間）
+                // 2. テーブルヘッダーの生成
                 let headerHtml = '<tr>';
                 TARGET_COLUMNS_A.forEach(colIdx => {
                     let thName = (headerA.length > colIdx) ? headerA[colIdx] : `列 ${colIdx + 1}`;
-                    headerHtml += `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50">${thName}</th>`;
+                    headerHtml += `<th class="px-3 sm:px-6 py-2.5 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50 whitespace-nowrap">${thName}</th>`;
                 });
-                headerHtml += `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-green-50">入場時間</th>`;
+                headerHtml += `<th class="px-3 sm:px-6 py-2.5 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-green-50 whitespace-nowrap">入場時間</th>`;
                 headerHtml += '</tr>';
                 tableHead.innerHTML = headerHtml;
 
@@ -163,25 +161,25 @@
                     TARGET_COLUMNS_A.forEach(colIdx => {
                         let cellValue = (rowA.length > colIdx && rowA[colIdx] !== undefined) ? rowA[colIdx] : '';
                         cellValue = cellValue.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-                        bodyHtml += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 border-b border-gray-200">${cellValue}</td>`;
+                        bodyHtml += `<td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-gray-700 border-b border-gray-200">${cellValue}</td>`;
                     });
 
-                    // 最後に最新の入場時間を出力（緑色の強調表示）
+                    // 最新の入場時間を出力
                     let timeVal = latestTime.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-                    bodyHtml += `<td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-700 bg-green-50/50 border-b border-gray-200">${timeVal}</td>`;
+                    bodyHtml += `<td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap font-semibold text-green-700 bg-green-50/50 border-b border-gray-200">${timeVal}</td>`;
                     
                     bodyHtml += '</tr>';
                     processedCount++;
                 });
 
                 tableBody.innerHTML = bodyHtml;
-                statusEl.textContent = `照合完了: 全 ${processedCount} 件を表示中（B, C, D, E列 ＋ 入場時間）`;
-                statusEl.className = 'text-lg font-medium text-green-600';
+                statusEl.textContent = `照合完了: 全 ${processedCount} 件を表示中`;
+                statusEl.className = 'text-base sm:text-lg font-medium text-green-600 text-center sm:text-left';
 
             } catch (error) {
                 console.error(error);
                 statusEl.textContent = `エラーが発生しました: ${error.message}`;
-                statusEl.className = 'text-lg font-medium text-red-600';
+                statusEl.className = 'text-base sm:text-lg font-medium text-red-600 text-center sm:text-left';
             }
         }
 
