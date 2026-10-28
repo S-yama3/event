@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>所感登録（撮影後回し・プレビューOCR版）</title>
+    <title>所感登録（出展者情報固定・名札読取スタート版）</title>
     <!-- QRコード読取用ライブラリ -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <!-- 文字認識(OCR)用ライブラリ (Tesseract.js) -->
@@ -200,9 +200,21 @@
     </div>
 
 <div class="container">
+    <!-- ステップ0：出展者情報設定（最初に一度だけ入力・記憶） -->
+    <div id="screen-setup" class="step-screen active">
+        <h2>0. 出展者情報の設定</h2>
+        <p style="font-size: 0.9rem; color: #475569;">最初に一度だけ出展者情報を入力してください。ブラウザに記憶されます。</p>
+        <div class="input-group" style="margin-top: 16px;">
+            <label for="setup-code2">出展社コード・名称</label>
+            <input type="text" id="setup-code2" placeholder="例:エコール産業" value="">
+        </div>
+        <button onclick="saveSetupInfo()" style="background-color: #059669;">この情報で固定して始める</button>
+    </div>
+
     <!-- ステップ1：顧客コード撮影（保存のみ） -->
-    <div id="screen-scan1" class="step-screen active">
-        <h2>1. 顧客コード撮影</h2>
+    <div id="screen-scan1" class="step-screen">
+        <div class="info-badge">出展社: <span class="disp-b2"></span> <a href="#" onclick="changeSetupInfo()" style="float: right; color: #1d4ed8; text-decoration: underline;">変更</a></div>
+        <h2>1. 顧客コード（名札）撮影</h2>
         <p style="font-size: 0.9rem; color: #475569;">カメラを起動し、見本市コードを枠内に合わせて撮影ボタンを押してください。</p>
         
         <div id="reader-1"></div>
@@ -219,8 +231,9 @@
         <button id="btn-to-q2" onclick="goToScreen('screen-q2')" style="margin-top: 16px; display: none;">次へ進む</button>
     </div>
 
-    <!-- ステップ2：ご要望（旧q2） -->
+    <!-- ステップ2：ご要望 -->
     <div id="screen-q2" class="step-screen">
+        <div class="info-badge">出展社: <span class="disp-b2"></span></div>
         <h2>② ご要望を選択してください。（複数選択可）</h2>
         <div class="checkbox-group" style="margin-top: 16px;">
             <label class="checkbox-label"><input type="checkbox" name="options" value="資料"> 資料</label>
@@ -236,8 +249,9 @@
         </div>
     </div>
 
-    <!-- ステップ3：商品名・特記事項（旧q3） -->
+    <!-- ステップ3：商品名・特記事項 -->
     <div id="screen-q3" class="step-screen">
+        <div class="info-badge">出展社: <span class="disp-b2"></span></div>
         <h2>③ 商品名・特記事項を入力してください</h2>
         <div class="input-group" style="margin-top: 16px;">
             <label for="productName">商品名</label>
@@ -253,8 +267,9 @@
         </div>
     </div>
 
-    <!-- ステップ4：関心度（旧q1） -->
+    <!-- ステップ4：関心度 -->
     <div id="screen-q1" class="step-screen">
+        <div class="info-badge">出展社: <span class="disp-b2"></span></div>
         <h2>④ ご販売店様の関心度を選択してください</h2>
         <div class="star-rating" id="starContainer" style="margin-top: 24px;">
             <span class="star" data-value="1">★</span>
@@ -267,37 +282,23 @@
         <button class="secondary" onclick="goToScreen('screen-q3')">戻る</button>
     </div>
 
-    <!-- ステップ5：出展社コード手入力画面 -->
-    <div id="screen-manual2" class="step-screen">
-        <h2>5. 出展社情報（手入力）</h2>
-        <p style="font-size: 0.9rem; color: #475569;">出展社情報を入力してください。</p>
-        <div class="input-group" style="margin-top: 16px;">
-            <label for="manual-code2">出展社コード・名称</label>
-            <input type="text" id="manual-code2" placeholder="例:エコール産業" value="">
-        </div>
-        <div class="button-group" style="margin-top: 20px;">
-            <button type="button" class="secondary" onclick="goToScreen('screen-q1')">戻る</button>
-            <button type="button" onclick="preparePreview()" style="background-color: #059669;">確認画面（OCR解析）へ</button>
-        </div>
-    </div>
-
     <!-- プレビュー画面（OCR実行・確認画面） -->
     <div id="screen-preview" class="step-screen">
-        <h2>6. 入力内容の確認（OCR読取）</h2>
+        <div class="info-badge">出展社: <span class="disp-b2"></span></div>
+        <h2>5. 入力内容の確認（OCR読取）</h2>
         <div class="summary-box" style="border-left-color: #059669;">
             <div style="margin-bottom: 8px; text-align: center;">
                 <strong>撮影画像:</strong><br>
                 <img id="preview-captured-img" src="" alt="撮影画像" style="max-width: 150px; border-radius: 4px; border: 1px solid var(--border-color); margin-top: 4px;">
             </div>
             <div style="margin-bottom: 6px;"><strong>顧客コード (OCR抽出):</strong> <input type="text" id="manual-code1" style="margin-top: 4px;" placeholder="読取失敗時は手入力"></div>
-            <div style="margin-bottom: 6px;"><strong>出展社情報:</strong> <span id="prev-barcode2"></span></div>
             <div style="margin-bottom: 6px;"><strong>関心度:</strong> <span id="prev-q1"></span></div>
             <div style="margin-bottom: 6px;"><strong>ご要望:</strong> <span id="prev-q2"></span></div>
             <div style="margin-bottom: 6px;"><strong>商品名:</strong> <span id="prev-product"></span></div>
             <div><strong>特記事項:</strong> <span id="prev-notes"></span></div>
         </div>
         <button onclick="submitData()" style="background-color: #059669;">データを登録する</button>
-        <button class="secondary" onclick="goToScreen('screen-manual2')">修正する</button>
+        <button class="secondary" onclick="goToScreen('screen-q1')">修正する</button>
     </div>
 </div>
 
@@ -306,7 +307,7 @@
 
     let appData = { 
         barcode1: '', // 顧客コード(OCR)
-        barcode2: '', // 出展社コード(手入力)
+        barcode2: '', // 出展社コード(設定画面で固定保持)
         q1: '0', 
         q2: '', 
         q3: '', 
@@ -314,18 +315,26 @@
         imageBlob: '' // 撮影した画像データの保持用
     };
 
-    let currentScreen = 'screen-scan1';
+    let currentScreen = 'screen-setup';
     let html5QrCode1 = null;
 
     window.addEventListener('DOMContentLoaded', () => {
+        // 出展社情報はブラウザに永続保存する (localStorage)
+        const savedBarcode2 = localStorage.getItem('fixedBarcode2');
+        if (savedBarcode2) {
+            appData.barcode2 = savedBarcode2;
+            document.getElementById('setup-code2').value = savedBarcode2;
+        }
+
         const savedScreen = sessionStorage.getItem('currentScreen');
         const savedData = sessionStorage.getItem('appData');
 
         if (savedScreen && savedData) {
             appData = JSON.parse(savedData);
+            if (savedBarcode2) appData.barcode2 = savedBarcode2; // 永続保存側を優先
             currentScreen = savedScreen;
+
             document.getElementById('manual-code1').value = appData.barcode1 || '';
-            document.getElementById('manual-code2').value = appData.barcode2 || '';
             document.getElementById('interestLevel').value = appData.q1 || '0';
             document.getElementById('productName').value = appData.q3 || '';
             document.getElementById('notes').value = appData.memo || '';
@@ -344,15 +353,16 @@
             }
             updateStarDisplay(parseInt(appData.q1 || '0', 10));
         } else {
-            currentScreen = 'screen-scan1';
+            // 出展社情報が未設定なら設定画面、設定済みなら名札撮影画面からスタート
+            currentScreen = savedBarcode2 ? 'screen-scan1' : 'screen-setup';
             saveState();
         }
+        updateHeaderBadges();
         goToScreen(currentScreen);
     });
 
     function saveState() {
         appData.barcode1 = document.getElementById('manual-code1').value.trim();
-        appData.barcode2 = document.getElementById('manual-code2').value.trim();
         appData.q3 = document.getElementById('productName').value;
         appData.memo = document.getElementById('notes').value;
         const selectedOptions = Array.from(document.querySelectorAll('input[name="options"]:checked')).map(el => el.value);
@@ -360,6 +370,28 @@
         
         sessionStorage.setItem('currentScreen', currentScreen);
         sessionStorage.setItem('appData', JSON.stringify(appData));
+    }
+
+    function updateHeaderBadges() {
+        const b2Val = appData.barcode2 || '(未設定)';
+        document.querySelectorAll('.disp-b2').forEach(el => el.innerText = b2Val);
+    }
+
+    function saveSetupInfo() {
+        const val2 = document.getElementById('setup-code2').value.trim();
+        if (!val2) {
+            alert('出展社コード・名称を入力してください。');
+            return;
+        }
+        appData.barcode2 = val2;
+        localStorage.setItem('fixedBarcode2', val2); // ブラウザに記憶
+        updateHeaderBadges();
+        saveState();
+        goToScreen('screen-scan1');
+    }
+
+    function changeSetupInfo() {
+        goToScreen('screen-setup');
     }
 
     function stopAllCameras() {
@@ -370,21 +402,26 @@
         }
     }
 
-    function goToScreen(screenId) {
+    async function goToScreen(screenId) {
         stopAllCameras();
         currentScreen = screenId;
         saveState();
+        updateHeaderBadges();
 
         const starsCount = "★".repeat(Number(appData.q1)) + "☆".repeat(5 - Number(appData.q1));
         const optionsText = appData.q2 ? appData.q2 : '未選択';
 
         if (screenId === 'screen-preview') {
             document.getElementById('preview-captured-img').src = appData.imageBlob || '';
-            document.getElementById('prev-barcode2').innerText = appData.barcode2 || '(未入力)';
             document.getElementById('prev-q1').innerText = `${starsCount} (${appData.q1}/5)`;
             document.getElementById('prev-q2').innerText = optionsText;
             document.getElementById('prev-product').innerText = appData.q3 || '(なし)';
             document.getElementById('prev-notes').innerText = appData.memo || '(なし)';
+
+            // ここで保存された画像からOCRを実行
+            if (appData.imageBlob && !appData.barcode1) {
+                await runOcrOnCapturedImage();
+            }
         }
 
         document.querySelectorAll('.step-screen').forEach(el => el.classList.remove('active'));
@@ -431,11 +468,9 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
 
-            // 画像データをDataURL形式で一時保存
             const dataUrl = canvas.toDataURL('image/png');
             appData.imageBlob = dataUrl;
 
-            // プレビュー表示
             document.getElementById('captured-img-preview').src = dataUrl;
             document.getElementById('capture-preview-container').style.display = 'block';
             document.getElementById('btn-to-q2').style.display = 'block';
@@ -447,7 +482,7 @@
             document.getElementById('btn-capture-photo').style.display = 'none';
             saveState();
 
-            alert('画像をブラウザ内に保存しました！');
+            alert('名札の撮影が完了しました！次へ進んでください。');
         } catch (err) {
             alert('画像保存エラー: ' + err);
         }
@@ -455,6 +490,7 @@
 
     function retakePhoto() {
         appData.imageBlob = '';
+        appData.barcode1 = '';
         document.getElementById('capture-preview-container').style.display = 'none';
         document.getElementById('btn-to-q2').style.display = 'none';
         saveState();
@@ -472,7 +508,7 @@
             appData.q1 = String(value);
             updateStarDisplay(value);
             saveState();
-            goToScreen('screen-manual2');
+            goToScreen('screen-preview'); // 関心度を選んだらそのまま確認画面（OCR実行）へ進む
         });
     });
 
@@ -483,52 +519,41 @@
         });
     }
 
-    // --- プレビュー画面直前でのOCR実行処理 ---
-    async function preparePreview() {
-        const val2 = document.getElementById('manual-code2').value.trim();
-        if (!val2) {
-            alert('出展社コード・名称が入力されていません。');
-            return;
-        }
-        saveState();
+    // --- 確認画面での自動OCR解析処理 ---
+    async function runOcrOnCapturedImage() {
+        if (!appData.imageBlob) return;
 
-        // 画像が保存されている場合はOCRを実行
-        if (appData.imageBlob) {
-            const overlay = document.getElementById('loading-overlay');
-            document.getElementById('loading-text').innerText = '保存された画像から文字を解析中...';
-            overlay.style.display = 'flex';
+        const overlay = document.getElementById('loading-overlay');
+        document.getElementById('loading-text').innerText = '名札画像から文字を解析中...';
+        overlay.style.display = 'flex';
 
-            try {
-                const img = new Image();
-                img.src = appData.imageBlob;
-                await new Promise((resolve) => { img.onload = resolve; });
+        try {
+            const img = new Image();
+            img.src = appData.imageBlob;
+            await new Promise((resolve) => { img.onload = resolve; });
 
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
 
-                const { data: { text } } = await Tesseract.recognize(canvas, 'eng', { logger: m => {} });
-                overlay.style.display = 'none';
+            const { data: { text } } = await Tesseract.recognize(canvas, 'eng', { logger: m => {} });
+            overlay.style.display = 'none';
 
-                const cleaned = text.replace(/\s+/g, '');
-                const match = cleaned.match(/[A-Z]{2}[0-9]{7}/);
+            const cleaned = text.replace(/\s+/g, '');
+            const match = cleaned.match(/[A-Z]{2}[0-9]{7}/);
 
-                if (match) {
-                    appData.barcode1 = match[0];
-                    document.getElementById('manual-code1').value = match[0];
-                } else {
-                    // 読取できなかった場合でも画像とテキスト（生データ）を表示し手入力できるようにする
-                    alert("指定形式（英字2文字＋数字7桁）の自動抽出ができませんでした。\n確認画面で手入力または修正を行ってください。");
-                }
-            } catch (err) {
-                overlay.style.display = 'none';
-                alert('OCR解析エラーが発生しました。手動で入力してください。');
+            if (match) {
+                appData.barcode1 = match[0];
+                document.getElementById('manual-code1').value = match[0];
+            } else {
+                alert("指定形式（英字2文字＋数字7桁）の自動抽出ができませんでした。\n確認画面の入力欄で直接修正してください。");
             }
+        } catch (err) {
+            overlay.style.display = 'none';
+            alert('OCR解析エラーが発生しました。手動で入力してください。');
         }
-
-        goToScreen('screen-preview');
     }
 
     // --- データ登録 ---
@@ -546,7 +571,7 @@
         overlay.style.display = 'flex';
 
         const sendData = {
-            barcode1: appData.barcode2, // 出展社情報
+            barcode1: appData.barcode2, // 出展社情報（固定記憶された値）
             barcode2: appData.barcode1, // 顧客コード
             q1: appData.q1,
             q2: appData.q2,
@@ -564,12 +589,17 @@
 
             if(result.status === 'success') {
                 alert('データを登録しました！');
-                sessionStorage.clear();
                 
-                // リセットして最初に戻る
-                appData = { barcode1: '', barcode2: '', q1: '0', q2: '', q3: '', memo: '', imageBlob: '' };
+                // 次の来場者入力をために、顧客コード関連の状態だけをリセットして最初（名札撮影）に戻る
+                // ※ 出展社情報(barcode2)は保持したままにする
+                appData.barcode1 = '';
+                appData.q1 = '0';
+                appData.q2 = '';
+                appData.q3 = '';
+                appData.memo = '';
+                appData.imageBlob = '';
+
                 document.getElementById('manual-code1').value = '';
-                document.getElementById('manual-code2').value = '';
                 document.getElementById('productName').value = '';
                 document.getElementById('notes').value = '';
                 document.getElementById('capture-preview-container').style.display = 'none';
@@ -582,7 +612,7 @@
                 alert('登録失敗: ' + result.message);
             }
         } catch (err) {
-            overlay.style.display, (overlay.style.display = 'none');
+            overlay.style.display = 'none';
             alert('通信エラー: ' + err);
         }
     }
