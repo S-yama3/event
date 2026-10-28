@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>所感登録（撮影後回し・プレビューOCR版）</title>
+    <!-- QRコード読取用ライブラリ -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- 文字認識(OCR)用ライブラリ (Tesseract.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #0f172a;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #cbd5e1;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='120' viewBox='0 0 280 120'><text x='140' y='70' fill='%23ffffff' font-size='20' font-family='sans-serif' font-weight='bold' opacity='0.08' text-anchor='middle'>グループ社員専用</text></svg>");
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
+        }
+        .step-screen { display: none; }
+        .step-screen.active { display: block; }
+        h2 {
+            font-size: 1.15rem;
+            margin-top: 0;
+            color: #0f172a;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px;
+            line-height: 1.4;
+        }
+        .info-badge {
+            background: #eff6ff;
+            color: var(--primary-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            border: 1px solid #bfdbfe;
+        }
+        #reader-1 {
+            width: 100% !important;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            margin-bottom: 12px;
+            background: #000;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: background 0.2s;
+        }
+        button:active { background-color: var(--primary-hover); }
+        button.secondary { background-color: #64748b; }
+        button.secondary:active { background-color: #475569; }
+        button.warning { background-color: #d97706; }
+        button.warning:active { background-color: #b45309; }
+        
+        .summary-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 10px 15px;
+            margin-bottom: 16px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .summary-box div { margin-bottom: 4px; }
+        .summary-box div:last-child { margin-bottom: 0; }
+        
+        .star-rating {
+            display: flex;
+            gap: 10px;
+            font-size: 2.5rem;
+            cursor: pointer;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        .star {
+            color: #ccc;
+            transition: color 0.2s;
+        }
+        .star.active {
+            color: #ffbb00;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .checkbox-label input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+        .input-group {
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            background-color: #ffffff;
+            color: #1e293b;
+        }
+        textarea { height: 120px; resize: vertical; }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        .button-group button {
+            margin-top: 0;
+        }
+
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ffffff;
+            border-top: 4px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loading-text">処理中...</div>
+    </div>
+
+<div class="container">
+    <!-- ステップ1：顧客コード撮影（保存のみ） -->
+    <div id="screen-scan1" class="step-screen active">
+        <h2>1. 顧客コード撮影</h2>
+        <p style="font-size: 0.9rem; color: #475569;">カメラを起動し、見本市コードを枠内に合わせて撮影ボタンを押してください。</p>
+        
+        <div id="reader-1"></div>
+        
+        <button id="btn-start-scanner1" onclick="startScanner1()" style="background-color: #059669;">📷 カメラを起動する</button>
+        <button id="btn-capture-photo" onclick="capturePhoto()" style="display: none;" class="warning">📸 この枠内を撮影して保存する</button>
+
+        <div id="capture-preview-container" style="margin-top: 16px; display: none; text-align: center;">
+            <p style="font-size: 0.85rem; font-weight: bold; color: #475569;">撮影画像プレビュー:</p>
+            <img id="captured-img-preview" src="" alt="撮影画像" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border-color);">
+            <button class="secondary" onclick="retakePhoto()" style="margin-top: 8px;">🔄 撮り直す</button>
+        </div>
+
+        <button id="btn-to-q2" onclick="goToScreen('screen-q2')" style="margin-top: 16px; display: none;">次へ進む</button>
+    </div>
+
+    <!-- ステップ2：ご要望（旧q2） -->
+    <div id="screen-q2" class="step-screen">
+        <h2>② ご要望を選択してください。（複数選択可）</h2>
+        <div class="checkbox-group" style="margin-top: 16px;">
+            <label class="checkbox-label"><input type="checkbox" name="options" value="資料"> 資料</label>
+            <label class="checkbox-label"><input type="checkbox" name="options" value="デモ"> デモ</label>
+            <label class="checkbox-label"><input type="checkbox" name="options" value="勉強会"> 勉強会</label>
+            <label class="checkbox-label"><input type="checkbox" name="options" value="同行"> 同行</label>
+            <label class="checkbox-label"><input type="checkbox" name="options" value="見積"> 見積</label>
+            <label class="checkbox-label"><input type="checkbox" name="options" value="その他"> その他</label>
+        </div>
+        <div class="button-group">
+            <button type="button" class="secondary" onclick="goToScreen('screen-scan1')">戻る</button>
+            <button type="button" onclick="goToScreen('screen-q3')">次へ</button>
+        </div>
+    </div>
+
+    <!-- ステップ3：商品名・特記事項（旧q3） -->
+    <div id="screen-q3" class="step-screen">
+        <h2>③ 商品名・特記事項を入力してください</h2>
+        <div class="input-group" style="margin-top: 16px;">
+            <label for="productName">商品名</label>
+            <input type="text" id="productName" name="productName" placeholder="例：クラウドサービスＡ">
+        </div>
+        <div class="input-group">
+            <label for="notes">特記事項・申し送り</label>
+            <textarea id="notes" name="notes" placeholder="営業担当へ向けて具体的な要望や申し送り事項を入力してください"></textarea>
+        </div>
+        <div class="button-group">
+            <button type="button" class="secondary" onclick="goToScreen('screen-q2')">戻る</button>
+            <button type="button" onclick="goToScreen('screen-q1')">次へ</button>
+        </div>
+    </div>
+
+    <!-- ステップ4：関心度（旧q1） -->
+    <div id="screen-q1" class="step-screen">
+        <h2>④ ご販売店様の関心度を選択してください</h2>
+        <div class="star-rating" id="starContainer" style="margin-top: 24px;">
+            <span class="star" data-value="1">★</span>
+            <span class="star" data-value="2">★</span>
+            <span class="star" data-value="3">★</span>
+            <span class="star" data-value="4">★</span>
+            <span class="star" data-value="5">★</span>
+        </div>
+        <input type="hidden" id="interestLevel" value="0">
+        <button class="secondary" onclick="goToScreen('screen-q3')">戻る</button>
+    </div>
+
+    <!-- ステップ5：出展社コード手入力画面 -->
+    <div id="screen-manual2" class="step-screen">
+        <h2>5. 出展社情報（手入力）</h2>
+        <p style="font-size: 0.9rem; color: #475569;">出展社情報を入力してください。</p>
+        <div class="input-group" style="margin-top: 16px;">
+            <label for="manual-code2">出展社コード・名称</label>
+            <input type="text" id="manual-code2" placeholder="例:エコール産業" value="">
+        </div>
+        <div class="button-group" style="margin-top: 20px;">
+            <button type="button" class="secondary" onclick="goToScreen('screen-q1')">戻る</button>
+            <button type="button" onclick="preparePreview()" style="background-color: #059669;">確認画面（OCR解析）へ</button>
+        </div>
+    </div>
+
+    <!-- プレビュー画面（OCR実行・確認画面） -->
+    <div id="screen-preview" class="step-screen">
+        <h2>6. 入力内容の確認（OCR読取）</h2>
+        <div class="summary-box" style="border-left-color: #059669;">
+            <div style="margin-bottom: 8px; text-align: center;">
+                <strong>撮影画像:</strong><br>
+                <img id="preview-captured-img" src="" alt="撮影画像" style="max-width: 150px; border-radius: 4px; border: 1px solid var(--border-color); margin-top: 4px;">
+            </div>
+            <div style="margin-bottom: 6px;"><strong>顧客コード (OCR抽出):</strong> <input type="text" id="manual-code1" style="margin-top: 4px;" placeholder="読取失敗時は手入力"></div>
+            <div style="margin-bottom: 6px;"><strong>出展社情報:</strong> <span id="prev-barcode2"></span></div>
+            <div style="margin-bottom: 6px;"><strong>関心度:</strong> <span id="prev-q1"></span></div>
+            <div style="margin-bottom: 6px;"><strong>ご要望:</strong> <span id="prev-q2"></span></div>
+            <div style="margin-bottom: 6px;"><strong>商品名:</strong> <span id="prev-product"></span></div>
+            <div><strong>特記事項:</strong> <span id="prev-notes"></span></div>
+        </div>
+        <button onclick="submitData()" style="background-color: #059669;">データを登録する</button>
+        <button class="secondary" onclick="goToScreen('screen-manual2')">修正する</button>
+    </div>
+</div>
+
+<script>
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyRBFjBoiVPqB2g0FtgQtO8uPWe-zo9HR1fG7M8ECeZ-cn-fTwkl1e3LUdhXDREnZHDZQ/exec';
+
+    let appData = { 
+        barcode1: '', // 顧客コード(OCR)
+        barcode2: '', // 出展社コード(手入力)
+        q1: '0', 
+        q2: '', 
+        q3: '', 
+        memo: '',
+        imageBlob: '' // 撮影した画像データの保持用
+    };
+
+    let currentScreen = 'screen-scan1';
+    let html5QrCode1 = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedScreen = sessionStorage.getItem('currentScreen');
+        const savedData = sessionStorage.getItem('appData');
+
+        if (savedScreen && savedData) {
+            appData = JSON.parse(savedData);
+            currentScreen = savedScreen;
+            document.getElementById('manual-code1').value = appData.barcode1 || '';
+            document.getElementById('manual-code2').value = appData.barcode2 || '';
+            document.getElementById('interestLevel').value = appData.q1 || '0';
+            document.getElementById('productName').value = appData.q3 || '';
+            document.getElementById('notes').value = appData.memo || '';
+            
+            if (appData.imageBlob) {
+                document.getElementById('captured-img-preview').src = appData.imageBlob;
+                document.getElementById('capture-preview-container').style.display = 'block';
+                document.getElementById('btn-to-q2').style.display = 'block';
+            }
+
+            if (appData.q2) {
+                const optArray = appData.q2.split(', ');
+                document.querySelectorAll('input[name="options"]').forEach(chk => {
+                    chk.checked = optArray.includes(chk.value);
+                });
+            }
+            updateStarDisplay(parseInt(appData.q1 || '0', 10));
+        } else {
+            currentScreen = 'screen-scan1';
+            saveState();
+        }
+        goToScreen(currentScreen);
+    });
+
+    function saveState() {
+        appData.barcode1 = document.getElementById('manual-code1').value.trim();
+        appData.barcode2 = document.getElementById('manual-code2').value.trim();
+        appData.q3 = document.getElementById('productName').value;
+        appData.memo = document.getElementById('notes').value;
+        const selectedOptions = Array.from(document.querySelectorAll('input[name="options"]:checked')).map(el => el.value);
+        appData.q2 = selectedOptions.join(', ');
+        
+        sessionStorage.setItem('currentScreen', currentScreen);
+        sessionStorage.setItem('appData', JSON.stringify(appData));
+    }
+
+    function stopAllCameras() {
+        if (html5QrCode1) {
+            try { if (html5QrCode1.isScanning) html5QrCode1.stop().catch(e => {}); } catch(e) {}
+            document.getElementById('btn-start-scanner1').style.display = 'block';
+            document.getElementById('btn-capture-photo').style.display = 'none';
+        }
+    }
+
+    function goToScreen(screenId) {
+        stopAllCameras();
+        currentScreen = screenId;
+        saveState();
+
+        const starsCount = "★".repeat(Number(appData.q1)) + "☆".repeat(5 - Number(appData.q1));
+        const optionsText = appData.q2 ? appData.q2 : '未選択';
+
+        if (screenId === 'screen-preview') {
+            document.getElementById('preview-captured-img').src = appData.imageBlob || '';
+            document.getElementById('prev-barcode2').innerText = appData.barcode2 || '(未入力)';
+            document.getElementById('prev-q1').innerText = `${starsCount} (${appData.q1}/5)`;
+            document.getElementById('prev-q2').innerText = optionsText;
+            document.getElementById('prev-product').innerText = appData.q3 || '(なし)';
+            document.getElementById('prev-notes').innerText = appData.memo || '(なし)';
+        }
+
+        document.querySelectorAll('.step-screen').forEach(el => el.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- ステップ1：カメラ起動と撮影・保存 ---
+    function startScanner1() {
+        const btnStart = document.getElementById('btn-start-scanner1');
+        const btnCapture = document.getElementById('btn-capture-photo');
+        btnStart.style.display = 'none';
+
+        if (!html5QrCode1) {
+            html5QrCode1 = new Html5Qrcode("reader-1");
+        }
+
+        html5QrCode1.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 260, height: 90 } }, 
+            (decodedText) => {},
+            (err) => {}
+        ).then(() => {
+            btnCapture.style.display = 'block';
+        }).catch(err => {
+            alert("カメラ起動エラー: " + err);
+            btnStart.style.display = 'block';
+        });
+    }
+
+    async function capturePhoto() {
+        const videoElem = document.querySelector('#reader-1 video');
+        if (!videoElem) {
+            alert('カメラが起動していません。');
+            document.getElementById('btn-start-scanner1').style.display = 'block';
+            document.getElementById('btn-capture-photo').style.display = 'none';
+            return;
+        }
+
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = videoElem.videoWidth;
+            canvas.height = videoElem.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
+
+            // 画像データをDataURL形式で一時保存
+            const dataUrl = canvas.toDataURL('image/png');
+            appData.imageBlob = dataUrl;
+
+            // プレビュー表示
+            document.getElementById('captured-img-preview').src = dataUrl;
+            document.getElementById('capture-preview-container').style.display = 'block';
+            document.getElementById('btn-to-q2').style.display = 'block';
+
+            if (html5QrCode1 && html5QrCode1.isScanning) {
+                await html5QrCode1.stop().catch(e => {});
+            }
+            document.getElementById('btn-start-scanner1').style.display = 'block';
+            document.getElementById('btn-capture-photo').style.display = 'none';
+            saveState();
+
+            alert('画像をブラウザ内に保存しました！');
+        } catch (err) {
+            alert('画像保存エラー: ' + err);
+        }
+    }
+
+    function retakePhoto() {
+        appData.imageBlob = '';
+        document.getElementById('capture-preview-container').style.display = 'none';
+        document.getElementById('btn-to-q2').style.display = 'none';
+        saveState();
+        startScanner1();
+    }
+
+    // --- 星評価の処理 ---
+    const stars = document.querySelectorAll('.star');
+    const interestInput = document.getElementById('interestLevel');
+
+    stars.forEach((star, index) => {
+        star.addEventListener('click', () => {
+            const value = index + 1;
+            interestInput.value = value;
+            appData.q1 = String(value);
+            updateStarDisplay(value);
+            saveState();
+            goToScreen('screen-manual2');
+        });
+    });
+
+    function updateStarDisplay(value) {
+        stars.forEach((s, i) => {
+            if (i < value) s.classList.add('active');
+            else s.classList.remove('active');
+        });
+    }
+
+    // --- プレビュー画面直前でのOCR実行処理 ---
+    async function preparePreview() {
+        const val2 = document.getElementById('manual-code2').value.trim();
+        if (!val2) {
+            alert('出展社コード・名称が入力されていません。');
+            return;
+        }
+        saveState();
+
+        // 画像が保存されている場合はOCRを実行
+        if (appData.imageBlob) {
+            const overlay = document.getElementById('loading-overlay');
+            document.getElementById('loading-text').innerText = '保存された画像から文字を解析中...';
+            overlay.style.display = 'flex';
+
+            try {
+                const img = new Image();
+                img.src = appData.imageBlob;
+                await new Promise((resolve) => { img.onload = resolve; });
+
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                const { data: { text } } = await Tesseract.recognize(canvas, 'eng', { logger: m => {} });
+                overlay.style.display = 'none';
+
+                const cleaned = text.replace(/\s+/g, '');
+                const match = cleaned.match(/[A-Z]{2}[0-9]{7}/);
+
+                if (match) {
+                    appData.barcode1 = match[0];
+                    document.getElementById('manual-code1').value = match[0];
+                } else {
+                    // 読取できなかった場合でも画像とテキスト（生データ）を表示し手入力できるようにする
+                    alert("指定形式（英字2文字＋数字7桁）の自動抽出ができませんでした。\n確認画面で手入力または修正を行ってください。");
+                }
+            } catch (err) {
+                overlay.style.display = 'none';
+                alert('OCR解析エラーが発生しました。手動で入力してください。');
+            }
+        }
+
+        goToScreen('screen-preview');
+    }
+
+    // --- データ登録 ---
+    async function submitData() {
+        saveState();
+        appData.barcode1 = document.getElementById('manual-code1').value.trim();
+
+        if (!appData.barcode1) {
+            alert('顧客コードが入力されていません。');
+            return;
+        }
+
+        const overlay = document.getElementById('loading-overlay');
+        document.getElementById('loading-text').innerText = 'データを登録中...';
+        overlay.style.display = 'flex';
+
+        const sendData = {
+            barcode1: appData.barcode2, // 出展社情報
+            barcode2: appData.barcode1, // 顧客コード
+            q1: appData.q1,
+            q2: appData.q2,
+            q3: appData.q3,
+            memo: appData.memo
+        };
+
+        try {
+            const response = await fetch(GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify(sendData)
+            });
+            const result = await response.json();
+            overlay.style.display = 'none';
+
+            if(result.status === 'success') {
+                alert('データを登録しました！');
+                sessionStorage.clear();
+                
+                // リセットして最初に戻る
+                appData = { barcode1: '', barcode2: '', q1: '0', q2: '', q3: '', memo: '', imageBlob: '' };
+                document.getElementById('manual-code1').value = '';
+                document.getElementById('manual-code2').value = '';
+                document.getElementById('productName').value = '';
+                document.getElementById('notes').value = '';
+                document.getElementById('capture-preview-container').style.display = 'none';
+                document.getElementById('btn-to-q2').style.display = 'none';
+                document.querySelectorAll('input[name="options"]').forEach(chk => chk.checked = false);
+                updateStarDisplay(0);
+                
+                goToScreen('screen-scan1');
+            } else {
+                alert('登録失敗: ' + result.message);
+            }
+        } catch (err) {
+            overlay.style.display, (overlay.style.display = 'none');
+            alert('通信エラー: ' + err);
+        }
+    }
+</script>
+
+</body>
+</html>
