@@ -20,7 +20,8 @@
         body {
             font-family: system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='120' viewBox='0 0 280 120'><text x='140' y='70' fill='%23ffffff' font-size='20' font-family='sans-serif' font-weight='bold' opacity='0.08' text-anchor='middle'>グループ社員専用</text></svg>");
+            /* ▼ 背景のSVGを斜め45度に回転させ、間隔を詰めてたくさん表示するように変更 ▼ */
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='100' viewBox='0 0 220 100'><text x='110' y='50' fill='%23ffffff' font-size='16' font-family='sans-serif' font-weight='bold' opacity='0.08' text-anchor='middle' transform='rotate(-45 110 50)'>エコール大見本市</text></svg>");
             color: var(--text-color);
             margin: 0;
             padding: 16px;
@@ -602,7 +603,7 @@
         }
     }
 
-    // --- データ登録 ---
+    // --- Data登録 ---
     async function submitData() {
         saveState();
         appData.barcode1 = document.getElementById('manual-code1').value.trim();
