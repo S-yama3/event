@@ -20,7 +20,7 @@
         body {
             font-family: system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='120' viewBox='0 0 280 120'><text x='140' y='70' fill='%23ffffff' font-size='20' font-family='sans-serif' font-weight='bold' opacity='0.08' text-anchor='middle'>えコール大見本市</text></svg>");
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='120' viewBox='0 0 280 120'><text x='140' y='70' fill='%23ffffff' font-size='20' font-family='sans-serif' font-weight='bold' opacity='0.08' text-anchor='middle'>エコール大見本市</text></svg>");
             color: var(--text-color);
             margin: 0;
             padding: 16px;
@@ -200,7 +200,7 @@
     </div>
 
 <div class="container">
-    <!-- ステップ0：出展者情報設定（最初に一度だけ入力・記憶・正方形QR読取対応） -->
+    <!-- ステップ0：出展者情報設定（QRコード自動読取＆Y/N確認対応） -->
     <div id="screen-setup" class="step-screen active">
         <h2>0. 出展者情報の設定</h2>
         <p style="font-size: 0.9rem; color: #475569;">出展者コードのQRコードを読み取るか、直接入力してください。</p>
@@ -213,6 +213,22 @@
             <input type="text" id="setup-code2" placeholder="例:エコール産業" value="">
         </div>
         <button onclick="saveSetupInfo()" style="background-color: #059669;">この情報で固定して始める</button>
+    </div>
+
+    <!-- ステップ0-2：出展者情報の確認 (Y/N画面) -->
+    <div id="screen-setup-confirm" class="step-screen">
+        <h2>0. 出展者情報の確認</h2>
+        <p style="font-size: 0.9rem; color: #475569;">以下の内容で出展者情報を設定しますか？</p>
+        
+        <div class="summary-box" style="border-left-color: #059669; margin-top: 16px;">
+            <div style="margin-bottom: 6px;"><strong>読み取った出展社情報:</strong></div>
+            <div id="confirm-setup-val" style="font-size: 1.1rem; font-weight: bold; color: #0f172a; word-break: break-all;"></div>
+        </div>
+
+        <div class="button-group" style="margin-top: 20px;">
+            <button type="button" class="secondary" onclick="retrySetupScan()" style="background-color: #64748b;">いいえ (再読取)</button>
+            <button type="button" onclick="confirmSetupYes()" style="background-color: #059669;">はい (確定して進む)</button>
+        </div>
     </div>
 
     <!-- ステップ1：顧客コード撮影（変更なしの元仕様） -->
@@ -322,6 +338,7 @@
     let currentScreen = 'screen-setup';
     let html5QrCode0 = null;
     let html5QrCode1 = null;
+    let tempScannedBarcode2 = ''; // スキャン一時保持用
 
     window.addEventListener('DOMContentLoaded', () => {
         // 出展社情報はブラウザに永続保存する (localStorage)
@@ -420,6 +437,10 @@
         const starsCount = "★".repeat(Number(appData.q1)) + "☆".repeat(5 - Number(appData.q1));
         const optionsText = appData.q2 ? appData.q2 : '未選択';
 
+        if (screenId === 'screen-setup-confirm') {
+            document.getElementById('confirm-setup-val').innerText = tempScannedBarcode2;
+        }
+
         if (screenId === 'screen-preview') {
             document.getElementById('preview-captured-img').src = appData.imageBlob || '';
             document.getElementById('prev-q1').innerText = `${starsCount} (${appData.q1}/5)`;
@@ -438,7 +459,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // --- ステップ0：背面カメラによる出展社QR読取（正方形の読取枠） ---
+    // --- ステップ0：背面カメラによる出展社QR読取（読取成功後にY/N確認画面へ） ---
     function startScanner0() {
         const btnStart = document.getElementById('btn-start-scanner0');
         btnStart.style.display = 'none';
@@ -449,19 +470,37 @@
 
         html5QrCode0.start(
             { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 200, height: 200 } }, // 正方形の枠に変更
+            { fps: 10, qrbox: { width: 200, height: 200 } },
             (decodedText) => {
-                // 読取成功時
+                // 読取成功時、一時保存して確認画面へ
+                tempScannedBarcode2 = decodedText;
                 document.getElementById('setup-code2').value = decodedText;
+                
                 html5QrCode0.stop().then(() => {
-                    btnStart.style.display = 'block';
-                }).catch(err => {});
+                    goToScreen('screen-setup-confirm');
+                }).catch(err => {
+                    goToScreen('screen-setup-confirm');
+                });
             },
             (err) => {}
         ).catch(err => {
             alert("カメラ起動エラー: " + err);
             btnStart.style.display = 'block';
         });
+    }
+
+    // --- Y/N確認画面でのボタン処理 ---
+    function confirmSetupYes() {
+        appData.barcode2 = tempScannedBarcode2;
+        localStorage.setItem('fixedBarcode2', tempScannedBarcode2); // ブラウザに記憶
+        updateHeaderBadges();
+        saveState();
+        goToScreen('screen-scan1');
+    }
+
+    function retrySetupScan() {
+        tempScannedBarcode2 = '';
+        goToScreen('screen-setup');
     }
 
     // --- ステップ1：カメラ起動と撮影・保存（変更なし） ---
