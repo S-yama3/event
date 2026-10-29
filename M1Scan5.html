@@ -60,7 +60,7 @@
             margin-bottom: 16px;
             border: 1px solid #bfdbfe;
         }
-        #reader-1 {
+        #reader-0, #reader-1 {
             width: 100% !important;
             border-radius: 8px;
             overflow: hidden;
@@ -200,18 +200,22 @@
     </div>
 
 <div class="container">
-    <!-- ステップ0：出展者情報設定（最初に一度だけ入力・記憶） -->
+    <!-- ステップ0：出展者情報設定（最初に一度だけ入力・記憶・QR読取対応） -->
     <div id="screen-setup" class="step-screen active">
         <h2>0. 出展者情報の設定</h2>
-        <p style="font-size: 0.9rem; color: #475569;">最初に一度だけ出展者情報を入力してください。ブラウザに記憶されます。</p>
-        <div class="input-group" style="margin-top: 16px;">
+        <p style="font-size: 0.9rem; color: #475569;">出展者コードのQRコードを読み取るか、直接入力してください。</p>
+        
+        <div id="reader-0"></div>
+        <button id="btn-start-scanner0" onclick="startScanner0()" style="background-color: #059669; margin-top: 0; margin-bottom: 12px;">📷 QRコードを読み取る</button>
+
+        <div class="input-group">
             <label for="setup-code2">出展社コード・名称</label>
             <input type="text" id="setup-code2" placeholder="例:エコール産業" value="">
         </div>
         <button onclick="saveSetupInfo()" style="background-color: #059669;">この情報で固定して始める</button>
     </div>
 
-    <!-- ステップ1：顧客コード撮影（保存のみ） -->
+    <!-- ステップ1：顧客コード撮影（プレビューなしで即次へ） -->
     <div id="screen-scan1" class="step-screen">
         <div class="info-badge">出展社: <span class="disp-b2"></span> <a href="#" onclick="changeSetupInfo()" style="float: right; color: #1d4ed8; text-decoration: underline;">変更</a></div>
         <h2>1. 顧客コード（名札）撮影</h2>
@@ -220,15 +224,7 @@
         <div id="reader-1"></div>
         
         <button id="btn-start-scanner1" onclick="startScanner1()" style="background-color: #059669;">📷 カメラを起動する</button>
-        <button id="btn-capture-photo" onclick="capturePhoto()" style="display: none;" class="warning">📸 この枠内を撮影して保存する</button>
-
-        <div id="capture-preview-container" style="margin-top: 16px; display: none; text-align: center;">
-            <p style="font-size: 0.85rem; font-weight: bold; color: #475569;">撮影画像プレビュー:</p>
-            <img id="captured-img-preview" src="" alt="撮影画像" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border-color);">
-            <button class="secondary" onclick="retakePhoto()" style="margin-top: 8px;">🔄 撮り直す</button>
-        </div>
-
-        <button id="btn-to-q2" onclick="goToScreen('screen-q2')" style="margin-top: 16px; display: none;">次へ進む</button>
+        <button id="btn-capture-photo" onclick="capturePhoto()" style="display: none;" class="warning">📸 撮影して次へ進む</button>
     </div>
 
     <!-- ステップ2：ご要望 -->
@@ -316,6 +312,7 @@
     };
 
     let currentScreen = 'screen-setup';
+    let html5QrCode0 = null;
     let html5QrCode1 = null;
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -339,12 +336,6 @@
             document.getElementById('productName').value = appData.q3 || '';
             document.getElementById('notes').value = appData.memo || '';
             
-            if (appData.imageBlob) {
-                document.getElementById('captured-img-preview').src = appData.imageBlob;
-                document.getElementById('capture-preview-container').style.display = 'block';
-                document.getElementById('btn-to-q2').style.display = 'block';
-            }
-
             if (appData.q2) {
                 const optArray = appData.q2.split(', ');
                 document.querySelectorAll('input[name="options"]').forEach(chk => {
@@ -395,6 +386,10 @@
     }
 
     function stopAllCameras() {
+        if (html5QrCode0) {
+            try { if (html5QrCode0.isScanning) html5QrCode0.stop().catch(e => {}); } catch(e) {}
+            document.getElementById('btn-start-scanner0').style.display = 'block';
+        }
         if (html5QrCode1) {
             try { if (html5QrCode1.isScanning) html5QrCode1.stop().catch(e => {}); } catch(e) {}
             document.getElementById('btn-start-scanner1').style.display = 'block';
@@ -429,7 +424,33 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // --- ステップ1：カメラ起動と撮影・保存 ---
+    // --- ステップ0：背面カメラによる出展社QR読取 ---
+    function startScanner0() {
+        const btnStart = document.getElementById('btn-start-scanner0');
+        btnStart.style.display = 'none';
+
+        if (!html5QrCode0) {
+            html5QrCode0 = new Html5Qrcode("reader-0");
+        }
+
+        html5QrCode0.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 250, height: 150 } },
+            (decodedText) => {
+                // 読取成功時
+                document.getElementById('setup-code2').value = decodedText;
+                html5QrCode0.stop().then(() => {
+                    btnStart.style.display = 'block';
+                }).catch(err => {});
+            },
+            (err) => {}
+        ).catch(err => {
+            alert("カメラ起動エラー: " + err);
+            btnStart.style.display = 'block';
+        });
+    }
+
+    // --- ステップ1：カメラ起動と撮影・保存（プレビューなしで次へ） ---
     function startScanner1() {
         const btnStart = document.getElementById('btn-start-scanner1');
         const btnCapture = document.getElementById('btn-capture-photo');
@@ -471,30 +492,16 @@
             const dataUrl = canvas.toDataURL('image/png');
             appData.imageBlob = dataUrl;
 
-            document.getElementById('captured-img-preview').src = dataUrl;
-            document.getElementById('capture-preview-container').style.display = 'block';
-            document.getElementById('btn-to-q2').style.display = 'block';
-
             if (html5QrCode1 && html5QrCode1.isScanning) {
                 await html5QrCode1.stop().catch(e => {});
             }
-            document.getElementById('btn-start-scanner1').style.display = 'block';
-            document.getElementById('btn-capture-photo').style.display = 'none';
             saveState();
 
-            alert('名札の撮影が完了しました！次へ進んでください。');
+            // プレビュー画面を挟まず、すぐにステップ2（ご要望選択）へ進む
+            goToScreen('screen-q2');
         } catch (err) {
             alert('画像保存エラー: ' + err);
         }
-    }
-
-    function retakePhoto() {
-        appData.imageBlob = '';
-        appData.barcode1 = '';
-        document.getElementById('capture-preview-container').style.display = 'none';
-        document.getElementById('btn-to-q2').style.display = 'none';
-        saveState();
-        startScanner1();
     }
 
     // --- 星評価の処理 ---
@@ -602,8 +609,6 @@
                 document.getElementById('manual-code1').value = '';
                 document.getElementById('productName').value = '';
                 document.getElementById('notes').value = '';
-                document.getElementById('capture-preview-container').style.display = 'none';
-                document.getElementById('btn-to-q2').style.display = 'none';
                 document.querySelectorAll('input[name="options"]').forEach(chk => chk.checked = false);
                 updateStarDisplay(0);
                 
