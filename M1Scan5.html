@@ -20,7 +20,7 @@
         body {
             font-family: system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='120' viewBox='0 0 280 120'><text x='140' y='70' fill='%23ffffff' font-size='20' font-family='sans-serif' font-weight='bold' opacity='0.08' text-anchor='middle'>エコール大見本市</text></svg>");
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='120' viewBox='0 0 280 120'><text x='140' y='70' fill='%23ffffff' font-size='20' font-family='sans-serif' font-weight='bold' opacity='0.08' text-anchor='middle'>グループ社員専用</text></svg>");
             color: var(--text-color);
             margin: 0;
             padding: 16px;
@@ -231,7 +231,7 @@
         </div>
     </div>
 
-    <!-- ステップ1：顧客コード撮影（変更なしの元仕様） -->
+    <!-- ステップ1：顧客コード撮影（プレビューなしで即次へ） -->
     <div id="screen-scan1" class="step-screen">
         <div class="info-badge">出展社: <span class="disp-b2"></span> <a href="#" onclick="changeSetupInfo()" style="float: right; color: #1d4ed8; text-decoration: underline;">変更</a></div>
         <h2>1. 顧客コード（名札）撮影</h2>
@@ -240,15 +240,7 @@
         <div id="reader-1"></div>
         
         <button id="btn-start-scanner1" onclick="startScanner1()" style="background-color: #059669;">📷 カメラを起動する</button>
-        <button id="btn-capture-photo" onclick="capturePhoto()" style="display: none;" class="warning">📸 この枠内を撮影して保存する</button>
-
-        <div id="capture-preview-container" style="margin-top: 16px; display: none; text-align: center;">
-            <p style="font-size: 0.85rem; font-weight: bold; color: #475569;">撮影画像プレビュー:</p>
-            <img id="captured-img-preview" src="" alt="撮影画像" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border-color);">
-            <button class="secondary" onclick="retakePhoto()" style="margin-top: 8px;">🔄 撮り直す</button>
-        </div>
-
-        <button id="btn-to-q2" onclick="goToScreen('screen-q2')" style="margin-top: 16px; display: none;">次へ進む</button>
+        <button id="btn-capture-photo" onclick="capturePhoto()" style="display: none;" class="warning">📸 撮影して次へ進む</button>
     </div>
 
     <!-- ステップ2：ご要望 -->
@@ -361,12 +353,6 @@
             document.getElementById('productName').value = appData.q3 || '';
             document.getElementById('notes').value = appData.memo || '';
             
-            if (appData.imageBlob) {
-                document.getElementById('captured-img-preview').src = appData.imageBlob;
-                document.getElementById('capture-preview-container').style.display = 'block';
-                document.getElementById('btn-to-q2').style.display = 'block';
-            }
-
             if (appData.q2) {
                 const optArray = appData.q2.split(', ');
                 document.querySelectorAll('input[name="options"]').forEach(chk => {
@@ -503,7 +489,7 @@
         goToScreen('screen-setup');
     }
 
-    // --- ステップ1：カメラ起動と撮影・保存（変更なし） ---
+    // --- ステップ1：カメラ起動と撮影・保存（プレビューなしで即次へ） ---
     function startScanner1() {
         const btnStart = document.getElementById('btn-start-scanner1');
         const btnCapture = document.getElementById('btn-capture-photo');
@@ -545,30 +531,16 @@
             const dataUrl = canvas.toDataURL('image/png');
             appData.imageBlob = dataUrl;
 
-            document.getElementById('captured-img-preview').src = dataUrl;
-            document.getElementById('capture-preview-container').style.display = 'block';
-            document.getElementById('btn-to-q2').style.display = 'block';
-
             if (html5QrCode1 && html5QrCode1.isScanning) {
                 await html5QrCode1.stop().catch(e => {});
             }
-            document.getElementById('btn-start-scanner1').style.display = 'block';
-            document.getElementById('btn-capture-photo').style.display = 'none';
             saveState();
 
-            alert('名札の撮影が完了しました！次へ進んでください。');
+            // プレビュー画面やアラートを挟まず、すぐにステップ2（ご要望選択）へ進む
+            goToScreen('screen-q2');
         } catch (err) {
             alert('画像保存エラー: ' + err);
         }
-    }
-
-    function retakePhoto() {
-        appData.imageBlob = '';
-        appData.barcode1 = '';
-        document.getElementById('capture-preview-container').style.display = 'none';
-        document.getElementById('btn-to-q2').style.display = 'none';
-        saveState();
-        startScanner1();
     }
 
     // --- 星評価の処理 ---
@@ -676,8 +648,6 @@
                 document.getElementById('manual-code1').value = '';
                 document.getElementById('productName').value = '';
                 document.getElementById('notes').value = '';
-                document.getElementById('capture-preview-container').style.display = 'none';
-                document.getElementById('btn-to-q2').style.display = 'none';
                 document.querySelectorAll('input[name="options"]').forEach(chk => chk.checked = false);
                 updateStarDisplay(0);
                 
