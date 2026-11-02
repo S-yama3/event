@@ -1,124 +1,263 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-  <base target="_top">
-  <meta charset="utf-8">
-  <style>
-    body { font-family: sans-serif; margin: 20px; color: #333; background-color: #fcfcfc; }
-    h2 { color: #1a73e8; }
-    .control-panel { margin-bottom: 20px; padding: 15px; background: #fff; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    select, button { padding: 8px 12px; font-size: 14px; margin-right: 10px; border: 1px solid #ccc; border-radius: 4px; }
-    button { background-color: #1a73e8; color: white; border: none; cursor: pointer; }
-    button:hover { background-color: #1557b0; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    th, td { border: 1px solid #e0e0e0; padding: 10px 12px; text-align: left; font-size: 13px; }
-    th { background-color: #f8f9fa; font-weight: 600; }
-    tr:nth-child(even) { background-color: #fbfbfc; }
-    .loading { color: #666; font-style: italic; }
-  </style>
+    <meta charset="UTF-8">
+    <title>商談データ閲覧ページ</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+        }
+        .filter-container {
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        select, button {
+            padding: 8px 12px;
+            font-size: 1rem;
+            margin-right: 10px;
+        }
+        button {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #004999;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
-  <h2>見本市データ検索・表示システム</h2>
-  
-  <div class="control-panel">
-    <label for="selectB"><strong>組織・担当者: </strong></label>
-    <select id="selectB">
-      <option value="">読み込み中...</option>
-    </select>
-    <button onclick="loadData()">表示</button>
-  </div>
 
-  <div id="resultArea">
-    <p style="color: #666;">条件を選択して「表示」ボタンを押してください。</p>
-  </div>
+    <h1>商談データ一覧表示</h1>
 
-  <script>
-    // ページ読み込み時にB列の重複なし選択肢を自動取得
-    window.onload = function() {
-      google.script.run
-        .withSuccessHandler(function(options) {
-          const select = document.getElementById('selectB');
-          select.innerHTML = '<option value="">-- 選択してください --</option>';
-          options.forEach(function(opt) {
-            const option = document.createElement('option');
-            option.value = opt;
-            option.textContent = opt;
-            select.appendChild(option);
-          });
-        })
-        .withFailureHandler(function(error) {
-          alert('選択肢の取得に失敗しました: ' + error.message);
-        })
-        .getDropdownOptions();
-    };
+    <div class="filter-container">
+        <label for="kobanSelect">小間番号:</label>
+        <select id="kobanSelect">
+            <option value="">-- 読み込み中... --</option>
+        </select>
+        <button id="filterBtn" onclick="filterData()">表示</button>
+    </div>
 
-    // 表示ボタン押下時の処理
-    function loadData() {
-      const select = document.getElementById('selectB');
-      const selectedValue = select.value;
-      if (!selectedValue) {
-        alert('組織・担当者を選択してください。');
-        return;
-      }
+    <div id="status" class="loading">データを読み込んでいます...</div>
 
-      const resultArea = document.getElementById('resultArea');
-      resultArea.innerHTML = '<p class="loading">データを取得中...</p>';
+    <div style="overflow-x: auto;">
+        <table id="resultTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>タイムスタンプ</th>
+                    <th>小間番号</th>
+                    <th>得意先コード</th>
+                    <th>得意先名</th>
+                    <th>関心度</th>
+                    <th>必要事項</th>
+                    <th>商談した商材</th>
+                    <th>メモ、申し送り</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- 検索結果がここに挿入されます -->
+            </tbody>
+        </table>
+    </div>
 
-      google.script.run
-        .withSuccessHandler(function(rows) {
-          renderTable(rows);
-        })
-        .withFailureHandler(function(error) {
-          alert('データの取得に失敗しました: ' + error.message);
-          resultArea.innerHTML = '<p style="color:red;">エラーが発生しました。</p>';
-        })
-        .getDataByFilter(selectedValue);
-    }
+    <script>
+        // 公開CSVのURL
+        const csvUrl1 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTTMx---MewxmYqSCb_z_LdEsYUwUaM1sv5fPv2Vt6NUse9OpiQjbGZzbQI093sHKJkcTPherl1NtzY/pub?gid=0&single=true&output=csv';
+        const csvUrl2 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFWooCwNbFGA-82IlGA1IluqtmHA7J6uPkJmoKkcwse43z6WWoRVQRBMRT5xZKZro8pt15uxx9tuyk/pub?gid=0&single=true&output=csv';
 
-    // テーブルを描画する関数
-    function renderTable(rows) {
-      const resultArea = document.getElementById('resultArea');
-      if (rows.length === 0) {
-        resultArea.innerHTML = '<p>該当するデータはありません。</p>';
-        return;
-      }
+        let rawData1 = [];
+        let customerMap = new Map();
 
-      let html = '<table>';
-      html += '<thead><tr>';
-      html += '<th>日時 (A)</th>';
-      html += '<th>組織名等 (B)</th>';
-      html += '<th>コード (C)</th>';
-      html += '<th>コードリスト名称 (追加)</th>';
-      html += '<th>数値 (D)</th>';
-      html += '<th>項目 (E)</th>';
-      html += '<th>内容 (F)</th>';
-      html += '<th>概要説明 (G)</th>';
-      html += '<th>H列</th>';
-      html += '</tr></thead><tbody>';
-
-      rows.forEach(function(row) {
-        html += '<tr>';
-        for (let i = 0; i < row.length; i++) {
-          let val = row[i] !== undefined && row[i] !== null ? row[i] : '';
-          // 日付型データの場合の簡易フォーマット
-          if (val instanceof Date) {
-            val = val.toLocaleString();
-          }
-          html += '<td>' + escapeHtml(String(val)) + '</td>';
+        // CSVを正しくパースするための関数（カンマやダブルクォーテーションに対応）
+        function parseCSV(text) {
+            let lines = text.split(/\r\n|\n/);
+            let result = [];
+            for (let line of lines) {
+                if (!line.trim()) continue;
+                let row = [];
+                let inQuotes = false;
+                let entry = '';
+                for (let i = 0; i < line.length; i++) {
+                    let char = line[i];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        row.push(entry.trim());
+                        entry = '';
+                    } else {
+                        entry += char;
+                    }
+                }
+                row.push(entry.trim());
+                result.push(row);
+            }
+            return result;
         }
-        html += '</tr>';
-      });
 
-      html += '</tbody></table>';
-      resultArea.innerHTML = html;
-    }
+        // データのロード
+        async function loadData() {
+            try {
+                const [res1, res2] = await Promise.all([
+                    fetch(csvUrl1),
+                    fetch(csvUrl2)
+                ]);
 
-    // HTMLエスケープ（セキュリティ対策）
-    function escapeHtml(str) {
-      return str.replace(/[&<>'"]/g, 
-        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-      );
-    }
-  </script>
+                const text1 = await res1.text();
+                const text2 = await res2.text();
+
+                const parsed1 = parseCSV(text1);
+                const parsed2 = parseCSV(text2);
+
+                // 1つ目のシートのデータ保持（ヘッダーを除く）
+                rawData1 = parsed1.slice(1);
+
+                // 2つ目のシートをMapに格納（得意先コード -> 得意先名）
+                // 2つ目のシートの構成：A列=得意先コード(index 0), B列=得意先名(index 1)
+                const rows2 = parsed2.slice(1);
+                rows2.forEach(row => {
+                    if (row.length >= 2 && row[0]) {
+                        customerMap.set(row[0], row[1] || '');
+                    }
+                });
+
+                // 1つ目のシートのB列（インデックス1：小間番号）の重複なしリストを作成
+                const kobanSet = new Set();
+                rawData1.forEach(row => {
+                    if (row.length > 1 && row[1]) {
+                        kobanSet.add(row[1]);
+                    }
+                });
+
+                // プルダウンの構築
+                const select = document.getElementById('kobanSelect');
+                select.innerHTML = '<option value="">-- すべて選択 --</option>';
+                Array.from(kobanSet).sort().forEach(koban => {
+                    let opt = document.createElement('option');
+                    opt.value = koban;
+                    opt.textContent = koban;
+                    select.appendChild(opt);
+                });
+
+                document.getElementById('status').textContent = 'データの読み込みが完了しました。小間番号を選択して「表示」を押してください。';
+            } catch (error) {
+                console.error(error);
+                document.getElementById('status').textContent = 'データの読み込みに失敗しました。';
+            }
+        }
+
+        // フィルターしてテーブルに表示
+        function filterData() {
+            const selectedKoban = document.getElementById('kobanSelect').value;
+            const tbody = document.getElementById('tableBody');
+            const table = document.getElementById('resultTable');
+            tbody.innerHTML = '';
+
+            // 1つ目のシートの列インデックス定義:
+            // A列(0): タイムスタンプ
+            // B列(1): 小間番号
+            // C列(2): 得意先コード
+            // (D列抜けがある場合を考慮しつつマッピング)
+            // 画像1のレイアウトに基づくインデックス:
+            // 0: タイムスタンプ, 1: 小間番号, 2: 得意先コード, 3: (空など), 4: 関心度, 5: 必要事項, 6: 商談した商材, 7: メモ、申し送り
+            
+            let filtered = rawData1.filter(row => {
+                if (!selectedKoban) return true; // 未選択（すべて）の場合
+                return row[1] === selectedKoban;
+            });
+
+            if (filtered.length === 0) {
+                document.getElementById('status').textContent = '該当するデータはありません。';
+                table.style.display = 'none';
+                return;
+            }
+
+            filtered.forEach(row => {
+                const timestamp = row[0] || '';
+                const koban = row[1] || '';
+                const customerCode = row[2] || '';
+                const customerName = customerMap.get(customerCode) || '(不明)';
+                
+                // 列ズレを防ぐため安全に取得（データ構造に合わせて調整）
+                const kansindo = row[4] || '';
+                const hitsuyou = row[5] || '';
+                const shouzai = row[6] || '';
+                const memo = row[7] || '';
+
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${escapeHtml(timestamp)}</td>
+                    <td>${escapeHtml(koban)}</td>
+                    <td>${escapeHtml(customerCode)}</td>
+                    <td>${escapeHtml(customerName)}</td>
+                    <td>${escapeHtml(kansindo)}</td>
+                    <td>${escapeHtml(hitsuyou)}</td>
+                    <td>${escapeHtml(shouzai)}</td>
+                    <td>${escapeHtml(memo)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            table.style.display = 'table';
+            document.getElementById('status').textContent = `${filtered.length} 件のデータが表示されています。`;
+        }
+
+        // HTMLエスケープ処理
+        function escapeHtml(str) {
+            return str.replace(/[&'`<>"]/g, function(match) {
+                return {
+                    '&': '&amp;',
+                    'quot;': '&quot;',
+                    "'": '&#x27;',
+                    '`': '&#x60;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                }[match];
+            });
+        }
+
+        // 初期実行
+        loadData();
+    </script>
 </body>
 </html>
