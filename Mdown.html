@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>コミュニケーション閲覧ページ</title>
+    <!-- SheetJS (Excel出力用ライブラリ) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: sans-serif;
@@ -39,6 +41,19 @@
         }
         button:hover {
             background-color: #004999;
+        }
+        /* ダウンロードボタン（通常＆非活性スタイル） */
+        .download-btn {
+            background-color: #28a745;
+        }
+        .download-btn:hover {
+            background-color: #218838;
+        }
+        button:disabled, .download-btn:disabled {
+            background-color: #cccccc !important;
+            color: #666666 !important;
+            cursor: not-allowed;
+            border: 1px solid #999999;
         }
         table {
             width: 100%;
@@ -81,6 +96,9 @@
         <input type="password" id="passwordInput" placeholder="パスワードを入力">
 
         <button id="filterBtn" onclick="filterData()">表示</button>
+        
+        <!-- 追加: ダウンロードボタン（初期値は非活性/グレーアウト） -->
+        <button id="downloadBtn" class="download-btn" onclick="downloadExcel()" disabled>Excelダウンロード</button>
     </div>
 
     <div id="status" class="loading">データを読み込んでいます...</div>
@@ -214,7 +232,12 @@
             const inputPassword = document.getElementById('passwordInput').value.trim();
             const tbody = document.getElementById('tableBody');
             const table = document.getElementById('resultTable');
+            const downloadBtn = document.getElementById('downloadBtn');
+            
             tbody.innerHTML = '';
+
+            // 検索実行時は一度ダウンロードボタンを無効化
+            downloadBtn.disabled = true;
 
             if (!inputPassword) {
                 alert('パスワードを入力してください。');
@@ -286,6 +309,23 @@
 
             table.style.display = 'table';
             document.getElementById('status').textContent = `${filtered.length} 件のデータが表示されています。`;
+            
+            // 明細が1件以上表示された場合、ダウンロードボタンを有効化
+            downloadBtn.disabled = false;
+        }
+
+        // Excelファイルとしてダウンロードする関数
+        function downloadExcel() {
+            const table = document.getElementById('resultTable');
+            
+            // DOM上のテーブル要素からワークシートを作成
+            const wb = XLSX.utils.table_to_workbook(table, { sheet: "商談データ" });
+            
+            // ファイル名を作成してダウンロード実行
+            const selectedKoban = document.getElementById('kobanSelect').value;
+            const filename = selectedKoban ? `商談データ_${selectedKoban}.xlsx` : '商談データ_全件.xlsx';
+            
+            XLSX.writeFile(wb, filename);
         }
 
         // HTMLエスケープ処理
@@ -307,4 +347,3 @@
     </script>
 </body>
 </html>
-<ElicitationsGroup></ElicitationsGroup>
