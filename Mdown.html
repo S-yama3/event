@@ -138,9 +138,7 @@
         // データのロード
         async function loadData() {
             try {
-                // ローカル（file:///）でのCORS制限を回避するためプロキシ経由で取得
-                // ※GitHub Pagesなどの本番環境では 'https://api.allorigins.win/raw?url=' を外して直接 fetch(csvUrl1) にしても構いません
-                const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                const proxyUrl = 'https://corsproxy.io/?';
                 const [res1, res2] = await Promise.all([
                     fetch(proxyUrl + encodeURIComponent(csvUrl1)),
                     fetch(proxyUrl + encodeURIComponent(csvUrl2))
@@ -206,16 +204,15 @@
             }
 
             filtered.forEach(row => {
-                const timestamp = row[0] || '';
-                const koban = row[1] || '';
-                const customerCode = row[2] || '';
-                const customerName = customerMap.get(customerCode) || '(不明)';
+                const timestamp = row[0] || '';      // A列：タイムスタンプ
+                const koban = row[1] || '';          // B列：小間番号
+                const customerCode = row[2] || '';   // C列：得意先コード
+                const customerName = customerMap.get(customerCode) || '(不明)'; // 2つ目のシートから取得
                 
-                // 正しい列インデックスのマッピング
-                const kansindo = row[3] || '';  // D列：関心度
-                const hitsuyou = row[4] || '';  // E列：必要事項（分割せずそのまま）
-                const shouzai = row[5] || '';   // F列：商談した商材
-                const memo = row[6] || '';      // G列：メモ、申し送り
+                const kansindo = row[3] || '';       // D列：関心度
+                const hitsuyou = row[4] || '';       // E列：必要事項
+                const shouzai = row[5] || '';        // F列：商談した商材
+                const memo = row[6] || '';           // G列：メモ、申し送り
 
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
