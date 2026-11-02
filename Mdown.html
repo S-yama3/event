@@ -138,7 +138,8 @@
         // データのロード
         async function loadData() {
             try {
-                const proxyUrl = 'https://corsproxy.io/?';
+                // codetabsのCORSプロキシを使用
+                const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=';
                 const [res1, res2] = await Promise.all([
                     fetch(proxyUrl + encodeURIComponent(csvUrl1)),
                     fetch(proxyUrl + encodeURIComponent(csvUrl2))
