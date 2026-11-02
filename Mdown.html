@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <style>
+    body { font-family: sans-serif; margin: 20px; color: #333; background-color: #fcfcfc; }
+    h2 { color: #1a73e8; }
+    .control-panel { margin-bottom: 20px; padding: 15px; background: #fff; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    select, button { padding: 8px 12px; font-size: 14px; margin-right: 10px; border: 1px solid #ccc; border-radius: 4px; }
+    button { background-color: #1a73e8; color: white; border: none; cursor: pointer; }
+    button:hover { background-color: #1557b0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    th, td { border: 1px solid #e0e0e0; padding: 10px 12px; text-align: left; font-size: 13px; }
+    th { background-color: #f8f9fa; font-weight: 600; }
+    tr:nth-child(even) { background-color: #fbfbfc; }
+    .loading { color: #666; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h2>見本市データ検索・表示システム</h2>
+  
+  <div class="control-panel">
+    <label for="selectB"><strong>組織・担当者: </strong></label>
+    <select id="selectB">
+      <option value="">読み込み中...</option>
+    </select>
+    <button onclick="loadData()">表示</button>
+  </div>
+
+  <div id="resultArea">
+    <p style="color: #666;">条件を選択して「表示」ボタンを押してください。</p>
+  </div>
+
+  <script>
+    // ページ読み込み時にB列の重複なし選択肢を自動取得
+    window.onload = function() {
+      google.script.run
+        .withSuccessHandler(function(options) {
+          const select = document.getElementById('selectB');
+          select.innerHTML = '<option value="">-- 選択してください --</option>';
+          options.forEach(function(opt) {
+            const option = document.createElement('option');
+            option.value = opt;
+            option.textContent = opt;
+            select.appendChild(option);
+          });
+        })
+        .withFailureHandler(function(error) {
+          alert('選択肢の取得に失敗しました: ' + error.message);
+        })
+        .getDropdownOptions();
+    };
+
+    // 表示ボタン押下時の処理
+    function loadData() {
+      const select = document.getElementById('selectB');
+      const selectedValue = select.value;
+      if (!selectedValue) {
+        alert('組織・担当者を選択してください。');
+        return;
+      }
+
+      const resultArea = document.getElementById('resultArea');
+      resultArea.innerHTML = '<p class="loading">データを取得中...</p>';
+
+      google.script.run
+        .withSuccessHandler(function(rows) {
+          renderTable(rows);
+        })
+        .withFailureHandler(function(error) {
+          alert('データの取得に失敗しました: ' + error.message);
+          resultArea.innerHTML = '<p style="color:red;">エラーが発生しました。</p>';
+        })
+        .getDataByFilter(selectedValue);
+    }
+
+    // テーブルを描画する関数
+    function renderTable(rows) {
+      const resultArea = document.getElementById('resultArea');
+      if (rows.length === 0) {
+        resultArea.innerHTML = '<p>該当するデータはありません。</p>';
+        return;
+      }
+
+      let html = '<table>';
+      html += '<thead><tr>';
+      html += '<th>日時 (A)</th>';
+      html += '<th>組織名等 (B)</th>';
+      html += '<th>コード (C)</th>';
+      html += '<th>コードリスト名称 (追加)</th>';
+      html += '<th>数値 (D)</th>';
+      html += '<th>項目 (E)</th>';
+      html += '<th>内容 (F)</th>';
+      html += '<th>概要説明 (G)</th>';
+      html += '<th>H列</th>';
+      html += '</tr></thead><tbody>';
+
+      rows.forEach(function(row) {
+        html += '<tr>';
+        for (let i = 0; i < row.length; i++) {
+          let val = row[i] !== undefined && row[i] !== null ? row[i] : '';
+          // 日付型データの場合の簡易フォーマット
+          if (val instanceof Date) {
+            val = val.toLocaleString();
+          }
+          html += '<td>' + escapeHtml(String(val)) + '</td>';
+        }
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+      resultArea.innerHTML = html;
+    }
+
+    // HTMLエスケープ（セキュリティ対策）
+    function escapeHtml(str) {
+      return str.replace(/[&<>'"]/g, 
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+      );
+    }
+  </script>
+</body>
+</html>
