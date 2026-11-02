@@ -102,7 +102,7 @@
     </div>
 
     <script>
-        // 公開CSVのURL
+        // 公開CSVのURL（直接取得）
         const csvUrl1 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTTMx---MewxmYqSCb_z_LdEsYUwUaM1sv5fPv2Vt6NUse9OpiQjbGZzbQI093sHKJkcTPherl1NtzY/pub?gid=0&single=true&output=csv';
         const csvUrl2 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFWooCwNbFGA-82IlGA1IluqtmHA7J6uPkJmoKkcwse43z6WWoRVQRBMRT5xZKZro8pt15uxx9tuyk/pub?gid=0&single=true&output=csv';
 
@@ -135,14 +135,12 @@
             return result;
         }
 
-        // データのロード
+        // データのロード（プロキシなしで直接フェッチ）
         async function loadData() {
             try {
-                // codetabsのCORSプロキシを使用
-                const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=';
                 const [res1, res2] = await Promise.all([
-                    fetch(proxyUrl + encodeURIComponent(csvUrl1)),
-                    fetch(proxyUrl + encodeURIComponent(csvUrl2))
+                    fetch(csvUrl1),
+                    fetch(res2Url = csvUrl2) // 変数修正
                 ]);
 
                 const text1 = await res1.text();
