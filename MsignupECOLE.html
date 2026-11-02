@@ -351,14 +351,13 @@
         goToScreen(currentScreen);
     });
 
-    // 公開CSVの取得とプルダウンへの設定（A列＆B列の値を結合して表示）
+    // 公開CSVの取得とプルダウンへの設定（1行目をヘッダとしてスキップ）
     async function loadExhibitorList() {
         const selectEl = document.getElementById('setup-select');
         try {
             const response = await fetch(CSV_URL);
             const csvText = await response.text();
             
-            // 簡易的なCSVパース関数（ダブルクォーテーション内のカンマを考慮）
             function parseCSVLine(line) {
                 const result = [];
                 let current = '';
@@ -368,7 +367,7 @@
                     if (char === '"') {
                         inQuotes = !inQuotes;
                     } else if (char === ',' && !inQuotes) {
-                        result.value = result.push(current.trim().replace(/^"|"$/g, ''));
+                        result.push(current.trim().replace(/^"|"$/g, ''));
                         current = '';
                     } else {
                         current += char;
@@ -381,14 +380,16 @@
             const lines = csvText.split(/\r\n|\n/);
             selectEl.innerHTML = '<option value="">-- 出展者を選択してください --</option>';
             
-            lines.forEach(line => {
-                if (!line.trim()) return;
+            // i = 1 から始めて1行目（ヘッダ）をスキップ
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i];
+                if (!line.trim()) continue;
+                
                 const cols = parseCSVLine(line);
                 const colA = cols[0] || ''; // A列
                 const colB = cols[1] || ''; // B列
 
                 if (colA || colB) {
-                    // 送信用の値（例：A列とB列をハイフン区切り等で保存、またはB列のみなど必要に応じて調整可能ですがここでは「A列 - B列」の形式にしています）
                     const displayVal = colB ? `${colA} - ${colB}` : colA;
                     
                     const option = document.createElement('option');
@@ -396,7 +397,7 @@
                     option.textContent = displayVal;
                     selectEl.appendChild(option);
                 }
-            });
+            }
 
             if (appData.barcode2) {
                 selectEl.value = appData.barcode2;
@@ -597,7 +598,7 @@
         overlay.style.display = 'flex';
 
         const sendData = {
-            barcode1: appData.barcode2, // 出展社情報（A列・B列結合文字列）
+            barcode1: appData.barcode2, // 出展社情報
             barcode2: appData.barcode1, // 顧客コード
             q1: appData.q1,
             q2: appData.q2,
