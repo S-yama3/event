@@ -25,7 +25,7 @@
             font-weight: bold;
             margin-right: 10px;
         }
-        select, button {
+        select, input[type="password"], button {
             padding: 8px 12px;
             font-size: 1rem;
             margin-right: 10px;
@@ -76,6 +76,10 @@
         <select id="kobanSelect">
             <option value="">-- 読み込み中... --</option>
         </select>
+        
+        <label for="passwordInput">パスワード:</label>
+        <input type="password" id="passwordInput" placeholder="パスワードを入力">
+
         <button id="filterBtn" onclick="filterData()">表示</button>
     </div>
 
@@ -102,14 +106,17 @@
     </div>
 
     <script>
-        // 公開CSVのURL（直接取得）
+        // 公開CSVのURL
         const csvUrl1 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTTMx---MewxmYqSCb_z_LdEsYUwUaM1sv5fPv2Vt6NUse9OpiQjbGZzbQI093sHKJkcTPherl1NtzY/pub?gid=0&single=true&output=csv';
         const csvUrl2 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFWooCwNbFGA-82IlGA1IluqtmHA7J6uPkJmoKkcwse43z6WWoRVQRBMRT5xZKZro8pt15uxx9tuyk/pub?gid=0&single=true&output=csv';
+        // パスワード参照用CSV (A列: キーワード, C列: パスワード)
+        const csvUrl3 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vREbTfmJ27sfnu3xjCzU7fZ0n8a8efjhmVADouOhh-VOzdON2qSTwrM_jrYahCS2gCOT1onW1YOjTFk/pub?gid=0&single=true&output=csv';
 
         let rawData1 = [];
         let customerMap = new Map();
+        let passwordMap = new Map(); // A列(キー) -> C列(パスワード)
 
-        // CSVパース関数（ダブルクォーテーション内のカンマを保護）
+        // CSVパース関数
         function parseCSV(text) {
             let lines = text.split(/\r\n|\n/);
             let result = [];
@@ -135,23 +142,32 @@
             return result;
         }
 
-        // データのロード（プロキシなしで直接フェッチ）
+        // 小間番号から `_` 前のキーを取得するヘルパー関数
+        function getKobanKey(koban) {
+            if (!koban) return '';
+            return koban.includes('_') ? koban.split('_')[0] : koban;
+        }
+
+        // データのロード
         async function loadData() {
             try {
-                const [res1, res2] = await Promise.all([
+                const [res1, res2, res3] = await Promise.all([
                     fetch(csvUrl1),
-                    fetch(res2Url = csvUrl2) // 変数修正
+                    fetch(csvUrl2),
+                    fetch(csvUrl3)
                 ]);
 
                 const text1 = await res1.text();
                 const text2 = await res2.text();
+                const text3 = await res3.text();
 
                 const parsed1 = parseCSV(text1);
                 const parsed2 = parseCSV(text2);
+                const parsed3 = parseCSV(text3);
 
                 rawData1 = parsed1.slice(1);
 
-                // 2つ目のシートをMapに格納（得意先コード -> 得意先名）
+                // 2つ目のシート（得意先マスタ）
                 const rows2 = parsed2.slice(1);
                 rows2.forEach(row => {
                     if (row.length >= 2 && row[0]) {
@@ -159,7 +175,15 @@
                     }
                 });
 
-                // 1つ目のシートのB列（小間番号）の重複なしリストを作成
+                // 3つ目のシート（パスワードマスタ: A列 -> C列）
+                const rows3 = parsed3.slice(1);
+                rows3.forEach(row => {
+                    if (row.length >= 3 && row[0]) {
+                        passwordMap.set(row[0], row[2] || '');
+                    }
+                });
+
+                // 小間番号の重複なしリスト作成
                 const kobanSet = new Set();
                 rawData1.forEach(row => {
                     if (row.length > 1 && row[1]) {
@@ -167,7 +191,7 @@
                     }
                 });
 
-                // プルダウンの構築
+                // プルダウン構築
                 const select = document.getElementById('kobanSelect');
                 select.innerHTML = '<option value="">-- すべて選択 --</option>';
                 Array.from(kobanSet).sort().forEach(koban => {
@@ -177,7 +201,7 @@
                     select.appendChild(opt);
                 });
 
-                document.getElementById('status').textContent = 'データの読み込みが完了しました。小間番号を選択して「表示」を押してください。';
+                document.getElementById('status').textContent = 'データの読み込みが完了しました。小間番号を選択し、パスワードを入力して「表示」を押してください。';
             } catch (error) {
                 console.error(error);
                 document.getElementById('status').textContent = 'データの読み込みに失敗しました。';
@@ -187,31 +211,64 @@
         // フィルターしてテーブルに表示
         function filterData() {
             const selectedKoban = document.getElementById('kobanSelect').value;
+            const inputPassword = document.getElementById('passwordInput').value.trim();
             const tbody = document.getElementById('tableBody');
             const table = document.getElementById('resultTable');
             tbody.innerHTML = '';
 
+            if (!inputPassword) {
+                alert('パスワードを入力してください。');
+                table.style.display = 'none';
+                document.getElementById('status').textContent = 'パスワードが入力されていません。';
+                return;
+            }
+
+            // 特定の小間番号が選択されている場合
+            if (selectedKoban) {
+                const key = getKobanKey(selectedKoban);
+                const correctPassword = passwordMap.get(key);
+
+                if (!correctPassword || inputPassword !== correctPassword) {
+                    alert('パスワードが一致しないため、データを表示できません。');
+                    table.style.display = 'none';
+                    document.getElementById('status').textContent = 'パスワード不一致または無効なデータです。';
+                    return;
+                }
+            }
+
+            // データの抽出とパスワード検証（不一致レコードは除外）
             let filtered = rawData1.filter(row => {
-                if (!selectedKoban) return true;
-                return row[1] === selectedKoban;
+                const koban = row[1] || '';
+                
+                // 選択された小間番号の判定
+                if (selectedKoban && koban !== selectedKoban) {
+                    return false;
+                }
+
+                // 「すべて選択」時も含め、小間番号に対応するパスワードが一致するか検証
+                const key = getKobanKey(koban);
+                const correctPassword = passwordMap.get(key);
+
+                // パスワードが一致するレコードのみを対象とする
+                return correctPassword && inputPassword === correctPassword;
             });
 
             if (filtered.length === 0) {
-                document.getElementById('status').textContent = '該当するデータはありません。';
+                document.getElementById('status').textContent = '該当するデータ（または一致するパスワードのデータ）はありません。';
                 table.style.display = 'none';
                 return;
             }
 
+            // テーブルに描画
             filtered.forEach(row => {
-                const timestamp = row[0] || '';      // A列：タイムスタンプ
-                const koban = row[1] || '';          // B列：小間番号
-                const customerCode = row[2] || '';   // C列：得意先コード
-                const customerName = customerMap.get(customerCode) || '(不明)'; // 2つ目のシートから取得
-                
-                const kansindo = row[3] || '';       // D列：関心度
-                const hitsuyou = row[4] || '';       // E列：必要事項
-                const shouzai = row[5] || '';        // F列：商談した商材
-                const memo = row[6] || '';           // G列：メモ、申し送り
+                const timestamp = row[0] || '';
+                const koban = row[1] || '';
+                const customerCode = row[2] || '';
+                const customerName = customerMap.get(customerCode) || '(不明)';
+                const kansindo = row[3] || '';
+                const hitsuyou = row[4] || '';
+                const shouzai = row[5] || '';
+                const memo = row[6] || '';
 
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -250,3 +307,4 @@
     </script>
 </body>
 </html>
+```<ElicitationsGroup></ElicitationsGroup>
