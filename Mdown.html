@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>コミュニケーション閲覧ページ</title>
-    <!-- SheetJS (Excel出力用ライブラリ) -->
+    <!-- SheetJS (安定版CDNに変更) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         body {
@@ -42,7 +42,6 @@
         button:hover {
             background-color: #004999;
         }
-        /* ダウンロードボタン（通常＆非活性スタイル） */
         .download-btn {
             background-color: #28a745;
         }
@@ -96,8 +95,6 @@
         <input type="password" id="passwordInput" placeholder="パスワードを入力">
 
         <button id="filterBtn" onclick="filterData()">表示</button>
-        
-        <!-- 追加: ダウンロードボタン（初期値は非活性/グレーアウト） -->
         <button id="downloadBtn" class="download-btn" onclick="downloadExcel()" disabled>Excelダウンロード</button>
     </div>
 
@@ -124,17 +121,14 @@
     </div>
 
     <script>
-        // 公開CSVのURL
         const csvUrl1 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTTMx---MewxmYqSCb_z_LdEsYUwUaM1sv5fPv2Vt6NUse9OpiQjbGZzbQI093sHKJkcTPherl1NtzY/pub?gid=0&single=true&output=csv';
         const csvUrl2 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFWooCwNbFGA-82IlGA1IluqtmHA7J6uPkJmoKkcwse43z6WWoRVQRBMRT5xZKZro8pt15uxx9tuyk/pub?gid=0&single=true&output=csv';
-        // パスワード参照用CSV (A列: キーワード, C列: パスワード)
         const csvUrl3 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vREbTfmJ27sfnu3xjCzU7fZ0n8a8efjhmVADouOhh-VOzdON2qSTwrM_jrYahCS2gCOT1onW1YOjTFk/pub?gid=0&single=true&output=csv';
 
         let rawData1 = [];
         let customerMap = new Map();
-        let passwordMap = new Map(); // A列(キー) -> C列(パスワード)
+        let passwordMap = new Map();
 
-        // CSVパース関数
         function parseCSV(text) {
             let lines = text.split(/\r\n|\n/);
             let result = [];
@@ -160,13 +154,11 @@
             return result;
         }
 
-        // 小間番号から `_` 前のキーを取得するヘルパー関数
         function getKobanKey(koban) {
             if (!koban) return '';
             return koban.includes('_') ? koban.split('_')[0] : koban;
         }
 
-        // データのロード
         async function loadData() {
             try {
                 const [res1, res2, res3] = await Promise.all([
@@ -185,7 +177,6 @@
 
                 rawData1 = parsed1.slice(1);
 
-                // 2つ目のシート（得意先マスタ）
                 const rows2 = parsed2.slice(1);
                 rows2.forEach(row => {
                     if (row.length >= 2 && row[0]) {
@@ -193,7 +184,6 @@
                     }
                 });
 
-                // 3つ目のシート（パスワードマスタ: A列 -> C列）
                 const rows3 = parsed3.slice(1);
                 rows3.forEach(row => {
                     if (row.length >= 3 && row[0]) {
@@ -201,7 +191,6 @@
                     }
                 });
 
-                // 小間番号の重複なしリスト作成
                 const kobanSet = new Set();
                 rawData1.forEach(row => {
                     if (row.length > 1 && row[1]) {
@@ -209,7 +198,6 @@
                     }
                 });
 
-                // プルダウン構築
                 const select = document.getElementById('kobanSelect');
                 select.innerHTML = '<option value="">-- すべて選択 --</option>';
                 Array.from(kobanSet).sort().forEach(koban => {
@@ -226,7 +214,6 @@
             }
         }
 
-        // フィルターしてテーブルに表示
         function filterData() {
             const selectedKoban = document.getElementById('kobanSelect').value;
             const inputPassword = document.getElementById('passwordInput').value.trim();
@@ -235,8 +222,6 @@
             const downloadBtn = document.getElementById('downloadBtn');
             
             tbody.innerHTML = '';
-
-            // 検索実行時は一度ダウンロードボタンを無効化
             downloadBtn.disabled = true;
 
             if (!inputPassword) {
@@ -246,7 +231,6 @@
                 return;
             }
 
-            // 特定の小間番号が選択されている場合
             if (selectedKoban) {
                 const key = getKobanKey(selectedKoban);
                 const correctPassword = passwordMap.get(key);
@@ -259,20 +243,13 @@
                 }
             }
 
-            // データの抽出とパスワード検証（不一致レコードは除外）
             let filtered = rawData1.filter(row => {
                 const koban = row[1] || '';
-                
-                // 選択された小間番号の判定
                 if (selectedKoban && koban !== selectedKoban) {
                     return false;
                 }
-
-                // 「すべて選択」時も含め、小間番号に対応するパスワードが一致するか検証
                 const key = getKobanKey(koban);
                 const correctPassword = passwordMap.get(key);
-
-                // パスワードが一致するレコードのみを対象とする
                 return correctPassword && inputPassword === correctPassword;
             });
 
@@ -282,7 +259,6 @@
                 return;
             }
 
-            // テーブルに描画
             filtered.forEach(row => {
                 const timestamp = row[0] || '';
                 const koban = row[1] || '';
@@ -309,26 +285,19 @@
 
             table.style.display = 'table';
             document.getElementById('status').textContent = `${filtered.length} 件のデータが表示されています。`;
-            
-            // 明細が1件以上表示された場合、ダウンロードボタンを有効化
             downloadBtn.disabled = false;
         }
 
-        // Excelファイルとしてダウンロードする関数
         function downloadExcel() {
             const table = document.getElementById('resultTable');
-            
-            // DOM上のテーブル要素からワークシートを作成
-            const wb = XLSX.utils.table_to_workbook(table, { sheet: "商談データ" });
-            
-            // ファイル名を作成してダウンロード実行
+            // ワークブックの生成
+            const wb = XLSX.utils.table_to_book(table, { sheet: "商談データ" });
             const selectedKoban = document.getElementById('kobanSelect').value;
             const filename = selectedKoban ? `商談データ_${selectedKoban}.xlsx` : '商談データ_全件.xlsx';
             
             XLSX.writeFile(wb, filename);
         }
 
-        // HTMLエスケープ処理
         function escapeHtml(str) {
             return str.replace(/[&'`<>"]/g, function(match) {
                 return {
@@ -342,7 +311,6 @@
             });
         }
 
-        // 初期実行
         loadData();
     </script>
 </body>
