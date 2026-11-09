@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>スプレッドシート・Excel連携</title>
+  <!-- SheetJS (js-xlsx) ライブラリの読み込み -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 30px; }
+    .section { margin-bottom: 25px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; }
+    button { padding: 10px 15px; cursor: pointer; background: #2b7de9; color: white; border: none; border-radius: 4px; font-weight: bold; }
+    button:hover { background: #1a5bc0; }
+    button.secondary { background: #6c757d; }
+    button.secondary:hover { background: #5a6268; }
+    .action-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+    input[type="file"] { padding: 5px; border: 1px solid #ccc; background: white; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <h2>マスター管理ツール</h2>
+
+  <!-- 1. 得意先コード管理 -->
+  <div class="section">
+    <h3>得意先コード管理</h3>
+    <p>現在の見本市コードの取得と、編集後ファイルの反映が行えます。
+    <br>【対象】見本市システムから取得した全社分の見本市コード一覧
+    <br>Ａ列：見本市コード　／　Ｂ列：得意先名</p>
+    
+    <div class="action-group">
+      <button id="btnDownloadTokuisaki" class="secondary">Excelをダウンロード</button>
+      <span style="color: #666; margin: 0 10px;">|</span>
+      <input type="file" id="excelFileTokuisaki" accept=".xlsx, .xls, .csv">
+      <button id="btnUploadTokuisaki">見本市コード一覧を上書き</button>
+    </div>
+  </div>
+
+  <!-- 2. 出展社リスト管理（追加したカード） -->
+  <div class="section">
+    <h3>出展社リスト管理</h3>
+    <p>出展社小間リストの取得と、編集後ファイルの反映が行えます。
+    <br>【対象】イベント館出展者の一覧
+    <br>Ａ列：小間番号　／　Ｂ列：出展社名　／　Ｃ列：閲覧用パスワード</p>
+    
+    <div class="action-group">
+      <button id="btnDownloadExhibitor" class="secondary">Excelをダウンロード</button>
+      <span style="color: #666; margin: 0 10px;">|</span>
+      <input type="file" id="excelFileExhibitor" accept=".xlsx, .xls, .csv">
+      <button id="btnUploadExhibitor">出展社一覧を上書き</button>
+    </div>
+  </div>
+
+  <div id="status" style="font-weight: bold; margin-top: 15px; color: #333;"></div>
+
+  <script>
+    // ★GASのWebアプリURL設定
+    const GAS_URL_TOKUISAKI = "https://script.google.com/macros/s/AKfycbw9Uo4pQ_lEAergIkcQkqkLOfjz6qiPuQ3GbyzvuCHHoAkwP_IzrRrug4UOXXo9Rhld/exec";
+    
+    // ★出展社リスト側のスプレッドシートに設定したGASのWebアプリURLを貼り付けてください
+    const GAS_URL_EXHIBITOR = "https://script.google.com/macros/s/AKfycbySQA3auMB-4oZHH6ltYPm6-ZkqZNzF3v7Ho3cs6xfOd8lY2Vv-R33ea7-TOswSBl7GFA/exec";
+
+    const statusDiv = document.getElementById('status');
+
+    // --- 汎用ダウンロード処理 ---
+    async function downloadExcel(gasUrl, fileName, sheetName) {
+      statusDiv.textContent = `${fileName}のデータを取得してExcelを作成中...`;
+      try {
+        const response = await fetch(gasUrl);
+        const result = await response.json();
+
+        if (result.status === "success") {
+          const data = result.data;
+          const worksheet = XLSX.utils.aoa_to_sheet(data);
+          const workbook = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+          XLSX.writeFile(workbook, `${fileName}.xlsx`);
+          statusDiv.textContent = `${fileName}のダウンロードが完了しました。`;
+        } else {
+          statusDiv.textContent = "エラー: " + result.message;
+        }
+      } catch (err) {
+        console.error(err);
+        statusDiv.textContent = "通信エラーが発生しました。";
+      }
+    }
+
+    // --- 汎用アップロード・上書き処理 ---
+    async function uploadExcel(gasUrl, fileInputId) {
+      const fileInput = document.getElementById(fileInputId);
+      if (fileInput.files.length === 0) {
+        alert("アップロードするExcelファイルを選択してください。");
+        return;
+      }
+
+      if (!confirm("選択したExcelファイルの内容でスプレッドシートを完全に上書きします。よろしいですか？")) {
+        return;
+      }
+
+      const file = fileInput.files[0];
+      statusDiv.textContent = "ファイルを読み込み中...";
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+          if (jsonData.length === 0) {
+            statusDiv.textContent = "エラー: ファイルに有効なデータがありません。";
+            return;
+          }
+
+          statusDiv.textContent = "スプレッドシートへ上書き送信中...";
+
+          const response = await fetch(gasUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "text/plain;charset=utf-8"
+            },
+            body: JSON.stringify({ data: jsonData })
+          });
+
+          const result = await response.json();
+          if (result.status === "success") {
+            statusDiv.textContent = "スプレッドシートの上書き保存が完了しました！";
+          } else {
+            statusDiv.textContent = "エラー: " + result.message;
+          }
+
+        } catch (err) {
+          console.error(err);
+          statusDiv.textContent = "ファイルの解析または送信に失敗しました。";
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+
+    // --- イベントリスナー設定（得意先コード） ---
+    document.getElementById('btnDownloadTokuisaki').addEventListener('click', () => {
+      downloadExcel(GAS_URL_TOKUISAKI, "得意先明細データ", "明細");
+    });
+
+    document.getElementById('btnUploadTokuisaki').addEventListener('click', () => {
+      uploadExcel(GAS_URL_TOKUISAKI, "excelFileTokuisaki");
+    });
+
+    // --- イベントリスナー設定（出展社リスト） ---
+    document.getElementById('btnDownloadExhibitor').addEventListener('click', () => {
+      downloadExcel(GAS_URL_EXHIBITOR, "出展社リストデータ", "出展社リスト");
+    });
+
+    document.getElementById('btnUploadExhibitor').addEventListener('click', () => {
+      uploadExcel(GAS_URL_EXHIBITOR, "excelFileExhibitor");
+    });
+  </script>
+</body>
+</html>
