@@ -199,7 +199,8 @@
                 });
 
                 const select = document.getElementById('kobanSelect');
-                select.innerHTML = '<option value="">-- すべて選択 --</option>';
+                // ▼ ここを「自社小間を選択してください」に変更
+                select.innerHTML = '<option value="">-- 自社小間を選択してください --</option>';
                 Array.from(kobanSet).sort().forEach(koban => {
                     let opt = document.createElement('option');
                     opt.value = koban;
@@ -231,16 +232,63 @@
                 return;
             }
 
-            if (selectedKoban) {
-                const key = getKobanKey(selectedKoban);
-                const correctPassword = passwordMap.get(key);
+            // ▼ 小間番号が未選択（＝「自社小間を選択してください」の状態）の場合の処理
+            if (!selectedKoban) {
+                if (inputPassword === '1234') {
+                    // 仮パスワード 1234 の場合は全データを表示対象とする
+                    let filtered = rawData1;
 
-                if (!correctPassword || inputPassword !== correctPassword) {
-                    alert('パスワードが一致しないため、データを表示できません。');
+                    if (filtered.length === 0) {
+                        document.getElementById('status').textContent = 'データがありません。';
+                        table.style.display = 'none';
+                        return;
+                    }
+
+                    filtered.forEach(row => {
+                        const timestamp = row[0] || '';
+                        const koban = row[1] || '';
+                        const customerCode = row[2] || '';
+                        const customerName = customerMap.get(customerCode) || '(不明)';
+                        const kansindo = row[3] || '';
+                        const hitsuyou = row[4] || '';
+                        const shouzai = row[5] || '';
+                        const memo = row[6] || '';
+
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${escapeHtml(timestamp)}</td>
+                            <td>${escapeHtml(koban)}</td>
+                            <td>${escapeHtml(customerCode)}</td>
+                            <td>${escapeHtml(customerName)}</td>
+                            <td>${escapeHtml(kansindo)}</td>
+                            <td>${escapeHtml(hitsuyou)}</td>
+                            <td>${escapeHtml(shouzai)}</td>
+                            <td>${escapeHtml(memo)}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    table.style.display = 'table';
+                    document.getElementById('status').textContent = `${filtered.length} 件のデータが表示されています（全件表示）。`;
+                    downloadBtn.disabled = false;
+                    return;
+                } else {
+                    alert('パスワードが正しくありません。');
                     table.style.display = 'none';
-                    document.getElementById('status').textContent = 'パスワード不一致または無効なデータです。';
+                    document.getElementById('status').textContent = 'パスワードが不一致です。';
                     return;
                 }
+            }
+
+            // ▼ 小間番号が選択されている場合の従来の認証・フィルタリング処理
+            const key = getKobanKey(selectedKoban);
+            const correctPassword = passwordMap.get(key);
+
+            if (!correctPassword || inputPassword !== correctPassword) {
+                alert('パスワードが一致しないため、データを表示できません。');
+                table.style.display = 'none';
+                document.getElementById('status').textContent = 'パスワード不一致または無効なデータです。';
+                return;
             }
 
             let filtered = rawData1.filter(row => {
@@ -254,7 +302,7 @@
             });
 
             if (filtered.length === 0) {
-                document.getElementById('status').textContent = '該当するデータ（または一致するパスワードのデータ）はありません。';
+                document.getElementById('status').textContent = '該当するデータはありません。';
                 table.style.display = 'none';
                 return;
             }
@@ -290,7 +338,6 @@
 
         function downloadExcel() {
             const table = document.getElementById('resultTable');
-            // ワークブックの生成
             const wb = XLSX.utils.table_to_book(table, { sheet: "商談データ" });
             const selectedKoban = document.getElementById('kobanSelect').value;
             const filename = selectedKoban ? `商談データ_${selectedKoban}.xlsx` : '商談データ_全件.xlsx';
