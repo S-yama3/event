@@ -67,6 +67,8 @@
             padding: 10px 12px;
             text-align: left;
             font-size: 0.9rem;
+            /* ▼ セル内の改行を保持して表示するための設定 */
+            white-space: pre-wrap;
         }
         th {
             background-color: #f2f2f2;
@@ -129,25 +131,51 @@
         let customerMap = new Map();
         let passwordMap = new Map();
 
+        // ▼ セル内の改行（ダブルクォーテーション内）を考慮した正確なCSVパーサー
         function parseCSV(text) {
-            let lines = text.split(/\r\n|\n/);
             let result = [];
-            for (let line of lines) {
-                if (!line.trim()) continue;
-                let row = [];
-                let inQuotes = false;
-                let entry = '';
-                for (let i = 0; i < line.length; i++) {
-                    let char = line[i];
+            let row = [];
+            let entry = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                let nextChar = text[i + 1];
+
+                if (inQuotes) {
                     if (char === '"') {
-                        inQuotes = !inQuotes;
-                    } else if (char === ',' && !inQuotes) {
+                        if (nextChar === '"') {
+                            entry += '"';
+                            i++;
+                        } else {
+                            inQuotes = false;
+                        }
+                    } else {
+                        entry += char; // 引用符内の改行やカンマはそのまま文字として追加
+                    }
+                } else {
+                    if (char === '"') {
+                        inQuotes = true;
+                    } else if (char === ',') {
                         row.push(entry.trim());
+                        entry = '';
+                    } else if (char === '\r' && nextChar === '\n') {
+                        row.push(entry.trim());
+                        result.push(row);
+                        row = [];
+                        entry = '';
+                        i++;
+                    } else if (char === '\n' || char === '\r') {
+                        row.push(entry.trim());
+                        result.push(row);
+                        row = [];
                         entry = '';
                     } else {
                         entry += char;
                     }
                 }
+            }
+            if (entry !== '' || row.length > 0) {
                 row.push(entry.trim());
                 result.push(row);
             }
@@ -199,7 +227,6 @@
                 });
 
                 const select = document.getElementById('kobanSelect');
-                // ▼ ここを「自社小間を選択してください」に変更
                 select.innerHTML = '<option value="">-- 自社小間を選択してください --</option>';
                 Array.from(kobanSet).sort().forEach(koban => {
                     let opt = document.createElement('option');
@@ -232,10 +259,8 @@
                 return;
             }
 
-            // ▼ 小間番号が未選択（＝「自社小間を選択してください」の状態）の場合の処理
             if (!selectedKoban) {
                 if (inputPassword === '1234') {
-                    // 仮パスワード 1234 の場合は全データを表示対象とする
                     let filtered = rawData1;
 
                     if (filtered.length === 0) {
@@ -280,7 +305,6 @@
                 }
             }
 
-            // ▼ 小間番号が選択されている場合の従来の認証・フィルタリング処理
             const key = getKobanKey(selectedKoban);
             const correctPassword = passwordMap.get(key);
 
