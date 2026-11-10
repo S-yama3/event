@@ -2,67 +2,227 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>スプレッドシート・Excel連携</title>
+  <title>見本市コミュメンテナンス</title>
   <!-- SheetJS (js-xlsx) ライブラリの読み込み -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- QRCode.js ライブラリの読み込み -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     body { font-family: sans-serif; margin: 30px; }
     .section { margin-bottom: 25px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; }
     button { padding: 10px 15px; cursor: pointer; background: #2b7de9; color: white; border: none; border-radius: 4px; font-weight: bold; }
     button:hover { background: #1a5bc0; }
+    button:disabled, input:disabled, select:disabled { background: #cccccc !important; border-color: #bbbb !important; color: #666666 !important; cursor: not-allowed !important; opacity: 0.7; }
     button.secondary { background: #6c757d; }
     button.secondary:hover { background: #5a6268; }
+    button.success { background: #28a745; }
+    button.success:hover { background: #218838; }
+    button.warning { background: #ffc107; color: #333; }
+    button.warning:hover { background: #e0a800; }
     .action-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
     input[type="file"] { padding: 5px; border: 1px solid #ccc; background: white; border-radius: 4px; }
+    select { padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; background: white; min-width: 250px; font-size: 14px; }
+
+    /* モーダル背景 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+      justify-content: center;
+      align-items: flex-start;
+      overflow-y: auto;
+      padding: 20px 0;
+    }
+
+    /* モーダルコンテンツ (A4縦サイズ固定) */
+    .modal-content {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      width: 190mm;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #333;
+    }
+
+    /* 単体QR表示用エリア（中央配置） */
+    .qr-single-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+
+    .qr-card {
+      border: 2px dashed #999;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: #fff;
+      width: 100%;
+      max-width: 120mm;
+      page-break-inside: avoid;
+    }
+
+    .qr-card .title {
+      font-size: 20px;
+      font-weight: bold;
+      word-break: break-all;
+      margin-bottom: 15px;
+    }
+
+    .qr-code-img {
+      margin-top: 5px;
+    }
+
+    /* 印刷専用スタイリング（確実に1ページに収める） */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .modal-overlay, .modal-content, .print-area, .print-area * {
+        visibility: visible;
+      }
+      .modal-overlay {
+        position: absolute;
+        left: 0; top: 0;
+        width: 100%;
+        height: 100%;
+        background: none;
+        padding: 0;
+        overflow: hidden;
+      }
+      .modal-content {
+        box-shadow: none;
+        padding: 0;
+        width: 100%;
+        border: none;
+      }
+      .no-print {
+        display: none !important;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+    }
   </style>
 </head>
 <body>
 
   <h2>マスター管理ツール</h2>
 
+	<p>このページでは、見本市システムで使用する得意先情報・出展社情報の登録と更新、および出展社QRコードの発行を行います。
+	<br>以下の順番で作業してください。
+	<br>
+	<br>【1】得意先コードの更新　　見本市システムで使用する全社分の得意先コード一覧を登録・更新します。
+	<br>　　　　　　　　　　　　 　 取得したエクセルへ上書き保存→ファイル選択→見本市コード更新
+	<br>【2】出展社リストの更新　　見本市に参加する出展社の一覧を登録・更新します。
+	<br>　　　　　　　　　　　　 　 取得したエクセルへ上書き保存→ファイル選択→出展社一覧更新
+	<br>　　　　　　　　　　　　 　 ※ダウンロード用に出展社ごと閲覧用パスワードを必ず設定してください。
+	<br>【3】出展社QRコードの発行　登録済みの出展社リストから企業を選択し各社専用のQRコードを発行します。
+	<br>　　　　　　　　　　　　 　 ※ＰＣ接続のＱＲリーダーを使用すると小間番号のみ取得されるので注意</p>
+	
   <!-- 1. 得意先コード管理 -->
   <div class="section">
     <h3>得意先コード管理</h3>
-    <p>現在の見本市コードの取得と、編集後ファイルの反映が行えます。
-    <br>【対象】見本市システムから取得した全社分の見本市コード一覧
-    <br>Ａ列：見本市コード　／　Ｂ列：得意先名</p>
+    <p>登録済の見本市コードの取得と更新が行えます。
+    <br>【対象】見本市システムから取得した全社分の見本市コード一覧をセット
+    <br>Ａ列：見本市コード ／ Ｂ列：得意先名</p>
     
     <div class="action-group">
       <button id="btnDownloadTokuisaki" class="secondary">Excelをダウンロード</button>
       <span style="color: #666; margin: 0 10px;">|</span>
       <input type="file" id="excelFileTokuisaki" accept=".xlsx, .xls, .csv">
-      <button id="btnUploadTokuisaki">見本市コード一覧を上書き</button>
+      <button id="btnUploadTokuisaki">見本市コード更新</button>
     </div>
   </div>
 
-  <!-- 2. 出展社リスト管理（追加したカード） -->
+  <!-- 2. 出展社リスト管理 -->
   <div class="section">
     <h3>出展社リスト管理</h3>
-    <p>出展社小間リストの取得と、編集後ファイルの反映が行えます。
+    <p>出展社小間リストの取得と更新が行えます。
     <br>【対象】イベント館出展者の一覧
-    <br>Ａ列：小間番号　／　Ｂ列：出展社名　／　Ｃ列：閲覧用パスワード</p>
+    <br>Ａ列：小間番号 ／ Ｂ列：出展社名 ／ Ｃ列：閲覧用パスワード</p>
     
     <div class="action-group">
       <button id="btnDownloadExhibitor" class="secondary">Excelをダウンロード</button>
       <span style="color: #666; margin: 0 10px;">|</span>
       <input type="file" id="excelFileExhibitor" accept=".xlsx, .xls, .csv">
-      <button id="btnUploadExhibitor">出展社一覧を上書き</button>
+      <button id="btnUploadExhibitor">出展社一覧更新</button>
+    </div>
+  </div>
+
+  <!-- 3. 出展社QRコード発行 -->
+  <div class="section">
+    <h3>出展社 ＱＲコード発行</h3>
+    <p>登録されている出展社リストから企業を選択しＱＲコードを発行します。
+    <br>【QR内容】A列-B列（例：X99-㈱見本市テスト社）<br>出展社リスト更新後に実行します</p>
+    
+    <div class="action-group">
+      <button id="btnLoadExhibitorList" class="warning" style="display:none;">リストを読み込む</button>
+      <select id="selectExhibitor" disabled>
+        <option value="">-- 読み込み中... --</option>
+      </select>
+      <button id="btnShowSingleQR" class="success" disabled>選択した企業のQRを表示</button>
     </div>
   </div>
 
   <div id="status" style="font-weight: bold; margin-top: 15px; color: #333;"></div>
 
+  <!-- QRコード表示用モーダル -->
+  <div id="qrModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header no-print">
+        <h3 id="modalTitle">出展社 QRコード（A4印刷用）</h3>
+        <div>
+          <button onclick="window.print()" class="success">印刷する (A4縦)</button>
+          <button onclick="closeModal()" class="secondary">閉じる</button>
+        </div>
+      </div>
+      <div id="qrPrintArea" class="print-area qr-single-container"></div>
+    </div>
+  </div>
+
   <script>
-    // ★GASのWebアプリURL設定
     const GAS_URL_TOKUISAKI = "https://script.google.com/macros/s/AKfycbw9Uo4pQ_lEAergIkcQkqkLOfjz6qiPuQ3GbyzvuCHHoAkwP_IzrRrug4UOXXo9Rhld/exec";
-    
-    // ★出展社リスト側のスプレッドシートに設定したGASのWebアプリURLを貼り付けてください
     const GAS_URL_EXHIBITOR = "https://script.google.com/macros/s/AKfycbySQA3auMB-4oZHH6ltYPm6-ZkqZNzF3v7Ho3cs6xfOd8lY2Vv-R33ea7-TOswSBl7GFA/exec";
 
     const statusDiv = document.getElementById('status');
+    let cachedExhibitorData = [];
+
+    // --- 処理中の全要素グレーアウト（一括有効/無効切り替え） ---
+    function setAppLoading(isLoading) {
+      const allButtons = document.querySelectorAll('button');
+      const allInputs = document.querySelectorAll('input');
+
+      allButtons.forEach(el => el.disabled = isLoading);
+      allInputs.forEach(el => el.disabled = isLoading);
+      
+      const selectEl = document.getElementById('selectExhibitor');
+      if (!isLoading && cachedExhibitorData.length > 0) {
+        selectEl.disabled = false;
+      } else {
+        selectEl.disabled = true;
+      }
+    }
 
     // --- 汎用ダウンロード処理 ---
     async function downloadExcel(gasUrl, fileName, sheetName) {
+      setAppLoading(true);
       statusDiv.textContent = `${fileName}のデータを取得してExcelを作成中...`;
       try {
         const response = await fetch(gasUrl);
@@ -82,6 +242,8 @@
       } catch (err) {
         console.error(err);
         statusDiv.textContent = "通信エラーが発生しました。";
+      } finally {
+        setAppLoading(false);
       }
     }
 
@@ -97,6 +259,7 @@
         return;
       }
 
+      setAppLoading(true);
       const file = fileInput.files[0];
       statusDiv.textContent = "ファイルを読み込み中...";
 
@@ -112,6 +275,7 @@
 
           if (jsonData.length === 0) {
             statusDiv.textContent = "エラー: ファイルに有効なデータがありません。";
+            setAppLoading(false);
             return;
           }
 
@@ -135,13 +299,126 @@
         } catch (err) {
           console.error(err);
           statusDiv.textContent = "ファイルの解析または送信に失敗しました。";
+        } finally {
+          setAppLoading(false);
         }
+      };
+
+      reader.onerror = function() {
+        statusDiv.textContent = "ファイルの読み込みに失敗しました。";
+        setAppLoading(false);
       };
 
       reader.readAsArrayBuffer(file);
     }
 
-    // --- イベントリスナー設定（得意先コード） ---
+    // --- 出展社リスト自動取得 ---
+    async function loadExhibitorListForQR() {
+      setAppLoading(true);
+      statusDiv.textContent = "サーバー接続中：出展社リストを自動取得しています...";
+      try {
+        const response = await fetch(GAS_URL_EXHIBITOR);
+        const result = await response.json();
+
+        if (result.status !== "success" || !result.data) {
+          statusDiv.textContent = "エラー: データの取得に失敗しました。";
+          return;
+        }
+
+        const data = result.data;
+        cachedExhibitorData = [];
+        const selectEl = document.getElementById('selectExhibitor');
+        selectEl.innerHTML = '<option value="">-- 出展社を選択してください --</option>';
+
+        let count = 0;
+        for (let i = 0; i < data.length; i++) {
+          const row = data[i];
+          const komaNo = (row && row[0] !== undefined && row[0] !== null) ? String(row[0]).trim() : "";
+          const companyName = (row && row[1] !== undefined && row[1] !== null) ? String(row[1]).trim() : "";
+
+          // ヘッダーや空行のスキップ
+          if (!komaNo || komaNo === "小間No." || komaNo === "小間番号") continue;
+
+          // 内部処理・QRコード用の結合テキスト（例: V01-エムオーテックス㈱）
+          const combinedText = komaNo + "-" + companyName;
+
+          cachedExhibitorData.push({ komaNo, companyName, combinedText });
+
+          // ▼【表示側】プルダウンの選択肢（会社名の後ろに「様」を追加）
+          const option = document.createElement('option');
+          option.value = combinedText; // 選択時の内部値はそのまま
+          option.textContent = `[${komaNo}] ${companyName}様`; // 画面表示のみ「様」を付与
+          selectEl.appendChild(option);
+          count++;
+        }
+
+        if (count === 0) {
+          statusDiv.textContent = "有効な出展社データが見つかりませんでした。";
+          return;
+        }
+
+        selectEl.disabled = false;
+        document.getElementById('btnShowSingleQR').disabled = false;
+        statusDiv.textContent = `接続完了：出展社リストを読み込みました（全 ${count} 件）。`;
+
+      } catch (err) {
+        console.error(err);
+        statusDiv.textContent = "リストの読み込み中に通信エラーが発生しました。ページを再読み込みしてください。";
+      } finally {
+        setAppLoading(false);
+      }
+    }
+
+    // --- 選択した単一企業のQR表示 ---
+    function showSingleQR() {
+      const selectEl = document.getElementById('selectExhibitor');
+      const selectedValue = selectEl.value;
+      if (!selectedValue) {
+        alert("QRコードを表示する出展社を選択してください。");
+        return;
+      }
+
+      const targetItem = cachedExhibitorData.find(item => item.combinedText === selectedValue);
+      if (!targetItem) return;
+
+      const qrContainer = document.getElementById('qrPrintArea');
+      qrContainer.innerHTML = "";
+      
+      // ▼【表示側】モーダルタイトル（会社名の後ろに「様」を追加）
+      document.getElementById('modalTitle').textContent = `出展社 QRコード: ${targetItem.combinedText}様`;
+
+      const card = document.createElement('div');
+      card.className = 'qr-card';
+
+      // ▼【表示側】QRカード内のテキスト表示（会社名の後ろに「様」を追加）
+      const titleEl = document.createElement('div');
+      titleEl.className = 'title';
+      titleEl.textContent = `${targetItem.combinedText}様`;
+      card.appendChild(titleEl);
+
+      const qrBox = document.createElement('div');
+      qrBox.className = 'qr-code-img';
+      card.appendChild(qrBox);
+
+      qrContainer.appendChild(card);
+
+      // ★QRコード本体のデータ（読み取り用）は「様」をつけず元のままにする
+      new QRCode(qrBox, {
+        text: targetItem.combinedText, // 例: "V01-エムオーテックス㈱"（様なし）
+        width: 180,
+        height: 180,
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      document.getElementById('qrModal').style.display = 'flex';
+      statusDiv.textContent = `「${targetItem.combinedText}様」のQRコードを表示しました。`;
+    }
+
+    function closeModal() {
+      document.getElementById('qrModal').style.display = 'none';
+    }
+
+    // --- イベントリスナー設定 ---
     document.getElementById('btnDownloadTokuisaki').addEventListener('click', () => {
       downloadExcel(GAS_URL_TOKUISAKI, "得意先明細データ", "明細");
     });
@@ -150,13 +427,19 @@
       uploadExcel(GAS_URL_TOKUISAKI, "excelFileTokuisaki");
     });
 
-    // --- イベントリスナー設定（出展社リスト） ---
     document.getElementById('btnDownloadExhibitor').addEventListener('click', () => {
       downloadExcel(GAS_URL_EXHIBITOR, "出展社リストデータ", "出展社リスト");
     });
 
     document.getElementById('btnUploadExhibitor').addEventListener('click', () => {
       uploadExcel(GAS_URL_EXHIBITOR, "excelFileExhibitor");
+    });
+
+    document.getElementById('btnShowSingleQR').addEventListener('click', showSingleQR);
+
+    // --- ページ読み込み時に自動で実行 ---
+    window.addEventListener('DOMContentLoaded', () => {
+      loadExhibitorListForQR();
     });
   </script>
 </body>
