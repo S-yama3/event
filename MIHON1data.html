@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>実績データ アップロード</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; background: #f4f7f6; }
+        .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 500px; }
+        input[type="file"] { margin-bottom: 15px; display: block; }
+        button { background: #2c3e50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #34495e; }
+        #status { margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>実績リスト 上書きアップロード</h2>
+        <p>CSVファイルを選択してアップロードすると、スプレッドシートの内容が上書きされます。</p>
+        
+        <input type="file" id="csvFile" accept=".csv">
+        <button id="uploadBtn">アップロード実行</button>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        // デプロイしたGASのウェブアプリURLを指定
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbztpGhZ2TawWL3ettSyeche7l4O6Adqlhh2pDSvWc6mtUQecommdqrPNVO0IWnUvoJt/exec";
+
+        document.getElementById('uploadBtn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('csvFile');
+            const statusDiv = document.getElementById('status');
+
+            if (fileInput.files.length === 0) {
+                alert("ファイルを選択してください。");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            statusDiv.style.color = "#333";
+            statusDiv.textContent = "ファイルを読み込み中...";
+
+            try {
+                // ファイルをテキストとして読み込む
+                const text = await readFileAsText(file);
+                // CSVのテキストを二次元配列にパース
+                const rows = parseCSV(text);
+
+                statusDiv.textContent = "スプレッドシートへ送信中...";
+
+                // GASへPOST送信
+                const response = await fetch(webAppUrl, {
+                    method: 'POST',
+                    body: JSON.stringify({ rows: rows }),
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8' // GASのCORS制限回避のためtext/plain指定が安全
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.status === "success") {
+                    statusDiv.style.color = "green";
+                    statusDiv.textContent = "✔ アップロード（上書き）が完了しました！";
+                } else {
+                    throw new Error(result.message);
+                }
+
+            } catch (error) {
+                statusDiv.style.color = "red";
+                statusDiv.textContent = "エラーが発生しました: " + error.message;
+            }
+        });
+
+        // ファイルをテキスト読み込みするヘルパー
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = e => reject(e);
+                reader.readAsText(file, 'Shift_JIS'); // 日本語CSVによくあるShift_JIS対応（必要に応じてUTF-8に変更）
+            });
+        }
+
+        // 簡易的なCSVパーサー（カンマ区切り、ダブルクォーテーション対応）
+        function parseCSV(text) {
+            const lines = text.split(/\r\n|\n/);
+            const result = [];
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].trim() === "") continue;
+                // カンマ区切り（簡易版：ダブルクォーテーション内のカンマを厳密に処理したい場合はライブラリ利用推奨）
+                const cols = lines[i].split(',').map(col => col.replace(/^"|"$/g, ''));
+                result.push(cols);
+            }
+            return result;
+        }
+    </script>
+
+</body>
+</html>
