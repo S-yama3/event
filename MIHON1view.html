@@ -49,7 +49,7 @@
 
     <script>
         // デプロイしたGASのウェブアプリURLを指定
-        const webAppUrl = "https://script.google.com/macros/s/あなたのGASデプロイID/exec";
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbz-lFZWwKF-lc21N40LyIiote6tZJyRcByfsGwAeMl0nAdg3T6yUKO3GainnMuoMOL_/exec";
 
         // 行構成テンプレート
         const structure = [
@@ -80,11 +80,9 @@
             { type: 'subtotal', name: '仙台小計', targetKeys: ['ＲＳ仙台小計', 'ＯＳ仙台小計'], class: 'row-area-total' }
         ];
 
-        async function loadReport() {
+        // JSONPのコールバック関数（GASからのデータを受け取る）
+        function handleReportData(apiData) {
             try {
-                const response = await fetch(webAppUrl);
-                const apiData = await response.json();
-                
                 const tbody = document.getElementById("tableBody");
                 tbody.innerHTML = "";
 
@@ -115,7 +113,6 @@
                     else if (item.type === 'subtotal') {
                         tr.className = item.class;
                         
-                        // 対象キーの値を安全に合算する
                         if (item.targetKeys && Array.isArray(item.targetKeys)) {
                             item.targetKeys.forEach(key => {
                                 if (calculatedValues[key]) {
@@ -143,10 +140,14 @@
                 });
 
             } catch (error) {
-                console.error("データ取得エラー:", error);
-                document.getElementById("tableBody").innerHTML = 
-                    '<tr><td colspan="7" style="color:red; text-align:center;">データの取得・集計に失敗しました。</td></tr>';
+                console.error("描画エラー:", error);
+                showError();
             }
+        }
+
+        function showError() {
+            document.getElementById("tableBody").innerHTML = 
+                '<tr><td colspan="7" style="color:red; text-align:center;">データの取得・集計に失敗しました。</td></tr>';
         }
 
         function formatNum(val) {
@@ -157,6 +158,14 @@
         function calcRate(actual, base) {
             if (!base || base === 0 || !actual) return "-";
             return ((actual / base) * 100).toFixed(2) + "%";
+        }
+
+        // ページ読み込み時にscriptタグを動的生成してデータ取得（JSONP）
+        function loadReport() {
+            const script = document.createElement('script');
+            script.src = `${webAppUrl}?callback=handleReportData`;
+            script.onerror = () => showError();
+            document.body.appendChild(script);
         }
 
         loadReport();
