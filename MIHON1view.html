@@ -1,16 +1,14 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>実績集計ダッシュボード 接続テスト</title>
+<title>実績集計ダッシュボード</title>
 
 <style>
     body {
         font-family: "Segoe UI", Meiryo, sans-serif;
-        margin: 20px;
+        margin: 10px;
         background: #f8f9fa;
         color: #333;
     }
@@ -18,43 +16,16 @@
     h2 {
         border-left: 5px solid #2c3e50;
         padding-left: 10px;
-    }
-
-    .status-box {
-        background: white;
-        border: 1px solid #ccc;
-        padding: 15px;
         margin-bottom: 15px;
-        border-radius: 5px;
-    }
-
-    #status {
-        font-weight: bold;
-        font-size: 16px;
-        color: #333;
-    }
-
-    .success { color: #198754 !important; }
-    .error { color: #dc3545 !important; }
-    .waiting { color: #0d6efd !important; }
-
-    #log {
-        background: #222;
-        color: #eee;
-        padding: 12px;
-        height: 180px;
-        overflow-y: auto;
-        font-size: 12px;
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-        border-radius: 4px;
+        font-size: 18px;
     }
 
     .table-container {
         overflow-x: auto;
         background: white;
-        border: 1px solid #ccc;
+        border: 1px solid #999;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        margin-bottom: 15px;
     }
 
     table {
@@ -65,74 +36,132 @@
     }
 
     th, td {
-        border: 1px solid #d0d0d0;
-        padding: 6px 10px;
+        border: 1px solid #a6a6a6;
+        padding: 4px 6px;
         white-space: nowrap;
     }
 
     thead th {
-        background: #e9ecef;
+        background: #f2f2f2;
         text-align: center;
+        font-weight: normal;
     }
 
-    .col-code {
-        font-family: monospace;
-        width: 90px;
+    /* 列指定 */
+    .col-code { font-family: monospace; width: 80px; }
+    .col-name { width: 130px; }
+    .col-num { text-align: right; width: 90px; }
+
+    /* スプレッドシート再現カラーリング */
+    .bg-yellow { background-color: #ffffcc; }
+    .bg-light-yellow { background-color: #ffffeb; }
+    .bg-blue { background-color: #ddebf7; }
+    .bg-orange { background-color: #fce4d6; }
+    .bg-pink-total { background-color: #f8cecc; }
+
+    .font-bold { font-weight: bold; }
+
+    /* ========================================
+       スマホ表示用メディアクエリ (幅 768px 以下)
+       ================================-------- */
+    @media screen and (max-width: 768px) {
+        body {
+            margin: 5px;
+        }
+        h2 {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        table {
+            font-size: 11px;
+        }
+        th, td {
+            padding: 3px 4px;
+        }
+        /* アカウントID列を非表示にする */
+        .col-code, th:nth-child(1), td:nth-child(1) {
+            display: none;
+        }
+        .col-name {
+            width: 110px;
+        }
+        .col-num {
+            width: 75px;
+        }
     }
 
-    .col-name { width: 140px; }
-    .col-num { text-align: right; width: 110px; }
+    /* 開発者用・デバッグ用折りたたみスタイル */
+    details {
+        margin-top: 15px;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 8px 12px;
+    }
+
+    summary {
+        font-weight: bold;
+        cursor: pointer;
+        padding: 4px 0;
+        font-size: 14px;
+    }
+
+    .status-box {
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 4px;
+    }
+
+    #status {
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .success { color: #198754 !important; }
+    .error { color: #dc3545 !important; }
+    .waiting { color: #0d6efd !important; }
+
+    #log {
+        background: #222;
+        color: #eee;
+        padding: 10px;
+        height: 120px;
+        overflow-y: auto;
+        font-size: 11px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        border-radius: 4px;
+        margin-top: 8px;
+    }
+
+    pre {
+        background: #f4f4f4;
+        border: 1px solid #ccc;
+        padding: 8px;
+        overflow: auto;
+        font-size: 11px;
+        max-height: 200px;
+    }
 
     button {
-        padding: 8px 18px;
+        padding: 6px 14px;
         cursor: pointer;
         border: 1px solid #999;
         background: #fff;
         border-radius: 4px;
-        margin-bottom: 10px;
+        font-size: 13px;
     }
-
-    button:hover {
-        background: #eee;
-    }
-
-    details {
-        margin-top: 15px;
-    }
-
-    pre {
-        background: #fff;
-        border: 1px solid #ccc;
-        padding: 10px;
-        overflow: auto;
-        font-size: 12px;
-        max-height: 300px;
-    }
+    button:hover { background: #eee; }
 </style>
 </head>
 
 <body>
 
-<h2>実績集計ダッシュボード 接続テスト</h2>
+<h2>実績集計ダッシュボード</h2>
 
-<div class="status-box">
-
-    <div>GAS接続状態：</div>
-    <div id="status" class="waiting">
-        接続準備中...
-    </div>
-
-    <p id="detail">データを確認しています。</p>
-
-    <button onclick="loadReport()">再接続</button>
-
-</div>
-
-<h3>通信ログ</h3>
-<div id="log"></div>
-
-<h3>実績集計結果</h3>
-
+<!-- 実績集計結果テーブル -->
 <div class="table-container">
 <table>
 <thead>
@@ -146,168 +175,206 @@
     <th>前期比</th>
 </tr>
 </thead>
-
 <tbody id="tableBody">
 <tr>
-    <td colspan="7" style="text-align:center;">
-        データを読み込み中...
-    </td>
+    <td colspan="7" style="text-align:center;">データを読み込み中...</td>
 </tr>
 </tbody>
 </table>
 </div>
 
+<!-- 下部に折りたたんだ接続テスト・ログ・JSON確認領域 -->
 <details>
-    <summary>受信したJSONデータを確認</summary>
+    <summary>⚙️ GAS接続テスト・通信ログ・JSONデータ確認</summary>
+    
+    <div class="status-box">
+        <div>GAS接続状態：<span id="status" class="waiting">接続準備中...</span></div>
+        <p id="detail" style="margin: 5px 0 10px 0; font-size:12px;">データを確認しています。</p>
+        <button onclick="loadReport()">再接続</button>
+    </div>
+
+    <h4 style="font-size:13px; margin:10px 0 5px 0;">通信ログ</h4>
+    <div id="log"></div>
+
+    <h4 style="font-size:13px; margin:10px 0 5px 0;">受信データ (JSON)</h4>
     <pre id="rawData">未受信</pre>
 </details>
 
 <script>
-
 // ========================================
 // GAS設定
 // ========================================
-
-const webAppUrl =
-"https://script.google.com/macros/s/AKfycby7MNM-OxQoX4lo-1MAkksIl8vUJ2lKJJhQRpwptY1p30048spAeYjgl5EPI3FVEGCD/exec";
+const webAppUrl = "https://script.google.com/macros/s/AKfycby7MNM-OxQoX4lo-1MAkksIl8vUJ2lKJJhQRpwptY1p30048spAeYjgl5EPI3FVEGCD/exec";
 
 let currentScript = null;
 let timeoutTimer = null;
 let requestId = 0;
 
-
 // ========================================
-// 表示データの構造
+// 表示データ構造
 // ========================================
+const rowsConfig = [
+    // --- 店舗 ---
+    { type: 'data', id: 'ecl00750', name: '安井 秀幸', bg: 'bg-light-yellow' },
+    { type: 'data', id: 'ecl02695', name: '武藤 茉奈美', bg: 'bg-light-yellow' },
+    { type: 'data', id: 'ecl03317', name: '伊藤 彩香', bg: 'bg-light-yellow' },
+    { type: 'data', id: 'ecl04354', name: '文 赤井沢 ２', bg: 'bg-light-yellow' },
+    { type: 'data', id: 'ecl07853', name: '仙台文紙 ２', bg: 'bg-light-yellow' },
+    { type: 'sum',  name: '店舗小計', targets: ['ecl00750','ecl02695','ecl03317','ecl04354','ecl07853'], bg: 'bg-yellow' },
 
-const structure = [
-    { id: 'ecl00747', name: '郡山 敏明' },
-    { id: 'ecl00750', name: '安井 秀幸' },
-    { id: 'ecl02088', name: '中川 雅之' },
-    { id: 'ecl02239', name: '浅野 勝寿' },
-    { id: 'ecl02439', name: '内野 正太郎' },
-    { id: 'ecl02695', name: '武藤 茉奈美' },
-    { id: 'ecl02777', name: '中島 祐太' },
-    { id: 'ecl03317', name: '伊藤 彩香' },
-    { id: 'ecl04350', name: '佐川 規人' },
-    { id: 'ecl04351', name: '黒澤 健' },
-    { id: 'ecl04352', name: '相模 史信' },
-    { id: 'ecl04354', name: '文 赤井沢 2' },
-    { id: 'ecl04621', name: '文 赤井沢' },
-    { id: 'ecl04622', name: '事 赤井沢' },
-    { id: 'ecl07821', name: '仙台事務機' },
-    { id: 'ecl07851', name: '仙台文紙' },
-    { id: 'ecl07853', name: '仙台文紙 2' }
+    // --- RS (納品) ---
+    { type: 'data', id: 'ecl04350', name: '佐川 規人', bg: 'bg-light-yellow' },
+    { type: 'data', id: 'ecl02088', name: '中川 雅之', bg: 'bg-light-yellow' },
+    { type: 'data', id: 'ecl00747', name: '郡山 敏明', bg: 'bg-light-yellow' },
+    { type: 'data', id: 'ecl04351', name: '黒澤 健', bg: 'bg-light-yellow' },
+    { type: 'data', id: 'ecl04352', name: '相模 史信', bg: 'bg-light-yellow' },
+    { type: 'data', id: 'ecl04621', name: '文 赤井沢', bg: 'bg-light-yellow' },
+    { type: 'data', id: 'ecl07851', name: '仙台文紙', bg: 'bg-light-yellow' },
+    { type: 'sum',  name: '納品小計', idKey: 'nouhin_sub', targets: ['ecl04350','ecl02088','ecl00747','ecl04351','ecl04352','ecl04621','ecl07851'], bg: 'bg-yellow' },
+    { type: 'sumKeys', name: 'ＲＳ仙台小計', idKey: 'rs_sendai', targetKeys: ['nouhin_sub', '店舗小計'], bg: 'bg-yellow' },
+
+    // --- OS 仙台 ---
+    { type: 'data', id: 'ecl02239', name: '浅野 勝寿', bg: 'bg-blue' },
+    { type: 'data', id: 'ecl02439', name: '内野 正太郎', bg: 'bg-blue' },
+    { type: 'data', id: 'ecl02777', name: '中島 祐太', bg: 'bg-blue' },
+    { type: 'data', id: 'ecl04622', name: '事 赤井沢', bg: 'bg-blue' },
+    { type: 'data', id: 'ecl07821', name: '仙台事務機', bg: 'bg-blue' },
+    { type: 'sum',  name: 'ＯＳ仙台小計', idKey: 'os_sendai', targets: ['ecl02239','ecl02439','ecl02777','ecl04622','ecl07821'], bg: 'bg-blue' },
+
+    // 仙台小計
+    { type: 'sumKeys', name: '仙台小計', idKey: 'sendai_total', targetKeys: ['os_sendai', 'rs_sendai'], bg: 'bg-orange' },
+
+    // --- RS 郡山 ---
+    { type: 'data', id: 'ecl00749', name: '高橋 伸一', bg: 'bg-light-yellow' },
+    { type: 'data', id: 'ecl00779', name: '河村 康成', bg: 'bg-light-yellow' },
+    { type: 'data', id: 'ecl01160', name: '橋本 勉', bg: 'bg-light-yellow' },
+    { type: 'data', id: 'ecl02644', name: '猪狩 翔太', bg: 'bg-light-yellow' },
+    { type: 'data', id: 'ecl04625', name: '文 シーエス', bg: 'bg-light-yellow' },
+    { type: 'data', id: 'ecl07861', name: '郡山文紙', bg: 'bg-light-yellow' },
+    { type: 'sum',  name: 'ＲＳ郡山小計', idKey: 'rs_koriyama', targets: ['ecl00749','ecl00779','ecl01160','ecl02644','ecl04625','ecl07861'], bg: 'bg-yellow' },
+
+    // --- OS 郡山 ---
+    { type: 'data', id: 'ecl00807', name: '樽川 昌幸', bg: 'bg-blue' },
+    { type: 'data', id: 'ecl04627', name: '事 シーエス', bg: 'bg-blue' },
+    { type: 'data', id: 'ecl04649', name: 'いわき他', bg: 'bg-blue' },
+    { type: 'data', id: 'ecl07841', name: '郡山事務機', bg: 'bg-blue' },
+    { type: 'sum',  name: 'ＯＳ郡山小計', idKey: 'os_koriyama', targets: ['ecl00807','ecl04627','ecl04649','ecl07841'], bg: 'bg-blue' },
+
+    // 郡山小計
+    { type: 'sumKeys', name: '郡山小計', idKey: 'koriyama_total', targetKeys: ['os_koriyama', 'rs_koriyama'], bg: 'bg-orange' },
+
+    // --- OS 岩手 ---
+    { type: 'data', id: 'ecl00814', name: '高橋 伸', bg: 'bg-blue' },
+    { type: 'data', id: 'ecl02446', name: '菅原 修二', bg: 'bg-blue' },
+    { type: 'sum',  name: 'ＯＳ岩手小計', idKey: 'os_iwate', targets: ['ecl00814','ecl02446'], bg: 'bg-blue' },
+
+    // --- 総合計区分 ---
+    { type: 'sumKeys', name: 'ＲＳ小計', idKey: 'rs_total', targetKeys: ['rs_koriyama', 'rs_sendai'], bg: 'bg-yellow' },
+    { type: 'sumKeys', name: 'ＯＳ小計', idKey: 'os_total', targetKeys: ['os_sendai', 'os_koriyama', 'os_iwate'], bg: 'bg-blue' },
+    { type: 'sumKeys', name: '全社合計', idKey: 'all_total', targetKeys: ['rs_total', 'os_total'], bg: 'bg-pink-total' }
 ];
 
-
-// ========================================
-// ログ表示
-// ========================================
-
 function writeLog(message) {
-
     const log = document.getElementById("log");
-
     const time = new Date().toLocaleTimeString();
-
-    log.textContent +=
-        "[" + time + "] " + message + "\n";
-
+    log.textContent += "[" + time + "] " + message + "\n";
     log.scrollTop = log.scrollHeight;
-
     console.log(message);
 }
 
-
-// ========================================
-// 状態表示
-// ========================================
-
 function setStatus(message, type, detail) {
-
     const status = document.getElementById("status");
-
     status.textContent = message;
-
     status.className = type;
-
-    document.getElementById("detail").textContent =
-        detail || "";
+    document.getElementById("detail").textContent = detail || "";
 }
 
+// スマホ判定：画面幅が768px以下の場合に千円単位（1000で割る）にする判定
+function isMobile() {
+    return window.innerWidth <= 768;
+}
 
-// ========================================
-// 数値表示
-// ========================================
-
+// 数値フォーマット（スマホ時は千円単位に変換してカンマ区切り）
 function formatNum(val) {
-
-    if (!val || isNaN(val)) return "-";
-
-    return Number(val).toLocaleString();
+    if (val === null || val === undefined || isNaN(val)) return "-";
+    let num = Number(val);
+    if (isMobile()) {
+        num = Math.round(num / 1000); // 千円単位に丸める
+    }
+    return num.toLocaleString();
 }
-
-
-// ========================================
-// 達成率
-// ========================================
 
 function calcRate(actual, base) {
-
-    if (!base || base === 0 || !actual) return "-";
-
+    if (!base || base === 0 || actual === null || actual === undefined) return "-";
     return ((actual / base) * 100).toFixed(2) + "%";
 }
 
-
-// ========================================
-// JSONP受信処理
-// ========================================
-
 window.handleReportData = function(apiData) {
-
     writeLog("① JSONPコールバック実行");
 
     try {
-
         if (!apiData || typeof apiData !== "object") {
-
             throw new Error("受信データがJSONオブジェクトではありません");
         }
 
         writeLog("② GASデータ受信成功");
-
-        const ids = Object.keys(apiData);
-
-        writeLog("③ 受信件数：" + ids.length + "件");
-
-        document.getElementById("rawData").textContent =
-            JSON.stringify(apiData, null, 2);
-
-        // 表の作成
+        document.getElementById("rawData").textContent = JSON.stringify(apiData, null, 2);
 
         const tbody = document.getElementById("tableBody");
-
         tbody.innerHTML = "";
 
-        structure.forEach(item => {
+        const calcMap = {};
 
-            const match = apiData[item.id] || {
-                target: 0,
-                actual: 0,
-                prevActual: 0
+        Object.keys(apiData).forEach(id => {
+            const item = apiData[id];
+            calcMap[id] = {
+                target: Number(item.target) || 0,
+                actual: Number(item.actual) || 0,
+                prevActual: Number(item.prevActual) || 0
             };
+        });
 
-            const target = Number(match.target) || 0;
-            const actual = Number(match.actual) || 0;
-            const prevActual = Number(match.prevActual) || 0;
+        rowsConfig.forEach(config => {
+            let idText = "";
+            let nameText = config.name;
+            let target = 0, actual = 0, prevActual = 0;
+
+            if (config.type === 'data') {
+                idText = config.id;
+                const d = calcMap[config.id] || { target: 0, actual: 0, prevActual: 0 };
+                target = d.target;
+                actual = d.actual;
+                prevActual = d.prevActual;
+            } 
+            else if (config.type === 'sum') {
+                config.targets.forEach(tid => {
+                    const d = calcMap[tid] || { target: 0, actual: 0, prevActual: 0 };
+                    target += d.target;
+                    actual += d.actual;
+                    prevActual += d.prevActual;
+                });
+                const key = config.idKey || config.name;
+                calcMap[key] = { target, actual, prevActual };
+            } 
+            else if (config.type === 'sumKeys') {
+                config.targetKeys.forEach(tKey => {
+                    const d = calcMap[tKey] || { target: 0, actual: 0, prevActual: 0 };
+                    target += d.target;
+                    actual += d.actual;
+                    prevActual += d.prevActual;
+                });
+                if (config.idKey) {
+                    calcMap[config.idKey] = { target, actual, prevActual };
+                }
+            }
 
             const tr = document.createElement("tr");
+            if (config.bg) tr.className = config.bg;
+            if (config.type !== 'data') tr.classList.add("font-bold");
 
             const values = [
-                item.id,
-                item.name,
+                idText,
+                nameText,
                 formatNum(target),
                 formatNum(actual),
                 calcRate(actual, target),
@@ -315,217 +382,81 @@ window.handleReportData = function(apiData) {
                 calcRate(actual, prevActual)
             ];
 
-            values.forEach((value, index) => {
-
+            values.forEach((val, idx) => {
                 const td = document.createElement("td");
+                td.textContent = val;
 
-                td.textContent = value;
-
-                if (index === 0) {
-                    td.className = "col-code";
-                }
-
-                if (index === 1) {
-                    td.className = "col-name";
-                }
-
-                if (index >= 2) {
-                    td.className = "col-num";
-                }
+                if (idx === 0) td.className = "col-code";
+                else if (idx === 1) td.className = "col-name";
+                else if (idx >= 2) td.className = "col-num";
 
                 tr.appendChild(td);
-
             });
 
             tbody.appendChild(tr);
-
         });
 
-        writeLog("④ 集計表の作成完了");
-
-        setStatus(
-            "接続成功・データ取得完了",
-            "success",
-            "GASから " + ids.length + " 件のデータを受信しました。"
-        );
-
-        // タイムアウト解除
-
+        writeLog("③ 集計表の作成完了");
+        setStatus("接続成功・データ取得完了", "success", "データを正常に表示しました。");
         clearTimeout(timeoutTimer);
 
     } catch (error) {
-
         writeLog("受信処理エラー：" + error.message);
-
-        setStatus(
-            "データ処理エラー",
-            "error",
-            error.message
-        );
-
+        setStatus("データ処理エラー", "error", error.message);
         showError();
     }
-
 };
 
-
-// ========================================
-// エラー表示
-// ========================================
-
 function showError() {
-
     document.getElementById("tableBody").innerHTML =
         '<tr><td colspan="7" style="color:red;text-align:center;">データの取得・集計に失敗しました。</td></tr>';
-
 }
 
-
-// ========================================
-// GAS接続処理
-// ========================================
-
 function loadReport() {
-
-    // 前回の処理を終了
-
     clearTimeout(timeoutTimer);
-
     if (currentScript) {
-
         currentScript.remove();
-
         currentScript = null;
     }
-
     requestId++;
-
     const thisRequest = requestId;
 
     document.getElementById("log").textContent = "";
-
     document.getElementById("rawData").textContent = "未受信";
-
     document.getElementById("tableBody").innerHTML =
         '<tr><td colspan="7" style="text-align:center;">データを読み込み中...</td></tr>';
 
-    setStatus(
-        "GAS接続中...",
-        "waiting",
-        "Google Apps Scriptに接続しています。"
-    );
-
+    setStatus("GAS接続中...", "waiting", "Google Apps Scriptに接続しています。");
     writeLog("GAS接続開始");
 
-    writeLog("接続先：" + webAppUrl);
-
-    // JSONP用script作成
-
     const script = document.createElement("script");
-
     currentScript = script;
-
     script.async = true;
+    script.src = webAppUrl + "?callback=handleReportData&t=" + Date.now();
 
-    script.src =
-        webAppUrl +
-        "?callback=handleReportData&t=" +
-        Date.now();
-
-    script.onload = function() {
-
+    script.onerror = function() {
         if (thisRequest !== requestId) return;
-
-        writeLog("⑤ script読み込み完了");
-
-        // コールバックが呼ばれていない場合を確認
-
-        if (document.getElementById("status").textContent === "GAS接続中...") {
-
-            writeLog("警告：コールバックが実行されていません");
-
-        }
-
-    };
-
-    script.onerror = function(error) {
-
-        if (thisRequest !== requestId) return;
-
         clearTimeout(timeoutTimer);
-
         writeLog("通信エラー：script.onerror");
-
-        writeLog("GASスクリプトの読み込みに失敗しました");
-
-        setStatus(
-            "GAS通信エラー",
-            "error",
-            "GASからJavaScriptを読み込めませんでした。"
-        );
-
+        setStatus("GAS通信エラー", "error", "GASからJavaScriptを読み込めませんでした。");
         showError();
-
     };
 
     document.body.appendChild(script);
 
-
-    // 15秒でタイムアウト
-
     timeoutTimer = setTimeout(function() {
-
         if (thisRequest !== requestId) return;
-
         if (document.getElementById("status").textContent === "GAS接続中...") {
-
             writeLog("タイムアウト：15秒以内に応答がありません");
-
-            setStatus(
-                "タイムアウト",
-                "error",
-                "GASからの応答がありませんでした。"
-            );
-
+            setStatus("タイムアウト", "error", "GASからの応答がありませんでした。");
             showError();
-
         }
-
     }, 15000);
-
 }
 
-
-// ========================================
-// JavaScript全体のエラー検出
-// ========================================
-
-window.addEventListener("error", function(event) {
-
-    writeLog(
-        "JavaScriptエラー：" +
-        event.message +
-        " / " +
-        event.filename +
-        " / 行：" +
-        event.lineno
-    );
-
-});
-
-
-// ========================================
-// 初回起動
-// ========================================
-
 window.addEventListener("DOMContentLoaded", function() {
-
-    writeLog("HTML読み込み完了");
-
     loadReport();
-
 });
-
 </script>
 
 </body>
