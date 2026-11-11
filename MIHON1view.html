@@ -18,11 +18,10 @@
         .col-name { width: 140px; }
         .col-num { text-align: right; width: 110px; }
         
-        /* 配色設定 */
+        /* 配色設定（画像2枚目を参考） */
         tr.row-store-subtotal { background-color: #ffffcc; font-weight: bold; } /* 黄色 (小計) */
         tr.row-os-subtotal    { background-color: #cce5ff; font-weight: bold; } /* 水色 (OS小計) */
-        tr.row-area-total     { background-color: #ffe5cc; font-weight: bold; } /* オレンジ (仙台/郡山小計) */
-        tr.row-grand-total    { background-color: #f5c6cb; font-weight: bold; } /* ピンク (全社合計) */
+        tr.row-area-total     { background-color: #ffe5cc; font-weight: bold; } /* オレンジ (仙台小計) */
     </style>
 </head>
 <body>
@@ -48,39 +47,31 @@
     </div>
 
     <script>
-        // デプロイしたGASのウェブアプリURLを指定
-        const webAppUrl = "https://script.google.com/macros/s/AKfycbz-lFZWwKF-lc21N40LyIiote6tZJyRcByfsGwAeMl0nAdg3T6yUKO3GainnMuoMOL_/exec";
+        // ご提示いただいた最新のGASウェブアプリURL
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbwhx2sfzKelBJNjbaWHE6UeIcXywBIMyWkJVGKuGEFzV5RzBuTWJsVWjfjAHxdZGckv/exec";
 
-        // 行構成テンプレート
+        // スプレッドシートのデータ構造（I列のIDに対応する名前）
         const structure = [
-            { type: 'data', id: 'ecl00750', name: '安井 秀幸' },
-            { type: 'data', id: 'ecl02695', name: '武藤 茉奈美' },
-            { type: 'data', id: 'ecl03317', name: '伊藤 彩香' },
-            { type: 'data', id: 'ecl04354', name: '文 赤井沢 2' },
-            { type: 'data', id: 'ecl07853', name: '仙台文紙 2' },
-            { type: 'subtotal', name: '店舗小計', targetKeys: ['安井 秀幸', '武藤 茉奈美', '伊藤 彩香', '文 赤井沢 2', '仙台文紙 2'], class: 'row-store-subtotal' },
-            
-            { type: 'data', id: 'ecl04350', name: '佐川 規人' },
-            { type: 'data', id: 'ecl02088', name: '中川 雅之' },
             { type: 'data', id: 'ecl00747', name: '郡山 敏明' },
-            { type: 'data', id: 'ecl04351', name: '黒澤 健' },
-            { type: 'data', id: 'ecl04352', name: '相模 史信' },
-            { type: 'data', id: 'ecl04621', name: '文 赤井沢' },
-            { type: 'data', id: 'ecl07851', name: '仙台文紙' },
-            { type: 'subtotal', name: '納品小計', targetKeys: ['佐川 規人', '中川 雅之', '郡山 敏明', '黒澤 健', '相模 史信', '文 赤井沢', '仙台文紙'], class: 'row-store-subtotal' },
-            { type: 'subtotal', name: 'ＲＳ仙台小計', targetKeys: ['店舗小計', '納品小計'], class: 'row-store-subtotal' },
-            
+            { type: 'data', id: 'ecl00750', name: '安井 秀幸' },
+            { type: 'data', id: 'ecl02088', name: '中川 雅之' },
             { type: 'data', id: 'ecl02239', name: '浅野 勝寿' },
             { type: 'data', id: 'ecl02439', name: '内野 正太郎' },
+            { type: 'data', id: 'ecl02695', name: '武藤 茉奈美' },
             { type: 'data', id: 'ecl02777', name: '中島 祐太' },
+            { type: 'data', id: 'ecl03317', name: '伊藤 彩香' },
+            { type: 'data', id: 'ecl04350', name: '佐川 規人' },
+            { type: 'data', id: 'ecl04351', name: '黒澤 健' },
+            { type: 'data', id: 'ecl04352', name: '相模 史信' },
+            { type: 'data', id: 'ecl04354', name: '文 赤井沢 2' },
+            { type: 'data', id: 'ecl04621', name: '文 赤井沢' },
             { type: 'data', id: 'ecl04622', name: '事 赤井沢' },
             { type: 'data', id: 'ecl07821', name: '仙台事務機' },
-            { type: 'subtotal', name: 'ＯＳ仙台小計', targetKeys: ['浅野 勝寿', '内野 正太郎', '中島 祐太', '事 赤井沢', '仙台事務機'], class: 'row-os-subtotal' },
-            
-            { type: 'subtotal', name: '仙台小計', targetKeys: ['ＲＳ仙台小計', 'ＯＳ仙台小計'], class: 'row-area-total' }
+            { type: 'data', id: 'ecl07851', name: '仙台文紙' },
+            { type: 'data', id: 'ecl07853', name: '仙台文紙 2' }
         ];
 
-        // JSONPのコールバック関数（GASからのデータを受け取る）
+        // JSONPコールバック関数
         function handleReportData(apiData) {
             try {
                 const tbody = document.getElementById("tableBody");
@@ -90,52 +81,21 @@
 
                 structure.forEach(item => {
                     const tr = document.createElement("tr");
-                    let target = 0, actual = 0, prevActual = 0;
+                    const match = apiData[item.id] || { target: 0, actual: 0, prevActual: 0 };
+                    
+                    const target = match.target;
+                    const actual = match.actual;
+                    const prevActual = match.prevActual;
 
-                    if (item.type === 'data') {
-                        const match = apiData[item.id] || { target: 0, actual: 0, prevActual: 0 };
-                        target = match.target;
-                        actual = match.actual;
-                        prevActual = match.prevActual;
-
-                        calculatedValues[item.name] = { target, actual, prevActual };
-
-                        tr.innerHTML = `
-                            <td class="col-code">${item.id}</td>
-                            <td class="col-name">${item.name}</td>
-                            <td class="col-num">${formatNum(target)}</td>
-                            <td class="col-num">${formatNum(actual)}</td>
-                            <td class="col-num">${calcRate(actual, target)}</td>
-                            <td class="col-num">${formatNum(prevActual)}</td>
-                            <td class="col-num">${calcRate(actual, prevActual)}</td>
-                        `;
-                    } 
-                    else if (item.type === 'subtotal') {
-                        tr.className = item.class;
-                        
-                        if (item.targetKeys && Array.isArray(item.targetKeys)) {
-                            item.targetKeys.forEach(key => {
-                                if (calculatedValues[key]) {
-                                    target += calculatedValues[key].target;
-                                    actual += calculatedValues[key].actual;
-                                    prevActual += calculatedValues[key].prevActual;
-                                }
-                            });
-                        }
-
-                        calculatedValues[item.name] = { target, actual, prevActual };
-
-                        tr.innerHTML = `
-                            <td class="col-code"></td>
-                            <td class="col-name"><b>${item.name}</b></td>
-                            <td class="col-num">${formatNum(target)}</td>
-                            <td class="col-num">${formatNum(actual)}</td>
-                            <td class="col-num">${calcRate(actual, target)}</td>
-                            <td class="col-num">${formatNum(prevActual)}</td>
-                            <td class="col-num">${calcRate(actual, prevActual)}</td>
-                        `;
-                    }
-
+                    tr.innerHTML = `
+                        <td class="col-code">${item.id}</td>
+                        <td class="col-name">${item.name}</td>
+                        <td class="col-num">${formatNum(target)}</td>
+                        <td class="col-num">${formatNum(actual)}</td>
+                        <td class="col-num">${calcRate(actual, target)}</td>
+                        <td class="col-num">${formatNum(prevActual)}</td>
+                        <td class="col-num">${calcRate(actual, prevActual)}</td>
+                    `;
                     tbody.appendChild(tr);
                 });
 
@@ -160,7 +120,7 @@
             return ((actual / base) * 100).toFixed(2) + "%";
         }
 
-        // ページ読み込み時にscriptタグを動的生成してデータ取得（JSONP）
+        // 読み込み実行（JSONP）
         function loadReport() {
             const script = document.createElement('script');
             script.src = `${webAppUrl}?callback=handleReportData`;
