@@ -1,130 +1,532 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>実績集計ダッシュボード</title>
-    <style>
-        body { font-family: "Segoe UI", Meiryo, sans-serif; margin: 20px; background-color: #f8f9fa; }
-        h2 { border-left: 5px solid #2c3e50; padding-left: 10px; color: #333; }
-        
-        .table-container { overflow-x: auto; background: #fff; border: 1px solid #ccc; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        table { border-collapse: collapse; width: 100%; font-size: 13px; text-align: left; }
-        th, td { border: 1px solid #d0d0d0; padding: 6px 10px; white-space: nowrap; }
-        
-        thead th { background-color: #e9ecef; text-align: center; font-weight: bold; }
-        
-        .col-code { text-align: left; font-family: monospace; width: 90px; }
-        .col-name { width: 140px; }
-        .col-num { text-align: right; width: 110px; }
-        
-        /* 配色設定 */
-        tr.row-store-subtotal { background-color: #ffffcc; font-weight: bold; }
-        tr.row-os-subtotal    { background-color: #cce5ff; font-weight: bold; }
-        tr.row-area-total     { background-color: #ffe5cc; font-weight: bold; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>実績集計ダッシュボード 接続テスト</title>
+
+<style>
+    body {
+        font-family: "Segoe UI", Meiryo, sans-serif;
+        margin: 20px;
+        background: #f8f9fa;
+        color: #333;
+    }
+
+    h2 {
+        border-left: 5px solid #2c3e50;
+        padding-left: 10px;
+    }
+
+    .status-box {
+        background: white;
+        border: 1px solid #ccc;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+    }
+
+    #status {
+        font-weight: bold;
+        font-size: 16px;
+        color: #333;
+    }
+
+    .success { color: #198754 !important; }
+    .error { color: #dc3545 !important; }
+    .waiting { color: #0d6efd !important; }
+
+    #log {
+        background: #222;
+        color: #eee;
+        padding: 12px;
+        height: 180px;
+        overflow-y: auto;
+        font-size: 12px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        border-radius: 4px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        background: white;
+        border: 1px solid #ccc;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 13px;
+        text-align: left;
+    }
+
+    th, td {
+        border: 1px solid #d0d0d0;
+        padding: 6px 10px;
+        white-space: nowrap;
+    }
+
+    thead th {
+        background: #e9ecef;
+        text-align: center;
+    }
+
+    .col-code {
+        font-family: monospace;
+        width: 90px;
+    }
+
+    .col-name { width: 140px; }
+    .col-num { text-align: right; width: 110px; }
+
+    button {
+        padding: 8px 18px;
+        cursor: pointer;
+        border: 1px solid #999;
+        background: #fff;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+
+    button:hover {
+        background: #eee;
+    }
+
+    details {
+        margin-top: 15px;
+    }
+
+    pre {
+        background: #fff;
+        border: 1px solid #ccc;
+        padding: 10px;
+        overflow: auto;
+        font-size: 12px;
+        max-height: 300px;
+    }
+</style>
 </head>
+
 <body>
 
-    <h2>実績集計ダッシュボード</h2>
-    <div class="table-container">
-        <table id="reportTable">
-            <thead>
-                <tr>
-                    <th>アカウントID</th>
-                    <th>氏名 / 区分</th>
-                    <th>目標</th>
-                    <th>実績</th>
-                    <th>達成率</th>
-                    <th>前期実績</th>
-                    <th>前期比</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-                <tr><td colspan="7" style="text-align:center;">データを読み込み中...</td></tr>
-            </tbody>
-        </table>
+<h2>実績集計ダッシュボード 接続テスト</h2>
+
+<div class="status-box">
+
+    <div>GAS接続状態：</div>
+    <div id="status" class="waiting">
+        接続準備中...
     </div>
 
-    <script>
-        // あなたのGASウェブアプリURL
-        const webAppUrl = "https://script.google.com/macros/s/AKfycbz-lFZWwKF-lc21N40LyIiote6tZJyRcByfsGwAeMl0nAdg3T6yUKO3GainnMuoMOL_/exec";
+    <p id="detail">データを確認しています。</p>
 
-        const structure = [
-            { type: 'data', id: 'ecl00747', name: '郡山 敏明' },
-            { type: 'data', id: 'ecl00750', name: '安井 秀幸' },
-            { type: 'data', id: 'ecl02088', name: '中川 雅之' },
-            { type: 'data', id: 'ecl02239', name: '浅野 勝寿' },
-            { type: 'data', id: 'ecl02439', name: '内野 正太郎' },
-            { type: 'data', id: 'ecl02695', name: '武藤 茉奈美' },
-            { type: 'data', id: 'ecl02777', name: '中島 祐太' },
-            { type: 'data', id: 'ecl03317', name: '伊藤 彩香' },
-            { type: 'data', id: 'ecl04350', name: '佐川 規人' },
-            { type: 'data', id: 'ecl04351', name: '黒澤 健' },
-            { type: 'data', id: 'ecl04352', name: '相模 史信' },
-            { type: 'data', id: 'ecl04354', name: '文 赤井沢 2' },
-            { type: 'data', id: 'ecl04621', name: '文 赤井沢' },
-            { type: 'data', id: 'ecl04622', name: '事 赤井沢' },
-            { type: 'data', id: 'ecl07821', name: '仙台事務機' },
-            { type: 'data', id: 'ecl07851', name: '仙台文紙' },
-            { type: 'data', id: 'ecl07853', name: '仙台文紙 2' }
-        ];
+    <button onclick="loadReport()">再接続</button>
 
-        // JSONPのコールバック関数を明示的にグローバル(window)に紐付ける
-        window.handleReportData = function(apiData) {
-            try {
-                const tbody = document.getElementById("tableBody");
-                tbody.innerHTML = "";
+</div>
 
-                structure.forEach(item => {
-                    const tr = document.createElement("tr");
-                    const match = apiData[item.id] || { target: 0, actual: 0, prevActual: 0 };
-                    
-                    const target = match.target;
-                    const actual = match.actual;
-                    const prevActual = match.prevActual;
+<h3>通信ログ</h3>
+<div id="log"></div>
 
-                    tr.innerHTML = `
-                        <td class="col-code">${item.id}</td>
-                        <td class="col-name">${item.name}</td>
-                        <td class="col-num">${formatNum(target)}</td>
-                        <td class="col-num">${formatNum(actual)}</td>
-                        <td class="col-num">${calcRate(actual, target)}</td>
-                        <td class="col-num">${formatNum(prevActual)}</td>
-                        <td class="col-num">${calcRate(actual, prevActual)}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+<h3>実績集計結果</h3>
 
-            } catch (error) {
-                console.error("描画エラー:", error);
-                showError();
-            }
-        };
+<div class="table-container">
+<table>
+<thead>
+<tr>
+    <th>アカウントID</th>
+    <th>氏名 / 区分</th>
+    <th>目標</th>
+    <th>実績</th>
+    <th>達成率</th>
+    <th>前期実績</th>
+    <th>前期比</th>
+</tr>
+</thead>
 
-        function showError() {
-            document.getElementById("tableBody").innerHTML = 
-                '<tr><td colspan="7" style="color:red; text-align:center;">データの取得・集計に失敗しました。</td></tr>';
+<tbody id="tableBody">
+<tr>
+    <td colspan="7" style="text-align:center;">
+        データを読み込み中...
+    </td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<details>
+    <summary>受信したJSONデータを確認</summary>
+    <pre id="rawData">未受信</pre>
+</details>
+
+<script>
+
+// ========================================
+// GAS設定
+// ========================================
+
+const webAppUrl =
+"https://script.google.com/macros/s/AKfycbwhx2sfzKelBJNjbaWHE6UeIcXywBIMyWkJVGKuGEFzV5RzBuTWJsVWjfjAHxdZGckv/exec";
+
+let currentScript = null;
+let timeoutTimer = null;
+let requestId = 0;
+
+
+// ========================================
+// 表示データの構造
+// ========================================
+
+const structure = [
+    { id: 'ecl00747', name: '郡山 敏明' },
+    { id: 'ecl00750', name: '安井 秀幸' },
+    { id: 'ecl02088', name: '中川 雅之' },
+    { id: 'ecl02239', name: '浅野 勝寿' },
+    { id: 'ecl02439', name: '内野 正太郎' },
+    { id: 'ecl02695', name: '武藤 茉奈美' },
+    { id: 'ecl02777', name: '中島 祐太' },
+    { id: 'ecl03317', name: '伊藤 彩香' },
+    { id: 'ecl04350', name: '佐川 規人' },
+    { id: 'ecl04351', name: '黒澤 健' },
+    { id: 'ecl04352', name: '相模 史信' },
+    { id: 'ecl04354', name: '文 赤井沢 2' },
+    { id: 'ecl04621', name: '文 赤井沢' },
+    { id: 'ecl04622', name: '事 赤井沢' },
+    { id: 'ecl07821', name: '仙台事務機' },
+    { id: 'ecl07851', name: '仙台文紙' },
+    { id: 'ecl07853', name: '仙台文紙 2' }
+];
+
+
+// ========================================
+// ログ表示
+// ========================================
+
+function writeLog(message) {
+
+    const log = document.getElementById("log");
+
+    const time = new Date().toLocaleTimeString();
+
+    log.textContent +=
+        "[" + time + "] " + message + "\n";
+
+    log.scrollTop = log.scrollHeight;
+
+    console.log(message);
+}
+
+
+// ========================================
+// 状態表示
+// ========================================
+
+function setStatus(message, type, detail) {
+
+    const status = document.getElementById("status");
+
+    status.textContent = message;
+
+    status.className = type;
+
+    document.getElementById("detail").textContent =
+        detail || "";
+}
+
+
+// ========================================
+// 数値表示
+// ========================================
+
+function formatNum(val) {
+
+    if (!val || isNaN(val)) return "-";
+
+    return Number(val).toLocaleString();
+}
+
+
+// ========================================
+// 達成率
+// ========================================
+
+function calcRate(actual, base) {
+
+    if (!base || base === 0 || !actual) return "-";
+
+    return ((actual / base) * 100).toFixed(2) + "%";
+}
+
+
+// ========================================
+// JSONP受信処理
+// ========================================
+
+window.handleReportData = function(apiData) {
+
+    writeLog("① JSONPコールバック実行");
+
+    try {
+
+        if (!apiData || typeof apiData !== "object") {
+
+            throw new Error("受信データがJSONオブジェクトではありません");
         }
 
-        function formatNum(val) {
-            if (!val || isNaN(val)) return "-";
-            return Number(val).toLocaleString();
+        writeLog("② GASデータ受信成功");
+
+        const ids = Object.keys(apiData);
+
+        writeLog("③ 受信件数：" + ids.length + "件");
+
+        document.getElementById("rawData").textContent =
+            JSON.stringify(apiData, null, 2);
+
+        // 表の作成
+
+        const tbody = document.getElementById("tableBody");
+
+        tbody.innerHTML = "";
+
+        structure.forEach(item => {
+
+            const match = apiData[item.id] || {
+                target: 0,
+                actual: 0,
+                prevActual: 0
+            };
+
+            const target = Number(match.target) || 0;
+            const actual = Number(match.actual) || 0;
+            const prevActual = Number(match.prevActual) || 0;
+
+            const tr = document.createElement("tr");
+
+            const values = [
+                item.id,
+                item.name,
+                formatNum(target),
+                formatNum(actual),
+                calcRate(actual, target),
+                formatNum(prevActual),
+                calcRate(actual, prevActual)
+            ];
+
+            values.forEach((value, index) => {
+
+                const td = document.createElement("td");
+
+                td.textContent = value;
+
+                if (index === 0) {
+                    td.className = "col-code";
+                }
+
+                if (index === 1) {
+                    td.className = "col-name";
+                }
+
+                if (index >= 2) {
+                    td.className = "col-num";
+                }
+
+                tr.appendChild(td);
+
+            });
+
+            tbody.appendChild(tr);
+
+        });
+
+        writeLog("④ 集計表の作成完了");
+
+        setStatus(
+            "接続成功・データ取得完了",
+            "success",
+            "GASから " + ids.length + " 件のデータを受信しました。"
+        );
+
+        // タイムアウト解除
+
+        clearTimeout(timeoutTimer);
+
+    } catch (error) {
+
+        writeLog("受信処理エラー：" + error.message);
+
+        setStatus(
+            "データ処理エラー",
+            "error",
+            error.message
+        );
+
+        showError();
+    }
+
+};
+
+
+// ========================================
+// エラー表示
+// ========================================
+
+function showError() {
+
+    document.getElementById("tableBody").innerHTML =
+        '<tr><td colspan="7" style="color:red;text-align:center;">データの取得・集計に失敗しました。</td></tr>';
+
+}
+
+
+// ========================================
+// GAS接続処理
+// ========================================
+
+function loadReport() {
+
+    // 前回の処理を終了
+
+    clearTimeout(timeoutTimer);
+
+    if (currentScript) {
+
+        currentScript.remove();
+
+        currentScript = null;
+    }
+
+    requestId++;
+
+    const thisRequest = requestId;
+
+    document.getElementById("log").textContent = "";
+
+    document.getElementById("rawData").textContent = "未受信";
+
+    document.getElementById("tableBody").innerHTML =
+        '<tr><td colspan="7" style="text-align:center;">データを読み込み中...</td></tr>';
+
+    setStatus(
+        "GAS接続中...",
+        "waiting",
+        "Google Apps Scriptに接続しています。"
+    );
+
+    writeLog("GAS接続開始");
+
+    writeLog("接続先：" + webAppUrl);
+
+    // JSONP用script作成
+
+    const script = document.createElement("script");
+
+    currentScript = script;
+
+    script.async = true;
+
+    script.src =
+        webAppUrl +
+        "?callback=handleReportData&t=" +
+        Date.now();
+
+    script.onload = function() {
+
+        if (thisRequest !== requestId) return;
+
+        writeLog("⑤ script読み込み完了");
+
+        // コールバックが呼ばれていない場合を確認
+
+        if (document.getElementById("status").textContent === "GAS接続中...") {
+
+            writeLog("警告：コールバックが実行されていません");
+
         }
 
-        function calcRate(actual, base) {
-            if (!base || base === 0 || !actual) return "-";
-            return ((actual / base) * 100).toFixed(2) + "%";
+    };
+
+    script.onerror = function(error) {
+
+        if (thisRequest !== requestId) return;
+
+        clearTimeout(timeoutTimer);
+
+        writeLog("通信エラー：script.onerror");
+
+        writeLog("GASスクリプトの読み込みに失敗しました");
+
+        setStatus(
+            "GAS通信エラー",
+            "error",
+            "GASからJavaScriptを読み込めませんでした。"
+        );
+
+        showError();
+
+    };
+
+    document.body.appendChild(script);
+
+
+    // 15秒でタイムアウト
+
+    timeoutTimer = setTimeout(function() {
+
+        if (thisRequest !== requestId) return;
+
+        if (document.getElementById("status").textContent === "GAS接続中...") {
+
+            writeLog("タイムアウト：15秒以内に応答がありません");
+
+            setStatus(
+                "タイムアウト",
+                "error",
+                "GASからの応答がありませんでした。"
+            );
+
+            showError();
+
         }
 
-        function loadReport() {
-            const script = document.createElement('script');
-            script.src = `${webAppUrl}?callback=handleReportData`;
-            script.onerror = () => showError();
-            document.body.appendChild(script);
-        }
+    }, 15000);
 
-        loadReport();
-    </script>
+}
+
+
+// ========================================
+// JavaScript全体のエラー検出
+// ========================================
+
+window.addEventListener("error", function(event) {
+
+    writeLog(
+        "JavaScriptエラー：" +
+        event.message +
+        " / " +
+        event.filename +
+        " / 行：" +
+        event.lineno
+    );
+
+});
+
+
+// ========================================
+// 初回起動
+// ========================================
+
+window.addEventListener("DOMContentLoaded", function() {
+
+    writeLog("HTML読み込み完了");
+
+    loadReport();
+
+});
+
+</script>
+
 </body>
 </html>
