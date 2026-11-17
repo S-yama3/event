@@ -259,10 +259,10 @@
         <button class="secondary" onclick="goToScreen('screen-q3')">戻る</button>
     </div>
 
-    <!-- ステップ5：出展者選択 -->
+    <!-- ステップ5：出展社選択 -->
     <div id="screen-setup" class="step-screen">
-        <h2>5. 出展者情報の選択</h2>
-        <p style="font-size: 0.9rem; color: #475569;">リストから出展者を選択してください。</p>
+        <h2>5. 出展社情報の選択</h2>
+        <p style="font-size: 0.9rem; color: #475569;">リストから出展社を選択してください。</p>
         
         <div class="input-group" style="margin-top: 16px;">
             <label for="setup-select">出展社名</label>
@@ -314,7 +314,7 @@
     let html5QrCode1 = null;
 
     window.addEventListener('DOMContentLoaded', async () => {
-        // 公開CSVから出展者リストを取得してプルダウンを構築
+        // 公開CSVから出展社リストを取得してプルダウンを構築
         await loadExhibitorList();
 
         const savedBarcode2 = localStorage.getItem('lastSelectedBarcode2');
@@ -378,7 +378,7 @@
             }
 
             const lines = csvText.split(/\r\n|\n/);
-            selectEl.innerHTML = '<option value="">-- 出展者を選択してください --</option>';
+            selectEl.innerHTML = '<option value="">-- 出展社を選択してください --</option>';
             
             // i = 1 から始めて1行目（ヘッダ）をスキップ
             for (let i = 1; i < lines.length; i++) {
@@ -403,7 +403,7 @@
                 selectEl.value = appData.barcode2;
             }
         } catch (err) {
-            alert('出展者リストの取得に失敗しました。: ' + err);
+            alert('出展社リストの取得に失敗しました。: ' + err);
             selectEl.innerHTML = '<option value="">取得エラー</option>';
         }
     }
@@ -461,7 +461,7 @@
     function proceedToPreview() {
         const val2 = document.getElementById('setup-select').value.trim();
         if (!val2) {
-            alert('出展者を選択してください。');
+            alert('出展社を選択してください。');
             return;
         }
         appData.barcode2 = val2;
