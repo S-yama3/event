@@ -20,7 +20,6 @@
         body {
             font-family: system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
-            /* ▼ 背景のSVGを斜め45度に回転させ、間隔を詰めてたくさん表示するように変更 ▼ */
             background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='100' viewBox='0 0 220 100'><text x='110' y='50' fill='%23ffffff' font-size='16' font-family='sans-serif' font-weight='bold' opacity='0.08' text-anchor='middle' transform='rotate(-45 110 50)'>エコール大見本市</text></svg>");
             color: var(--text-color);
             margin: 0;
@@ -333,12 +332,21 @@
     let html5QrCode1 = null;
     let tempScannedBarcode2 = ''; // スキャン一時保持用
 
+    // ▼ 文字化けや不正文字（◆に？マークなど）を除去・クレンジングする関数
+    function cleanText(str) {
+        if (!str) return '';
+        return str
+            .replace(/[\uFFFD\u0000-\u001F\u007F-\u009F]/g, '') // 文字化け文字()や制御文字を除去
+            .replace(/[◆◇■□▲△▼▽]/g, '') // 必要に応じて不要な記号を除去
+            .trim();
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
         // 出展社情報はブラウザに永続保存する (localStorage)
         const savedBarcode2 = localStorage.getItem('fixedBarcode2');
         if (savedBarcode2) {
-            appData.barcode2 = savedBarcode2;
-            document.getElementById('setup-code2').value = savedBarcode2;
+            appData.barcode2 = cleanText(savedBarcode2);
+            document.getElementById('setup-code2').value = appData.barcode2;
         }
 
         const savedScreen = sessionStorage.getItem('currentScreen');
@@ -346,10 +354,10 @@
 
         if (savedScreen && savedData) {
             appData = JSON.parse(savedData);
-            if (savedBarcode2) appData.barcode2 = savedBarcode2; // 永続保存側を優先
+            if (savedBarcode2) appData.barcode2 = cleanText(savedBarcode2);
             currentScreen = savedScreen;
 
-            document.getElementById('manual-code1').value = appData.barcode1 || '';
+            document.getElementById('manual-code1').value = cleanText(appData.barcode1 || '');
             document.getElementById('interestLevel').value = appData.q1 || '0';
             document.getElementById('productName').value = appData.q3 || '';
             document.getElementById('notes').value = appData.memo || '';
@@ -362,7 +370,6 @@
             }
             updateStarDisplay(parseInt(appData.q1 || '0', 10));
         } else {
-            // 出展社情報が未設定なら設定画面、設定済みなら名札撮影画面からスタート
             currentScreen = savedBarcode2 ? 'screen-scan1' : 'screen-setup';
             saveState();
         }
@@ -371,7 +378,7 @@
     });
 
     function saveState() {
-        appData.barcode1 = document.getElementById('manual-code1').value.trim();
+        appData.barcode1 = cleanText(document.getElementById('manual-code1').value);
         appData.q3 = document.getElementById('productName').value;
         appData.memo = document.getElementById('notes').value;
         const selectedOptions = Array.from(document.querySelectorAll('input[name="options"]:checked')).map(el => el.value);
@@ -387,7 +394,7 @@
     }
 
     function saveSetupInfo() {
-        const val2 = document.getElementById('setup-code2').value.trim();
+        const val2 = cleanText(document.getElementById('setup-code2').value);
         if (!val2) {
             alert('出展社コード・名称を入力してください。');
             return;
@@ -435,7 +442,6 @@
             document.getElementById('prev-product').innerText = appData.q3 || '(なし)';
             document.getElementById('prev-notes').innerText = appData.memo || '(なし)';
 
-            // ここで保存された画像からOCRを実行
             if (appData.imageBlob && !appData.barcode1) {
                 await runOcrOnCapturedImage();
             }
@@ -446,7 +452,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // --- ステップ0：背面カメラによる出展社QR読取（読取成功後にY/N確認画面へ） ---
+    // --- ステップ0：背面カメラによる出展社QR読取 ---
     function startScanner0() {
         const btnStart = document.getElementById('btn-start-scanner0');
         btnStart.style.display = 'none';
@@ -459,9 +465,10 @@
             { facingMode: "environment" },
             { fps: 10, qrbox: { width: 200, height: 200 } },
             (decodedText) => {
-                // 読取成功時、一時保存して確認画面へ
-                tempScannedBarcode2 = decodedText;
-                document.getElementById('setup-code2').value = decodedText;
+                // 読み取った文字列から文字化けや不正な記号を除去
+                const cleanedText = cleanText(decodedText);
+                tempScannedBarcode2 = cleanedText;
+                document.getElementById('setup-code2').value = cleanedText;
                 
                 html5QrCode0.stop().then(() => {
                     goToScreen('screen-setup-confirm');
@@ -479,7 +486,7 @@
     // --- Y/N確認画面でのボタン処理 ---
     function confirmSetupYes() {
         appData.barcode2 = tempScannedBarcode2;
-        localStorage.setItem('fixedBarcode2', tempScannedBarcode2); // ブラウザに記憶
+        localStorage.setItem('fixedBarcode2', tempScannedBarcode2);
         updateHeaderBadges();
         saveState();
         goToScreen('screen-scan1');
@@ -490,7 +497,7 @@
         goToScreen('screen-setup');
     }
 
-    // --- ステップ1：カメラ起動と撮影・保存（プレビューなしで即次へ） ---
+    // --- ステップ1：カメラ起動と撮影 ---
     function startScanner1() {
         const btnStart = document.getElementById('btn-start-scanner1');
         const btnCapture = document.getElementById('btn-capture-photo');
@@ -537,7 +544,6 @@
             }
             saveState();
 
-            // プレビュー画面やアラートを挟まず、すぐにステップ2（ご要望選択）へ進む
             goToScreen('screen-q2');
         } catch (err) {
             alert('画像保存エラー: ' + err);
@@ -555,7 +561,7 @@
             appData.q1 = String(value);
             updateStarDisplay(value);
             saveState();
-            goToScreen('screen-preview'); // 関心度を選んだらそのまま確認画面（OCR実行）へ進む
+            goToScreen('screen-preview');
         });
     });
 
@@ -588,14 +594,15 @@
             const { data: { text } } = await Tesseract.recognize(canvas, 'eng', { logger: m => {} });
             overlay.style.display = 'none';
 
-            const cleaned = text.replace(/\s+/g, '');
+            // OCR結果からも不要な文字や文字化けを除去
+            const cleaned = cleanText(text.replace(/\s+/g, ''));
             const match = cleaned.match(/[A-Z]{2}[0-9]{7}/);
 
             if (match) {
                 appData.barcode1 = match[0];
                 document.getElementById('manual-code1').value = match[0];
             } else {
-                alert("指定形式（英字2文字＋数字7桁）の自動抽出ができませんでした。\n確認画面の入力欄で直接修正してください。");
+                document.getElementById('manual-code1').value = cleaned;
             }
         } catch (err) {
             overlay.style.display = 'none';
@@ -606,7 +613,8 @@
     // --- Data登録 ---
     async function submitData() {
         saveState();
-        appData.barcode1 = document.getElementById('manual-code1').value.trim();
+        // 送信前にも念のためクレンジングを通す
+        appData.barcode1 = cleanText(document.getElementById('manual-code1').value);
 
         if (!appData.barcode1) {
             alert('顧客コードが入力されていません。');
@@ -618,8 +626,8 @@
         overlay.style.display = 'flex';
 
         const sendData = {
-            barcode1: appData.barcode2, // 出展社情報（固定記憶された値）
-            barcode2: appData.barcode1, // 顧客コード
+            barcode1: cleanText(appData.barcode2), // 出展社情報
+            barcode2: cleanText(appData.barcode1), // 顧客コード
             q1: appData.q1,
             q2: appData.q2,
             q3: appData.q3,
@@ -637,8 +645,6 @@
             if(result.status === 'success') {
                 alert('データを登録しました！');
                 
-                // 次の来場者入力をために、顧客コード関連の状態だけをリセットして最初（名札撮影）に戻る
-                // ※ 出展社情報(barcode2)は保持したままにする
                 appData.barcode1 = '';
                 appData.q1 = '0';
                 appData.q2 = '';
