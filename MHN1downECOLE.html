@@ -5,8 +5,8 @@
   <title>見本市コミュメンテナンス</title>
   <!-- SheetJS (js-xlsx) ライブラリの読み込み -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <!-- QRCode.js ライブラリの読み込み -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- 大容量・自動バージョン拡張に対応したQRコード生成ライブラリ (EasyQRCodeJS) の読み込み -->
+  <script src="https://cdn.jsdelivr.net/npm/easyqrcodejs@4.4.13/dist/easy.qrcode.min.js"></script>
   <style>
     body { font-family: sans-serif; margin: 30px; }
     .section { margin-bottom: 25px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; }
@@ -17,6 +17,8 @@
     button.secondary:hover { background: #5a6268; }
     button.success { background: #28a745; }
     button.success:hover { background: #218838; }
+    button.info { background: #17a2b8; }
+    button.info:hover { background: #138496; }
     button.warning { background: #ffc107; color: #333; }
     button.warning:hover { background: #e0a800; }
     .action-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
@@ -33,15 +35,15 @@
       justify-content: center;
       align-items: flex-start;
       overflow-y: auto;
-      padding: 20px 0;
+      padding: 10px 0;
     }
 
     /* モーダルコンテンツ (A4縦サイズ固定) */
     .modal-content {
       background: white;
-      padding: 15px;
+      padding: 10px;
       border-radius: 8px;
-      width: 190mm;
+      width: 195mm;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
 
@@ -49,19 +51,22 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 15px;
-      padding-bottom: 8px;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
       border-bottom: 2px solid #333;
     }
 
-    /* 単体QR表示用エリア（中央配置） */
+    /* QR表示用コンテナ */
     .qr-single-container {
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 10px;
+      padding: 2px;
+      gap: 4px;
     }
 
+    /* 従来の単体QRカード */
     .qr-card {
       border: 2px dashed #999;
       border-radius: 8px;
@@ -73,7 +78,7 @@
       text-align: center;
       background: #fff;
       width: 100%;
-      max-width: 120mm;
+      max-width: 130mm;
       page-break-inside: avoid;
     }
 
@@ -84,11 +89,115 @@
       margin-bottom: 15px;
     }
 
-    .qr-code-img {
-      margin-top: 5px;
+    /* 案内セット用（A4縦1枚に確実に収める設計） */
+    .guide-sheet {
+      width: 100%;
+      max-width: 185mm;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      page-break-inside: avoid;
     }
 
-    /* 印刷専用スタイリング（確実に1ページに収める） */
+    .guide-header-company {
+      text-align: center;
+      font-size: 16px;
+      font-weight: bold;
+      padding: 2px;
+      border-bottom: 2px solid #2b7de9;
+      margin-bottom: 2px;
+    }
+
+    .step-box {
+      border: 2px solid #333;
+      border-radius: 6px;
+      padding: 6px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: #fff;
+    }
+
+    .step-box.step1 {
+      border-color: #2b7de9;
+      background: #f4f8ff;
+    }
+
+    .step-box.step2 {
+      border-color: #28a745;
+      background: #f5fbf7;
+    }
+
+    .step-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      color: #fff;
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+
+    .step1 .step-badge { background: #2b7de9; }
+    .step2 .step-badge { background: #28a745; }
+
+    .step-lead {
+      font-size: 20px;
+      font-weight: bold;
+      color: #d93025;
+      margin: 2px 0;
+    }
+
+    .step-desc {
+      font-size: 20px;
+      line-height: 1.3;
+      color: #222;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+
+    .step-url {
+      font-size: 16px;
+      color: #555;
+      margin-top: 2px;
+      font-weight: bold;
+    }
+
+    /* 間に挟む強い警告エリア */
+    .warning-banner {
+      background: #fff3cd;
+      border: 4px solid #ff9900;
+      border-radius: 8px;
+      padding: 12px 10px;
+      text-align: center;
+      margin: 6px 0;
+    }
+
+    .warning-banner .warning-title {
+      font-size: 42px;
+      font-weight: bold;
+      color: #cc0000;
+      line-height: 1.15;
+      margin-bottom: 8px;
+    }
+
+    .warning-banner .warning-text {
+      font-size: 36px;
+      font-weight: bold;
+      color: #111;
+      line-height: 1.2;
+    }
+
+    .qr-code-img {
+      margin-top: 2px;
+      padding: 2px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    /* 印刷専用スタイリング */
     @media print {
       body * {
         visibility: hidden;
@@ -114,9 +223,13 @@
       .no-print {
         display: none !important;
       }
+      .step-box.step1, .step-box.step2, .warning-banner {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
       @page {
         size: A4 portrait;
-        margin: 10mm;
+        margin: 4mm;
       }
     }
   </style>
@@ -125,24 +238,22 @@
 
   <h2>マスター管理ツール</h2>
 
-	<p>このページでは、見本市システムで使用する得意先情報・出展社情報の登録と更新、および出展社QRコードの発行を行います。
-	<br>以下の順番で作業してください。
-	<br>
-	<br>【1】得意先コードの更新　　見本市システムで使用する全社分の得意先コード一覧を登録・更新します。
-	<br>　　　　　　　　　　　　 　 取得したエクセルへ上書き保存→ファイル選択→見本市コード更新
-	<br>【2】出展社リストの更新　　見本市に参加する出展社の一覧を登録・更新します。
-	<br>　　　　　　　　　　　　 　 取得したエクセルへ上書き保存→ファイル選択→出展社一覧更新
-	<br>　　　　　　　　　　　　 　 ※ダウンロード用に出展社ごと閲覧用パスワードを必ず設定してください。
-	<br>【3】出展社QRコードの発行　登録済みの出展社リストから企業を選択し各社専用のQRコードを発行します。
-	<br>　　　　　　　　　　　　 　 ※ＰＣ接続のＱＲリーダーを使用すると小間番号のみ取得されるので注意</p>
-	
+  <p>このページでは、見本市システムで使用する得意先情報・出展社情報の登録と更新、および出展社QRコードの発行を行います。
+  <br>以下の順番で作業してください。
+  <br>
+  <br>【1】得意先コードの更新  見本市システムで使用する全社分の得意先コード一覧を登録・更新します。
+  <br>              取得したエクセルへ上書き保存→ファイル選択→見本市コード更新
+  <br>【2】出展社リストの更新  見本市に参加する出展社の一覧を登録・更新します。
+  <br>              ※ダウンロード用に出展社ごと閲覧用パスワードを必ず設定してください。
+  <br>【3】出展社QRコードの発行 登録済みの出展社リストから企業を選択し各社専用のQRコードの発行を行います。</p>
+
   <!-- 1. 得意先コード管理 -->
   <div class="section">
     <h3>得意先コード管理</h3>
     <p>登録済の見本市コードの取得と更新が行えます。
     <br>【対象】見本市システムから取得した全社分の見本市コード一覧をセット
     <br>Ａ列：見本市コード ／ Ｂ列：得意先名</p>
-    
+
     <div class="action-group">
       <button id="btnDownloadTokuisaki" class="secondary">Excelをダウンロード</button>
       <span style="color: #666; margin: 0 10px;">|</span>
@@ -157,27 +268,30 @@
     <p>出展社小間リストの取得と更新が行えます。
     <br>【対象】イベント館出展者の一覧
     <br>Ａ列：小間番号 ／ Ｂ列：出展社名 ／ Ｃ列：閲覧用パスワード</p>
-    
+
     <div class="action-group">
       <button id="btnDownloadExhibitor" class="secondary">Excelをダウンロード</button>
       <span style="color: #666; margin: 0 10px;">|</span>
       <input type="file" id="excelFileExhibitor" accept=".xlsx, .xls, .csv">
-      <button id="btnUploadExhibitor">出展社一覧更新</button>
+      <button id="btnUploadExhibitor" disabled>出展社一覧更新</button>
+      <button id="btnUploadValidOnly" class="warning" style="display: none;" disabled>超過部分を削って登録する</button>
     </div>
+    <div id="exhibitorFileStatus" style="font-weight: bold; margin-top: 12px; font-size: 13px; line-height: 1.4;"></div>
   </div>
 
   <!-- 3. 出展社QRコード発行 -->
   <div class="section">
     <h3>出展社 ＱＲコード発行</h3>
-    <p>登録されている出展社リストから企業を選択しＱＲコードを発行します。
-    <br>【QR内容】A列-B列（例：X99-㈱見本市テスト社）<br>出展社リスト更新後に実行します</p>
-    
+    <p>登録されている出展社リストから企業を選択しＱＲコードの発行を行います。
+    <br>【QR内容】A列-B列様（例：V01-エムオーテックス㈱様）<br>出展社リスト更新後に実行します</p>
+
     <div class="action-group">
       <button id="btnLoadExhibitorList" class="warning" style="display:none;">リストを読み込む</button>
       <select id="selectExhibitor" disabled>
         <option value="">-- 読み込み中... --</option>
       </select>
       <button id="btnShowSingleQR" class="success" disabled>選択した企業のQRを表示</button>
+      <button id="btnShowGuideQR" class="info" disabled>案内セット（登録URL付）でQR表示</button>
     </div>
   </div>
 
@@ -200,18 +314,22 @@
   <script>
     const GAS_URL_TOKUISAKI = "https://script.google.com/macros/s/AKfycbw9Uo4pQ_lEAergIkcQkqkLOfjz6qiPuQ3GbyzvuCHHoAkwP_IzrRrug4UOXXo9Rhld/exec";
     const GAS_URL_EXHIBITOR = "https://script.google.com/macros/s/AKfycbySQA3auMB-4oZHH6ltYPm6-ZkqZNzF3v7Ho3cs6xfOd8lY2Vv-R33ea7-TOswSBl7GFA/exec";
+    const ENTRY_PAGE_URL = "https://www.s-yama3.com/MHN1entryMK.html";
+
+    // バイト数制限を 80 に変更
+    const MAX_QR_BYTES = 80;
 
     const statusDiv = document.getElementById('status');
+    const exhibitorFileStatusDiv = document.getElementById('exhibitorFileStatus');
     let cachedExhibitorData = [];
 
-    // --- 処理中の全要素グレーアウト（一括有効/無効切り替え） ---
     function setAppLoading(isLoading) {
       const allButtons = document.querySelectorAll('button');
       const allInputs = document.querySelectorAll('input');
 
       allButtons.forEach(el => el.disabled = isLoading);
       allInputs.forEach(el => el.disabled = isLoading);
-      
+
       const selectEl = document.getElementById('selectExhibitor');
       if (!isLoading && cachedExhibitorData.length > 0) {
         selectEl.disabled = false;
@@ -220,7 +338,6 @@
       }
     }
 
-    // --- 汎用ダウンロード処理 ---
     async function downloadExcel(gasUrl, fileName, sheetName) {
       setAppLoading(true);
       statusDiv.textContent = `${fileName}のデータを取得してExcelを作成中...`;
@@ -247,15 +364,148 @@
       }
     }
 
-    // --- 汎用アップロード・上書き処理 ---
-    async function uploadExcel(gasUrl, fileInputId) {
+    function getUtf8ByteLength(str) {
+      return new TextEncoder().encode(str).length;
+    }
+
+    // --- 【変更】全角・半角の強制変換を外し、ブランク・依存文字除去のみを行う関数 ---
+    function sanitizeText(value) {
+      if (value === undefined || value === null) return "";
+      let str = String(value);
+
+      // NFKC正規化（全角・半角の文字グリフの統一などは必要に応じて実施、ただしカナの強制半角化等は除外）
+      str = str.normalize('NFKC');
+      
+      // システムエラーや文字化けの原因となる制御文字や危険な特殊文字・絵文字等のみ除去
+      str = str.replace(/[\x00-\x1F\x7F\\/:*?"<>|,'"`~^]/g, '');
+      str = str.replace(/[\uD800-\uDFFF]/g, '');
+      str = str.replace(/[\uE000-\uF8FF]/g, '');
+
+      // 前後の空白文字、および連続する空白を除去（ブランク除去）
+      str = str.trim();
+
+      if (str.endsWith('様')) {
+        str = str.slice(0, -1);
+      }
+
+      return str;
+    }
+
+    document.getElementById('excelFileExhibitor').addEventListener('change', function(e) {
+      const fileInput = e.target;
+      const uploadBtn = document.getElementById('btnUploadExhibitor');
+      const uploadValidOnlyBtn = document.getElementById('btnUploadValidOnly');
+
+      if (fileInput.files.length === 0) {
+        uploadBtn.disabled = true;
+        uploadValidOnlyBtn.style.display = 'none';
+        uploadValidOnlyBtn.disabled = true;
+        exhibitorFileStatusDiv.textContent = "";
+        return;
+      }
+
+      const file = fileInput.files[0];
+      exhibitorFileStatusDiv.textContent = "ファイルの内容を検証・ブランク除去中...";
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+          if (jsonData.length === 0) {
+            exhibitorFileStatusDiv.textContent = "エラー: ファイルに有効なデータがありません。";
+            uploadBtn.disabled = true;
+            uploadValidOnlyBtn.style.display = 'none';
+            return;
+          }
+
+          let overLimitErrors = [];
+
+          for (let i = 1; i < jsonData.length; i++) {
+            const row = jsonData[i];
+            if (!row || !row[0]) continue;
+
+            const rawKoma = (row[0] !== undefined && row[0] !== null) ? String(row[0]) : "";
+            const rawCompany = (row[1] !== undefined && row[1] !== null) ? String(row[1]) : "";
+
+            const komaNo = sanitizeText(rawKoma);
+            const companyName = sanitizeText(rawCompany);
+
+            if (!komaNo) continue;
+
+            const combinedText = `${komaNo}-${companyName}様`;
+            const totalBytes = getUtf8ByteLength(combinedText);
+
+            if (totalBytes > MAX_QR_BYTES) {
+              let currentBytes = 0;
+              let validPart = "";
+              let overflowPart = "";
+              let overflowStarted = false;
+
+              for (const char of combinedText) {
+                const charBytes = getUtf8ByteLength(char);
+                if (overflowStarted || currentBytes + charBytes > MAX_QR_BYTES) {
+                  overflowStarted = true;
+                  overflowPart += char;
+                } else {
+                  currentBytes += charBytes;
+                  validPart += char;
+                }
+              }
+
+              const escapeHtml = (value) => String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/\"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+
+              const formattedDisplay = `<span style="color:#000;">${escapeHtml(validPart)}</span><span style="color:#d93025; font-weight:bold; text-decoration:underline;" title="ここから制限超過">${escapeHtml(overflowPart)}</span>`;
+              overLimitErrors.push(`【${i + 1}行目】 小間番号: ${escapeHtml(komaNo)} / 会社名: ${escapeHtml(companyName)} （計 ${totalBytes}バイト / 制限${MAX_QR_BYTES}バイト）<br>&nbsp;&nbsp;&nbsp;&nbsp;プレビュー: ${formattedDisplay}`);
+            }
+          }
+
+          if (overLimitErrors.length > 0) {
+            uploadBtn.disabled = true;
+            uploadValidOnlyBtn.style.display = 'inline-block';
+            uploadValidOnlyBtn.disabled = false;
+            exhibitorFileStatusDiv.innerHTML = `<span style="color: #d93025;">❌ QRコード生成の制限文字数（${MAX_QR_BYTES}バイト）を超過しているデータが ${overLimitErrors.length} 件あります。「超過部分を削って登録する」ボタンを押すと、自動で削って登録できます。</span><br>` +
+                                                 overLimitErrors.join("<br>");
+          } else {
+            uploadBtn.disabled = false;
+            uploadValidOnlyBtn.style.display = 'none';
+            uploadValidOnlyBtn.disabled = true;
+            exhibitorFileStatusDiv.innerHTML = `<span style="color: #28a745;">✔ ファイルの検証が完了しました（ブランク除去済）。すべてのデータが80バイト以内に収まっています。</span>`;
+          }
+
+        } catch (err) {
+          console.error(err);
+          exhibitorFileStatusDiv.textContent = "ファイルの解析に失敗しました。";
+          uploadBtn.disabled = true;
+          uploadValidOnlyBtn.style.display = 'none';
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    });
+
+    async function uploadExcel(gasUrl, fileInputId, trimExceeded = false) {
       const fileInput = document.getElementById(fileInputId);
       if (fileInput.files.length === 0) {
         alert("アップロードするExcelファイルを選択してください。");
         return;
       }
 
-      if (!confirm("選択したExcelファイルの内容でスプレッドシートを完全に上書きします。よろしいですか？")) {
+      let confirmMessage = "選択したExcelファイルの内容でスプレッドシートを完全に上書きします。よろしいですか？";
+      if (trimExceeded) {
+        confirmMessage = `制限文字数（${MAX_QR_BYTES}バイト）を超過している企業の名称について、超過分を自動的に削った（トリミングした）状態でスプレッドシートに上書きします。よろしいですか？`;
+      }
+
+      if (!confirm(confirmMessage)) {
         return;
       }
 
@@ -279,6 +529,30 @@
             return;
           }
 
+          // 全角・半角をそのまま保持しつつ、sanitizeText（ブランク・依存文字除去）を適用
+          for (let i = 0; i < jsonData.length; i++) {
+            if (!Array.isArray(jsonData[i])) continue;
+            for (let j = 0; j < jsonData[i].length; j++) {
+              jsonData[i][j] = sanitizeText(jsonData[i][j]);
+            }
+
+            if (trimExceeded && i > 0) {
+              const komaNo = jsonData[i][0] ? String(jsonData[i][0]) : "";
+              const companyName = jsonData[i][1] ? String(jsonData[i][1]) : "";
+              if (komaNo) {
+                let targetCompany = companyName;
+                while (targetCompany.length > 0) {
+                  const testText = `${komaNo}-${targetCompany}様`;
+                  if (getUtf8ByteLength(testText) <= MAX_QR_BYTES) {
+                    break;
+                  }
+                  targetCompany = targetCompany.slice(0, -1);
+                }
+                jsonData[i][1] = targetCompany;
+              }
+            }
+          }
+
           statusDiv.textContent = "スプレッドシートへ上書き送信中...";
 
           const response = await fetch(gasUrl, {
@@ -292,6 +566,11 @@
           const result = await response.json();
           if (result.status === "success") {
             statusDiv.textContent = "スプレッドシートの上書き保存が完了しました！";
+            if (gasUrl === GAS_URL_EXHIBITOR) {
+              loadExhibitorListForQR();
+              exhibitorFileStatusDiv.innerHTML = `<span style="color: #28a745;">✔ 出展社一覧の更新（全角半角保持・超過部分の自動トリミング込）が完了しました。</span>`;
+              document.getElementById('btnUploadValidOnly').style.display = 'none';
+            }
           } else {
             statusDiv.textContent = "エラー: " + result.message;
           }
@@ -312,7 +591,6 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // --- 出展社リスト自動取得 ---
     async function loadExhibitorListForQR() {
       setAppLoading(true);
       statusDiv.textContent = "サーバー接続中：出展社リストを自動取得しています...";
@@ -333,21 +611,17 @@
         let count = 0;
         for (let i = 0; i < data.length; i++) {
           const row = data[i];
-          const komaNo = (row && row[0] !== undefined && row[0] !== null) ? String(row[0]).trim() : "";
-          const companyName = (row && row[1] !== undefined && row[1] !== null) ? String(row[1]).trim() : "";
+          const komaNo = sanitizeText((row && row[0] !== undefined && row[0] !== null) ? String(row[0]) : "");
+          const companyName = sanitizeText((row && row[1] !== undefined && row[1] !== null) ? String(row[1]) : "");
 
-          // ヘッダーや空行のスキップ
           if (!komaNo || komaNo === "小間No." || komaNo === "小間番号") continue;
 
-          // 内部処理・QRコード用の結合テキスト（例: V01-エムオーテックス㈱）
-          const combinedText = komaNo + "-" + companyName;
-
+          const combinedText = `${komaNo}-${companyName}`;
           cachedExhibitorData.push({ komaNo, companyName, combinedText });
 
-          // ▼【表示側】プルダウンの選択肢（会社名の後ろに「様」を追加）
           const option = document.createElement('option');
-          option.value = combinedText; // 選択時の内部値はそのまま
-          option.textContent = `[${komaNo}] ${companyName}様`; // 画面表示のみ「様」を付与
+          option.value = combinedText;
+          option.textContent = `[${komaNo}] ${companyName}様`;
           selectEl.appendChild(option);
           count++;
         }
@@ -359,6 +633,7 @@
 
         selectEl.disabled = false;
         document.getElementById('btnShowSingleQR').disabled = false;
+        document.getElementById('btnShowGuideQR').disabled = false;
         statusDiv.textContent = `接続完了：出展社リストを読み込みました（全 ${count} 件）。`;
 
       } catch (err) {
@@ -369,31 +644,32 @@
       }
     }
 
-    // --- 選択した単一企業のQR表示 ---
-    function showSingleQR() {
+    function getSelectedExhibitor() {
       const selectEl = document.getElementById('selectExhibitor');
       const selectedValue = selectEl.value;
       if (!selectedValue) {
         alert("QRコードを表示する出展社を選択してください。");
-        return;
+        return null;
       }
+      return cachedExhibitorData.find(item => item.combinedText === selectedValue) || null;
+    }
 
-      const targetItem = cachedExhibitorData.find(item => item.combinedText === selectedValue);
+    function showSingleQR() {
+      const targetItem = getSelectedExhibitor();
       if (!targetItem) return;
 
+      const qrDisplayTitle = `${targetItem.combinedText}様`;
       const qrContainer = document.getElementById('qrPrintArea');
       qrContainer.innerHTML = "";
-      
-      // ▼【表示側】モーダルタイトル（会社名の後ろに「様」を追加）
-      document.getElementById('modalTitle').textContent = `出展社 QRコード: ${targetItem.combinedText}様`;
+
+      document.getElementById('modalTitle').textContent = `出展社 QRコード: ${qrDisplayTitle}`;
 
       const card = document.createElement('div');
       card.className = 'qr-card';
 
-      // ▼【表示側】QRカード内のテキスト表示（会社名の後ろに「様」を追加）
       const titleEl = document.createElement('div');
       titleEl.className = 'title';
-      titleEl.textContent = `${targetItem.combinedText}様`;
+      titleEl.textContent = qrDisplayTitle;
       card.appendChild(titleEl);
 
       const qrBox = document.createElement('div');
@@ -402,23 +678,117 @@
 
       qrContainer.appendChild(card);
 
-      // ★QRコード本体のデータ（読み取り用）は「様」をつけず元のままにする
-      new QRCode(qrBox, {
-        text: targetItem.combinedText, // 例: "V01-エムオーテックス㈱"（様なし）
-        width: 180,
-        height: 180,
-        correctLevel: QRCode.CorrectLevel.M
-      });
+      try {
+        new QRCode(qrBox, {
+          text: qrDisplayTitle,
+          width: 180,
+          height: 180,
+          correctLevel: QRCode.CorrectLevel.L,
+          quietZone: 10
+        });
+      } catch (err) {
+        console.error("QR生成エラー詳細:", err);
+        alert("QRコードの生成に失敗しました。文字数が長すぎてQRコードとして表現できません。");
+        return;
+      }
 
       document.getElementById('qrModal').style.display = 'flex';
-      statusDiv.textContent = `「${targetItem.combinedText}様」のQRコードを表示しました。`;
+      statusDiv.textContent = `「${qrDisplayTitle}」のQRコードを表示しました。`;
+    }
+
+    function showGuideQR() {
+      const targetItem = getSelectedExhibitor();
+      if (!targetItem) return;
+
+      const qrDisplayTitle = `${targetItem.combinedText}様`;
+      const qrContainer = document.getElementById('qrPrintArea');
+      qrContainer.innerHTML = "";
+
+      document.getElementById('modalTitle').textContent = `出展社 案内セットQR: ${qrDisplayTitle}`;
+
+      const sheet = document.createElement('div');
+      sheet.className = 'guide-sheet';
+
+      const headerEl = document.createElement('div');
+      headerEl.className = 'guide-header-company';
+      headerEl.textContent = `${qrDisplayTitle} コミュニケーション登録手順`;
+      sheet.appendChild(headerEl);
+
+      const step1Box = document.createElement('div');
+      step1Box.className = 'step-box step1';
+      step1Box.innerHTML = `
+        <div class="step-badge">STEP 1：登録画面を開く</div>
+        <div class="step-lead">↓↓初めにこちらのＱＲをスマホで読み取ります↓↓</div>
+        <div class="step-desc">スマホカメラをかざしリンクをタップします。</div>
+      `;
+      const qrBoxUrl = document.createElement('div');
+      qrBoxUrl.className = 'qr-code-img';
+      step1Box.appendChild(qrBoxUrl);
+
+      const urlNote = document.createElement('div');
+      urlNote.className = 'step-url';
+      urlNote.textContent = `登録ページURL: ${ENTRY_PAGE_URL}`;
+      step1Box.appendChild(urlNote);
+      sheet.appendChild(step1Box);
+
+      const warningBanner = document.createElement('div');
+      warningBanner.className = 'warning-banner';
+      warningBanner.innerHTML = `
+        <div class="warning-title">⚠️ 重要 ⚠️<br>出展者登録は必ず下のＱＲコードを読み込んでください。</div>
+        <div class="warning-text">上のＱＲコードはサイト接続用です。<br>利用開始時は必ず下の自社ＱＲコードを読み取ってください</div>
+      `;
+      sheet.appendChild(warningBanner);
+
+      const step2Box = document.createElement('div');
+      step2Box.className = 'step-box step2';
+      step2Box.innerHTML = `
+        <div class="step-badge">STEP 2：自社の登録を行う</div>
+        <div class="step-desc">画面が開いた後、下のＱＲコードを読み込んで登録を完了してください。</div>
+      `;
+      const qrBoxCompany = document.createElement('div');
+      qrBoxCompany.className = 'qr-code-img';
+      step2Box.appendChild(qrBoxCompany);
+
+      const companyCodeLabel = document.createElement('div');
+      companyCodeLabel.style.fontSize = '18px';
+      companyCodeLabel.style.fontWeight = 'bold';
+      companyCodeLabel.style.marginTop = '2px';
+      companyCodeLabel.textContent = qrDisplayTitle;
+      step2Box.appendChild(companyCodeLabel);
+
+      sheet.appendChild(step2Box);
+      qrContainer.appendChild(sheet);
+
+      try {
+        new QRCode(qrBoxUrl, {
+          text: ENTRY_PAGE_URL,
+          width: 145,
+          height: 145,
+          correctLevel: QRCode.CorrectLevel.L,
+          quietZone: 5
+        });
+
+        new QRCode(qrBoxCompany, {
+          text: qrDisplayTitle,
+          width: 145,
+          height: 145,
+          correctLevel: QRCode.CorrectLevel.L,
+          quietZone: 5
+        });
+      } catch (err) {
+        console.error("QRコード生成エラー詳細:", err);
+        alert("QRコードの生成に失敗しました。");
+        return;
+      }
+
+      document.getElementById('qrModal').style.display = 'flex';
+      statusDiv.textContent = `「${qrDisplayTitle}」の案内セットQRを表示しました。`;
     }
 
     function closeModal() {
       document.getElementById('qrModal').style.display = 'none';
     }
 
-    // --- イベントリスナー設定 ---
     document.getElementById('btnDownloadTokuisaki').addEventListener('click', () => {
       downloadExcel(GAS_URL_TOKUISAKI, "得意先明細データ", "明細");
     });
@@ -432,12 +802,16 @@
     });
 
     document.getElementById('btnUploadExhibitor').addEventListener('click', () => {
-      uploadExcel(GAS_URL_EXHIBITOR, "excelFileExhibitor");
+      uploadExcel(GAS_URL_EXHIBITOR, "excelFileExhibitor", false);
+    });
+
+    document.getElementById('btnUploadValidOnly').addEventListener('click', () => {
+      uploadExcel(GAS_URL_EXHIBITOR, "excelFileExhibitor", true);
     });
 
     document.getElementById('btnShowSingleQR').addEventListener('click', showSingleQR);
+    document.getElementById('btnShowGuideQR').addEventListener('click', showGuideQR);
 
-    // --- ページ読み込み時に自動で実行 ---
     window.addEventListener('DOMContentLoaded', () => {
       loadExhibitorListForQR();
     });
