@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コミュニケーション登録手順（詳細ガイド）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1e3a8a;
+    --primary-light: #eff6ff;
+    --accent: #0284c7;
+    --success: #059669;
+    --success-light: #ecfdf5;
+    --danger: #dc2626;
+    --danger-bg: #fef2f2;
+    --warn: #d97706;
+    --warn-bg: #fffbeb;
+    --text-main: #1e293b;
+    --text-sub: #475569;
+    --border: #cbd5e1;
+    --bg-body: #f1f5f9;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    line-height: 1.65;
+    padding: 20px 12px;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+    padding: 36px 38px;
+  }
+
+  /* ヘッダー */
+  .header {
+    border-bottom: 3px solid var(--primary);
+    padding-bottom: 18px;
+    margin-bottom: 26px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .header-badge {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+  }
+
+  .header h1 {
+    font-size: 1.9rem;
+    font-weight: 900;
+    color: var(--primary);
+    line-height: 1.25;
+  }
+
+  .header-sub {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-sub);
+    background: var(--primary-light);
+    padding: 6px 14px;
+    border-radius: 8px;
+  }
+
+  /* セクション区分バナー */
+  .phase-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 900;
+    font-size: 1.05rem;
+    padding: 10px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+
+  .phase-once {
+    background: #e2e8f0;
+    color: #334155;
+  }
+
+  .phase-repeat {
+    background: var(--success);
+    color: #fff;
+    margin-top: 32px;
+    box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2);
+  }
+
+  .phase-video {
+    background: var(--primary);
+    color: #fff;
+    margin-top: 36px;
+    box-shadow: 0 4px 10px rgba(30, 58, 138, 0.2);
+  }
+
+  /* ステップカード */
+  .step-card {
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin-bottom: 20px;
+    background: #fff;
+  }
+
+  .step-card.repeat-card {
+    border-color: var(--success);
+    border-width: 2.5px;
+  }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .step-num {
+    background: var(--primary);
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 900;
+    padding: 4px 14px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .step-num.green {
+    background: var(--success);
+  }
+
+  .step-title {
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: var(--text-main);
+  }
+
+  .step-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .step-visual {
+    flex-shrink: 0;
+  }
+
+  .step-content {
+    flex: 1;
+  }
+
+  /* 番号付き手順リスト */
+  .action-list {
+    list-style: none;
+    counter-reset: item;
+  }
+
+  .action-list li {
+    position: relative;
+    padding-left: 32px;
+    margin-bottom: 12px;
+    font-size: 1.02rem;
+    font-weight: 700;
+  }
+
+  .action-list li::before {
+    counter-increment: item;
+    content: counter(item);
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 22px;
+    height: 22px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 900;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 強調・注意ボックス */
+  .text-red {
+    color: var(--danger);
+    font-weight: 900;
+  }
+
+  .text-blue {
+    color: var(--accent);
+    font-weight: 900;
+  }
+
+  .warn-box {
+    background: var(--danger-bg);
+    border: 2px solid #f87171;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-top: 10px;
+    font-size: 0.95rem;
+  }
+
+  .warn-title {
+    color: var(--danger);
+    font-weight: 900;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 1rem;
+  }
+
+  .info-box {
+    background: var(--warn-bg);
+    border: 1.5px solid #fbbf24;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 12px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #92400e;
+  }
+
+  /* STEP 1: スマホ画面イラスト */
+  .phone-mock {
+    width: 175px;
+    background: #1e293b;
+    border-radius: 18px;
+    padding: 10px 8px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+  }
+
+  .phone-screen {
+    background: #334155;
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+    position: relative;
+  }
+
+  .qr-target-box {
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 8px;
+    border: 2px dashed #facc15;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+  }
+
+  .url-bubble {
+    background: #facc15;
+    color: #1e293b;
+    font-size: 0.72rem;
+    font-weight: 900;
+    padding: 4px 8px;
+    border-radius: 999px;
+    display: inline-block;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    margin-bottom: 10px;
+  }
+
+  .shutter-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    border-top: 1px solid #475569;
+    padding-top: 8px;
+  }
+
+  .shutter-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #94a3b8;
+    position: relative;
+  }
+
+  .shutter-ng {
+    color: #fca5a5;
+    font-size: 0.7rem;
+    font-weight: 900;
+  }
+
+  /* STEP 2: ポップアップ許可イメージ */
+  .permission-mock {
+    width: 175px;
+    background: #f8fafc;
+    border: 1.5px solid #94a3b8;
+    border-radius: 12px;
+    padding: 12px 10px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+  }
+
+  .perm-dialog {
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .perm-btns {
+    display: flex;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 6px;
+    padding-top: 5px;
+  }
+
+  .perm-btns span {
+    flex: 1;
+    font-size: 0.68rem;
+  }
+
+  .perm-ok {
+    color: #2563eb;
+    font-weight: 900;
+    background: #dbeafe;
+    border-radius: 4px;
+    padding: 2px 0;
+  }
+
+  /* STEP 3: 縦フローチャート */
+  .flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .flow-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 12px 16px;
+    position: relative;
+  }
+
+  .flow-item.highlight-flow {
+    background: var(--primary-light);
+    border-color: var(--accent);
+  }
+
+  .flow-step-badge {
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 900;
+    padding: 3px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+
+  .flow-step-badge.ocr {
+    background: var(--accent);
+  }
+
+  .flow-step-badge.done {
+    background: var(--success);
+  }
+
+  .flow-detail h3 {
+    font-size: 1.05rem;
+    font-weight: 900;
+    margin-bottom: 2px;
+    color: var(--text-main);
+  }
+
+  .flow-detail p {
+    font-size: 0.92rem;
+    color: var(--text-sub);
+    font-weight: 500;
+  }
+
+  .flow-arrow {
+    text-align: center;
+    color: var(--accent);
+    font-weight: 900;
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+
+  .loop-banner {
+    margin-top: 16px;
+    background: var(--success-light);
+    border: 2px solid var(--success);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+    font-weight: 900;
+    color: #065f46;
+    font-size: 1.02rem;
+  }
+
+  /* 動画セクション（縦長 1080x1920 対応） */
+  .video-section {
+    border: 2px solid var(--primary);
+    border-radius: 12px;
+    padding: 22px 20px;
+    background: var(--primary-light);
+    text-align: center;
+  }
+
+  .video-desc {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 16px;
+  }
+
+  .video-frame {
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+    background: #0f172a;
+    border-radius: 18px;
+    padding: 10px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.25);
+  }
+
+  .video-frame video {
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    display: block;
+    border-radius: 10px;
+    background: #000;
+    object-fit: contain;
+  }
+
+  .video-note {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    font-weight: 700;
+  }
+
+  /* レスポンシブ */
+  @media (max-width: 680px) {
+    .container {
+      padding: 22px 16px;
+    }
+    .header h1 {
+      font-size: 1.5rem;
+    }
+    .step-body {
+      flex-direction: column;
+      align-items: center;
+    }
+    .step-content {
+      width: 100%;
+    }
+  }
+
+  /* 印刷用 */
+  @media print {
+    body {
+      background: #fff;
+      padding: 0;
+    }
+    .container {
+      box-shadow: none;
+      max-width: 100%;
+      padding: 8mm 10mm;
+    }
+    .step-card, .flow-item {
+      break-inside: avoid;
+    }
+    .phase-video, .video-section {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- ヘッダー -->
+  <header class="header">
+    <div>
+      <span class="header-badge">出展者様向け 操作マニュアル</span>
+      <h1>コミュニケーション登録手順</h1>
+    </div>
+    <div class="header-sub">
+      所要時間：初回設定 約1分 ／ 1件あたりの登録 約30秒
+    </div>
+  </header>
+
+  <!-- 準備フェーズ -->
+  <div class="phase-banner phase-once">
+    <span>🔰【準備】会場に着いたら最初（1回だけ）行う操作</span>
+  </div>
+
+  <!-- STEP 1 -->
+  <section class="step-card">
+    <div class="step-header">
+      <span class="step-num">STEP 1</span>
+      <h2 class="step-title">スマホのカメラで登録サイトを開く</h2>
+    </div>
+
+    <div class="step-body">
+      <div class="step-visual">
+        <div class="phone-mock">
+          <div class="phone-screen">
+            <div class="qr-target-box">
+              <svg width="56" height="56" viewBox="0 0 100 100" fill="#1e293b">
+                <path d="M10 10h25v25H10V10zm5 5v15h15V15H15zm5 5h5v5h-5v-5zM65 10h25v25H65V10zm5 5v15h15V15H70zm5 5h5v5h-5v-5zM10 65h25v25H10V65zm5 5v15h15V70H15zm5 5h5v5h-5v-5z"/>
+                <rect x="42" y="15" width="14" height="14"/><rect x="42" y="42" width="16" height="16"/>
+                <rect x="65" y="45" width="20" height="10"/><rect x="45" y="68" width="15" height="20"/>
+                <rect x="70" y="70" width="18" height="18"/>
+              </svg>
+            </div>
+            <div class="url-bubble">👆 ここをタップ！</div>
+            <div class="shutter-row">
+              <div class="shutter-btn"></div>
+              <span class="shutter-ng">❌ 撮影ボタンは押さない</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-content">
+        <ol class="action-list">
+          <li>普段写真を撮るときと同じように、<span class="text-blue">スマホのカメラアプリ</span>を起動します。</li>
+          <li>配布された<strong>「登録サイト用QRコード」</strong>にカメラを向けます。</li>
+          <li>画面に出てくる<span class="text-blue">黄色や白色のリンク（URL）</span>を指でタップしてサイトを開きます。</li>
+        </ol>
+
+        <div class="warn-box">
+          <span class="warn-title">⚠️ よくある間違いにご注意ください！</span>
+          カメラを向けたあと、<strong>「写真撮影のシャッターボタン」は押さないでください。</strong><br>
+          ピントが合うと画面にリンク（文字）が浮かび上がるので、その文字をタップします。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="step-card">
+    <div class="step-header">
+      <span class="step-num">STEP 2</span>
+      <h2 class="step-title">自社IDのQRコードを読み取って初期登録</h2>
+    </div>
+
+    <div class="step-body">
+      <div class="step-visual">
+        <div class="permission-mock">
+          <div class="perm-dialog">
+            カメラへのアクセスを<br>求めています
+            <div class="perm-btns">
+              <span style="color:#64748b;">許可しない</span>
+              <span class="perm-ok">許可する ✔</span>
+            </div>
+          </div>
+          <div style="font-size:0.72rem; font-weight:900; color:var(--danger);">
+            必ず「許可」をタップ！
+          </div>
+        </div>
+      </div>
+
+      <div class="step-content">
+        <ol class="action-list">
+          <li>サイトが開いたら、画面内の<strong>「カメラ起動」ボタン</strong>をタップします。</li>
+          <li>「カメラへのアクセスを許可しますか？」と表示されたら、<span class="text-red">必ず「許可」</span>をタップします。</li>
+          <li>配布された<strong>「自社IDのQRコード」</strong>を枠内に映して読み取り、ページへ登録します。</li>
+        </ol>
+
+        <div class="info-box">
+          💡 <strong>ここまで（STEP 1〜2）は初回のみです！</strong><br>
+          一度登録するとスマホに自社情報が記録されるため、2人目以降のお客様のときは不要になります。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 繰り返しフェーズ -->
+  <div class="phase-banner phase-repeat">
+    <span>🔄【接客時】お客様とお話しするたびに繰り返す操作</span>
+  </div>
+
+  <!-- STEP 3 -->
+  <section class="step-card repeat-card">
+    <div class="step-header">
+      <span class="step-num green">STEP 3</span>
+      <h2 class="step-title">名札の撮影と商談メモの入力・登録</h2>
+    </div>
+
+    <p style="font-weight:700; margin-bottom:14px; color:var(--text-main);">
+      画面の上から順番に入力・選択していくだけで完了します。
+    </p>
+
+    <div class="flow-steps">
+      <div class="flow-item">
+        <span class="flow-step-badge">① 撮影</span>
+        <div class="flow-detail">
+          <h3>お客様の名札をスマホで撮影する</h3>
+          <p>カメラでお客様の名札全体（登録コード部分）がハッキリ映るように撮影します。<br>
+          <span style="font-size:0.85rem; color:var(--accent); font-weight:700;">※この時点ではまだ文字読み取りは行われません。</span></p>
+        </div>
+      </div>
+
+      <div class="flow-arrow">▼</div>
+
+      <div class="flow-item">
+        <span class="flow-step-badge">② 選択</span>
+        <div class="flow-detail">
+          <h3>顧客要望を選択する</h3>
+          <p>「資料希望」「デモ希望」「見積希望」など、該当する項目をタップして選びます。</p>
+        </div>
+      </div>
+
+      <div class="flow-arrow">▼</div>
+
+      <div class="flow-item">
+        <span class="flow-step-badge">③ 入力</span>
+        <div class="flow-detail">
+          <h3>商談した商品・営業への申し送り事項を入力する</h3>
+          <p>お話した商品名や、営業担当者へ伝えておきたい要望などを自由に入力します。</p>
+        </div>
+      </div>
+
+      <div class="flow-arrow">▼</div>
+
+      <div class="flow-item highlight-flow">
+        <span class="flow-step-badge ocr">④ 熱意・自動読取</span>
+        <div class="flow-detail">
+          <h3>「熱意（関心度）」をタップする ➔ <span class="text-blue">登録コードを自動認識！</span></h3>
+          <p>熱意の度合いをタップすると、<strong>①で撮影した名札画像から「登録コード」が自動で読み取られ（OCR認識）</strong>、画面に結果が表示されます。</p>
+        </div>
+      </div>
+
+      <div class="flow-arrow">▼</div>
+
+      <div class="flow-item">
+        <span class="flow-step-badge done">⑤ 確認・登録</span>
+        <div class="flow-detail">
+          <h3>読み取られた登録コードを確認して「登録」ボタンを押す</h3>
+          <p>画面に表示された登録コードに間違いがないか確認し、登録ボタンを押すとサーバーへ送信されます。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="loop-banner">
+      ✨ 登録が完了すると、自動的に「① 名札撮影」の画面に戻ります！<br>
+      <span style="font-size:0.9rem; font-weight:700;">次のお客様がいらっしゃったら、そのまま STEP 3（①〜⑤）を繰り返してください。</span>
+    </div>
+  </section>
+
+  <!-- 操作動画セクション -->
+  <div class="phase-banner phase-video">
+    <span>🎬【動画ガイド】実際のスマホ操作の流れを見る</span>
+  </div>
+
+  <section class="video-section">
+    <p class="video-desc">
+      手順が分かりにくい場合は、下の再生ボタン（▶）を押して操作動画をご確認ください。
+    </p>
+    <div class="video-frame">
+      <video controls playsinline preload="metadata">
+        <source src="event/images/641978901312569583.mp4" type="video/mp4">
+        お使いのブラウザは動画再生に対応していません。
+      </video>
+    </div>
+    <p class="video-note">
+      ※再生後、右下の拡大アイコンを押すとスマホ全画面で見やすくなります
+    </p>
+  </section>
+
+</div>
+
+</body>
+</html>
